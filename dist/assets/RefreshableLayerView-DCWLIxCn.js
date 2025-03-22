@@ -1,0 +1,1 @@
+import{r as t,t as i,aj as h,K as l,O as d}from"./index-PAhymuf7.js";const f=s=>{let e=class extends s{initialize(){this.addHandles(h(()=>this.layer,"refresh",r=>{this.doRefresh(r.dataChanged).catch(a=>{l(a)||d.getLogger(this).error(a)})}),"RefreshableLayerView")}};return e=t([i("esri.views.layers.RefreshableLayerView")],e),e};export{f as i};
