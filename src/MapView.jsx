@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 import { observer } from "mobx-react-lite";
 import mapStore from "./store/MapStore";
 import styled from "styled-components";
-import MapView from "@arcgis/core/views/MapView";
-import WebMap from "@arcgis/core/WebMap";
+import SceneView from "@arcgis/core/views/SceneView";
+import Map from "@arcgis/core/Map";
 
 const MapContainer = styled.div`
   width: 100%;
@@ -15,15 +15,23 @@ const ArcGISMap = observer(() => {
   const layerRef = useRef(null);
 
   useEffect(() => {
-    const webMap = new WebMap({
-      portalItem: {
-        id: "e691172598f04ea8881cd2a4adaa45ba", // Sample ArcGIS WebMap ID
-      },
+    const map = new Map({                // Create a Map object
+      basemap: "topo-vector",
+      ground: "world-elevation"
     });
 
-    const view = new MapView({
+    const view = new SceneView({
       container: mapRef.current,
-      map: webMap,
+      map: map,
+      camera: {
+        position: [
+          9.49279182,
+          46.54843580,
+          8103.52048
+        ],
+        heading: 9.38,
+        tilt: 72.81
+      }
     });
 
     // Wait for the map to load, then get the first layer
