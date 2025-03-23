@@ -1,11 +1,13 @@
 import styled from "styled-components";
 import { uiStore } from "../store/uiStore";
+import { languageStore } from "../store/languageStore";
 import { observer } from "mobx-react-lite";
 import { Menu } from "lucide-react";
+import { getTranslation } from "../utils/getTranslation";
 
 const HeaderContainer = styled.header`
-z-index:100;  
-display: flex;
+z-index:100;
+  display: flex;
   justify-content: space-between;
   align-items: center;
   height: 60px;
@@ -30,16 +32,38 @@ const MenuButton = styled.button`
   font-size: 24px;
 `;
 
+const LanguageSelector = styled.select`
+  background: none;
+  color: white;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  
+  option {
+    color: black; /* Ensures text is visible in the dropdown */
+    background: white; /* Optional: Ensure contrast */
+  }
+`;
+
 const Header = observer(() => {
-    return (
-        <HeaderContainer panelOpen={uiStore.isPanelOpen}>
-            <MenuButton onClick={uiStore.togglePanel}>
-                <Menu size={28} />
-            </MenuButton>
-            <Title>Alpenchallenge</Title>
-            <div style={{ width: "28px" }} /> {/* Placeholder for right side */}
-        </HeaderContainer>
-    );
+  return (
+    <HeaderContainer panelOpen={uiStore.isPanelOpen}>
+      <MenuButton onClick={uiStore.togglePanel}>
+        <Menu size={28} />
+      </MenuButton>
+      <Title>{getTranslation("title")}</Title>
+      <LanguageSelector
+        value={languageStore.language}
+        onChange={(e) => languageStore.setLanguage(e.target.value)}
+      >
+        <option value="de">DE</option>
+        <option value="fr">FR</option>
+        <option value="it">IT</option>
+        <option value="en">EN</option>
+
+      </LanguageSelector>
+    </HeaderContainer>
+  );
 });
 
 export default Header;

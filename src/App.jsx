@@ -5,6 +5,8 @@ import styled from "styled-components";
 import { observer } from "mobx-react-lite";
 import { uiStore } from "./store/uiStore";
 import GlobalStyles from "./styles/globalStyles";
+import { languageStore } from "./store/languageStore";
+import { useEffect } from "react";
 
 const Container = styled.div`
   display: flex;
@@ -26,6 +28,11 @@ const MapContainer = styled.div`
 `;
 
 const App = observer(() => {
+
+  useEffect(() => {
+    languageStore.initLanguageFromURL();
+  }, []);
+
   return (
     <Container>
       <GlobalStyles />

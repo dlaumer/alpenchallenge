@@ -4,6 +4,7 @@ import mapStore from "../store/MapStore";
 import styled from "styled-components";
 import SceneView from "@arcgis/core/views/SceneView";
 import Map from "@arcgis/core/Map";
+import BasemapToggle from "@arcgis/core/widgets/BasemapToggle";
 
 const MapContainer = styled.div`
   width: 100%;
@@ -17,7 +18,7 @@ const ArcGISMap = observer(() => {
 
   useEffect(() => {
     const map = new Map({                // Create a Map object
-      basemap: "topo-vector",
+      basemap: "topo-3d",
       ground: "world-elevation"
     });
 
@@ -26,18 +27,23 @@ const ArcGISMap = observer(() => {
       map: map,
       camera: {
         position: [
-          9.49279182,
-          46.54843580,
-          8103.52048
+          9.56084002,
+          46.89388359,
+          1216.56823
         ],
-        heading: 9.38,
-        tilt: 72.81
+        heading: 217.28,
+        tilt: 75.80
       }
     });
 
+    const basemapToggle = new BasemapToggle({
+      view: view,  // The view that provides access to the map's "streets-vector" basemap
+    });
+
+    view.ui.add(basemapToggle, "top-right")
     // Wait for the map to load, then get the first layer
     view.when(() => {
-      layerRef.current = webMap.layers.getItemAt(0); // Get first layer
+      window.view = view;
     });
 
     return () => view.destroy();

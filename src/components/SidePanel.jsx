@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import { observer } from "mobx-react-lite";
+import { getTranslation } from "../utils/getTranslation";
 
 const Panel = styled.div`
   position: absolute;
@@ -16,8 +17,8 @@ const Panel = styled.div`
 const SidePanel = observer(() => {
   return (
     <Panel>
-      <h3>Menu</h3>
-      <p>Hier wären verschiedene Menuelemente</p>
+      <h3>{getTranslation("menu")}</h3>
+      <p>{getTranslation("sidePanel")}</p>
     </Panel>
   );
 });
