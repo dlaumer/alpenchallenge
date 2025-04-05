@@ -6,7 +6,7 @@ import { observer } from "mobx-react-lite";
 import { uiStore } from "./store/uiStore";
 import GlobalStyles from "./styles/globalStyles";
 import { languageStore } from "./store/languageStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const Container = styled.div`
   display: flex;
