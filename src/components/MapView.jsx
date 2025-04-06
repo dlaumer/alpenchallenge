@@ -22,6 +22,7 @@ const MapContainer = styled.div`
 `;
 
 const ArcGISMap = observer(() => {
+  const viewRef = useRef(null);
   const mapRef = useRef(null);
   const layerRef = useRef(null);
   const animationFrameRef = useRef(null);
@@ -102,7 +103,6 @@ const ArcGISMap = observer(() => {
         tilt: 50.05
       }
     });
-
 
     const basemapToggle = new BasemapToggle({
       view: view,  // The view that provides access to the map's "streets-vector" basemap
@@ -236,6 +236,7 @@ const ArcGISMap = observer(() => {
 
             const graphic = new Graphic({
               geometry: point,
+              attributes: prev,
               symbol: {
                 type: "simple-marker",
                 color: color,
@@ -257,6 +258,50 @@ const ArcGISMap = observer(() => {
 
     view.when(() => {
       window.view = view;
+      viewRef.current = view;
+      // Attach a click event to the view.
+      view.on("click", (event) => {
+        // Use hitTest to check for graphics at the clicked location.
+        view.hitTest(event).then((response) => {
+          if (response.results.length > 0) {
+            // Filter the hitTest results to find one with rider attributes.
+            const result = response.results.find((result) =>
+              result.graphic &&
+              result.graphic.attributes &&
+              result.graphic.attributes.userId
+            );
+
+            if (result) {
+              const graphic = result.graphic;
+              const attributes = graphic.attributes;
+
+              // Build the HTML content for the popup.
+              const content = `
+            <ul>
+              <li><b>User:</b> ${attributes.userId}</li>
+              <li><b>Run ID:</b> ${attributes.runId}</li>
+              <li><b>Contest ID:</b> ${attributes.contestId}</li>
+              <li><b>Gig ID:</b> ${attributes.gigId}</li>
+              <li><b>Time:</b> ${attributes.ts_string}</li>
+              <li><b>Accuracy:</b> ${attributes.accuracy}</li>
+              <li><b>Heading:</b> ${attributes.heading}</li>
+              <li><b>Speed:</b> ${attributes.speed}</li>
+              <li><b>Longitude:</b> ${attributes.longitude}</li>
+              <li><b>Latitude:</b> ${attributes.latitude}</li>
+              <li><b>Altitude:</b> ${attributes.altitude}</li>
+            </ul>
+          `;
+              // Update the popupStore so that the reaction opens the popup.
+              mapStore.setPopupContent({
+                userId: attributes.userId,
+                content: content,
+                location: event.mapPoint
+              });
+
+            }
+          }
+        });
+      });
     });
 
 
@@ -276,6 +321,19 @@ const ArcGISMap = observer(() => {
     }
   }, [mapStore.layerVisible]);
 
+
+  // React to layer visibility changes
+  useEffect(() => {
+    if (mapStore.view) {
+      // Open the popup at the clicked map point.
+      viewRef.current.openPopup({
+        title: `Rider: ${mapStore.popupContent.userId}`,
+        content: mapStore.popupContent.content,
+        location: mapStore.popupContent.location
+      });
+    }
+
+  }, [mapStore.popupContent]);
 
   return <MapContainer ref={mapRef} />;
 });
