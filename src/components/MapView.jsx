@@ -179,24 +179,6 @@ const ArcGISMap = observer(() => {
       return interpolatedPoint;
     }
 
-    // Watch the layerView's updating property using reactiveUtils.when.
-    view.whenLayerView(latestSimulation).then((layerView) => {
-      reactiveUtils.when(
-        () => layerView.updating === false,
-        () => {
-          // Once updating is false, query features for new data.
-          latestSimulation.queryFeatures().then((results) => {
-            const newData = processResults(results);
-            if (JSON.stringify(newData) !== JSON.stringify(riderStore.riders)) {
-              riderStore.setRiders(newData);
-              // Reset the animation timer when new positions come in.
-              animationStartTimeRef.current = Date.now();
-            }
-          });
-        }
-      );
-    });
-
     // Animation: Use requestAnimationFrame for smoother updates.
     // Use a plain object to store graphics keyed by rider ID.
     const graphicsMap = {};
@@ -259,6 +241,24 @@ const ArcGISMap = observer(() => {
     view.when(() => {
       window.view = view;
       viewRef.current = view;
+      // Watch the layerView's updating property using reactiveUtils.when.
+      view.whenLayerView(latestSimulation).then((layerView) => {
+        reactiveUtils.when(
+          () => layerView.updating === false,
+          () => {
+            // Once updating is false, query features for new data.
+            latestSimulation.queryFeatures().then((results) => {
+              const newData = processResults(results);
+              if (JSON.stringify(newData) !== JSON.stringify(riderStore.riders)) {
+                riderStore.setRiders(newData);
+                // Reset the animation timer when new positions come in.
+                animationStartTimeRef.current = Date.now();
+              }
+            });
+          }
+        );
+      });
+
       // Attach a click event to the view.
       view.on("click", (event) => {
         // Use hitTest to check for graphics at the clicked location.
@@ -324,13 +324,8 @@ const ArcGISMap = observer(() => {
 
   // React to layer visibility changes
   useEffect(() => {
-    if (mapStore.view) {
-      // Open the popup at the clicked map point.
-      viewRef.current.openPopup({
-        title: `Rider: ${mapStore.popupContent.userId}`,
-        content: mapStore.popupContent.content,
-        location: mapStore.popupContent.location
-      });
+    if (viewRef.current) {
+      // Show the popup content
     }
 
   }, [mapStore.popupContent]);
