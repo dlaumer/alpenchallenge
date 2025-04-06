@@ -65,6 +65,15 @@ const ArcGISMap = observer(() => {
       visible: false
     })
 
+    const route = new FeatureLayer({
+      portalItem: {  // autocasts as esri/portal/PortalItem
+        id: "496d79bd13fe4cbb9b97608a44dc3b12"
+      },
+      elevationInfo: {
+        mode: "on-the-ground"
+      }
+    })
+
 
     // Create a GraphicsLayer that will display the animated points
     const animatedLayer = new GraphicsLayer({
@@ -77,7 +86,7 @@ const ArcGISMap = observer(() => {
     const map = new Map({                // Create a Map object
       basemap: "topo-3d",
       ground: "world-elevation",
-      layers: [animatedLayer, latestSimulation]
+      layers: [animatedLayer, latestSimulation, route]
     });
 
     const view = new SceneView({
@@ -85,25 +94,15 @@ const ArcGISMap = observer(() => {
       map: map,
       camera: {
         position: [
-          9.69501311,
-          46.16748120,
-          60968.00841
+          9.75325244,
+          46.20215233,
+          34712.77477
         ],
-        heading: 0.14,
-        tilt: 36.36
+        heading: 358.70,
+        tilt: 50.05
       }
     });
 
-    // When the layer is loaded, query its extent and move the view
-    latestSimulation.when(function () {
-      latestSimulation.queryExtent().then(function (response) {
-        if (response.extent) {
-          view.goTo(response.extent).then(function () {
-            console.log("Scene moved to feature layer extent.");
-          });
-        }
-      })
-    })
 
     const basemapToggle = new BasemapToggle({
       view: view,  // The view that provides access to the map's "streets-vector" basemap
@@ -124,7 +123,9 @@ const ArcGISMap = observer(() => {
           longitude: attributes.longitude,
           latitude: attributes.latitude,
           altitude: attributes.altitude,
-          ts: attributes.ts
+          ts: attributes.ts,
+          cumulative: JSON.parse(attributes.cumulative),
+          path: JSON.parse(attributes.path)
         };
         // Parse previousPos (which may be stored as a JSON string)
         let previousPos = attributes.previousPos;
@@ -139,6 +140,44 @@ const ArcGISMap = observer(() => {
       });
       return newData;
     };
+
+    const interpolateAlongPath = (t, coordinates, cumulativeDistances) => {
+      // Compute the target distance along the path.
+      const totalDistance = cumulativeDistances[cumulativeDistances.length - 1];
+      const targetDistance = t * totalDistance;
+
+      // Use binary search to find the segment where targetDistance falls.
+      let left = 0;
+      let right = cumulativeDistances.length - 1;
+      while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        if (cumulativeDistances[mid] < targetDistance) {
+          left = mid + 1;
+        } else {
+          right = mid - 1;
+        }
+      }
+      // The target lies between indices (left - 1) and left.
+      const segmentStartIndex = Math.max(left - 1, 0);
+      const segmentEndIndex = left;
+
+      // Compute the relative fraction within the segment.
+      const segmentStartDistance = cumulativeDistances[segmentStartIndex];
+      const segmentEndDistance = cumulativeDistances[segmentEndIndex];
+      const segmentDistance = segmentEndDistance - segmentStartDistance;
+
+      // Avoid division by zero in degenerate cases.
+      const segmentT = segmentDistance === 0 ? 0 : (targetDistance - segmentStartDistance) / segmentDistance;
+
+      // Interpolate between the two coordinates.
+      const startPoint = coordinates[segmentStartIndex];
+      const endPoint = coordinates[segmentEndIndex];
+      const interpolatedPoint = [
+        startPoint[0] + segmentT * (endPoint[0] - startPoint[0]),
+        startPoint[1] + segmentT * (endPoint[1] - startPoint[1])]
+
+      return interpolatedPoint;
+    }
 
     // Watch the layerView's updating property using reactiveUtils.when.
     view.whenLayerView(latestSimulation).then((layerView) => {
@@ -161,9 +200,6 @@ const ArcGISMap = observer(() => {
     // Animation: Use requestAnimationFrame for smoother updates.
     // Use a plain object to store graphics keyed by rider ID.
     const graphicsMap = {};
-    let secondsElapsed = 0;
-    const updateInterval = 30; // seconds (matching the feature layer refresh)
-
     const animate = () => {
       const elapsed = Date.now() - animationStartTimeRef.current;
 
@@ -179,9 +215,10 @@ const ArcGISMap = observer(() => {
           let t = elapsed / timeDiff;
           if (t > 1) t = 1;
 
+          const interpolated2D = interpolateAlongPath(t, curr.path.geometry.coordinates, curr.cumulative)
           const interpolated = {
-            longitude: prev.longitude + (curr.longitude - prev.longitude) * t,
-            latitude: prev.latitude + (curr.latitude - prev.latitude) * t,
+            longitude: interpolated2D[0],
+            latitude: interpolated2D[1],
             altitude: prev.altitude + (curr.altitude - prev.altitude) * t,
           };
 
@@ -238,6 +275,7 @@ const ArcGISMap = observer(() => {
       layerRef.current.visible = mapStore.layerVisible;
     }
   }, [mapStore.layerVisible]);
+
 
   return <MapContainer ref={mapRef} />;
 });
