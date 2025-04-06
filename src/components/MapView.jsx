@@ -6,14 +6,14 @@ import riderStore from "../store/riderStore"; // your mobx store for riders
 import styled from "styled-components";
 import SceneView from "@arcgis/core/views/SceneView";
 import Map from "@arcgis/core/Map";
-import BasemapToggle from "@arcgis/core/widgets/BasemapToggle";
+import Expand from "@arcgis/core/widgets/Expand";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
+import SceneLayer from "@arcgis/core/layers/SceneLayer";
 import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
 import Graphic from "@arcgis/core/Graphic";
 import Point from "@arcgis/core/geometry/Point";
 import * as reactiveUtils from "@arcgis/core/core/reactiveUtils";
-import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
-import SimpleMarkerSymbol from "@arcgis/core/symbols/SimpleMarkerSymbol";
+import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 
 const MapContainer = styled.div`
   width: 100%;
@@ -27,6 +27,10 @@ const ArcGISMap = observer(() => {
   const layerRef = useRef(null);
   const animationFrameRef = useRef(null);
   const animationStartTimeRef = useRef(Date.now());
+  const popupRef = useRef(null);
+
+  const popupExpand = useRef(null);
+  const basemapGalleryExpand = useRef(null);
 
   // Define a fixed color palette for riders 1 to 10.
   const fixedColorPalette = {
@@ -43,17 +47,6 @@ const ArcGISMap = observer(() => {
   };
 
   useEffect(() => {
-
-    // Create a default unique value renderer with a default symbol.
-    const uniqueValueRenderer = new UniqueValueRenderer({
-      field: "userId", // This field is expected in your rider data (see Untitled-1.json :contentReference[oaicite:0]{index=0})
-      defaultSymbol: new SimpleMarkerSymbol({
-        color: "gray",
-        size: 8,
-        outline: { color: "white", width: 1 }
-      }),
-      uniqueValueInfos: [] // Will be populated dynamically.
-    });
 
     const latestSimulation = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
@@ -76,6 +69,16 @@ const ArcGISMap = observer(() => {
     })
 
 
+    const buildings = new SceneLayer({
+      portalItem: {  // autocasts as esri/portal/PortalItem
+        id: "a714a2ca145446b79d97aaa7b895ff95"
+      },
+      elevationInfo: {
+        mode: "on-the-ground"
+      }
+    })
+
+
     // Create a GraphicsLayer that will display the animated points
     const animatedLayer = new GraphicsLayer({
       elevationInfo: {
@@ -85,9 +88,9 @@ const ArcGISMap = observer(() => {
 
 
     const map = new Map({                // Create a Map object
-      basemap: "topo-3d",
+      basemap: "satellite",
       ground: "world-elevation",
-      layers: [animatedLayer, latestSimulation, route]
+      layers: [animatedLayer, latestSimulation, route, buildings]
     });
 
     const view = new SceneView({
@@ -104,13 +107,32 @@ const ArcGISMap = observer(() => {
       }
     });
 
-    const basemapToggle = new BasemapToggle({
+    const basemapGallery = new BasemapGallery({
       view: view,  // The view that provides access to the map's "streets-vector" basemap
     });
+    basemapGalleryExpand.current = new Expand({
+      content: basemapGallery,
+      view: view
+    });
+    view.ui.add(basemapGalleryExpand.current, "top-right")
 
-    view.ui.add(basemapToggle, "top-right")
-    // Wait for the map to load, then get the first layer
+    
+    // Create a div for the popup content
+    popupRef.current = document.createElement("div");
+    popupRef.current.style.padding = "10px";
+    popupRef.current.innerHTML = mapStore.popupContent || "Waiting for popup content...";
 
+    // Create the Expand widget with the div as its content
+    popupExpand.current = new Expand({
+      view,
+      content: popupRef.current,
+      expandIconClass: "esri-icon-description",
+      expandTooltip: "Show popup content",
+      expanded: false,
+    });
+
+    // Add the widget to the view's UI (you can change the position as needed)
+    view.ui.add(popupExpand.current, "top-right");
 
     // Process the feature layer's query results into the data format expected by your store.
     // For each feature, we assume the attributes include a userId, current coordinates and a previousPos JSON string.
@@ -326,6 +348,8 @@ const ArcGISMap = observer(() => {
   useEffect(() => {
     if (viewRef.current) {
       // Show the popup content
+      popupRef.current.innerHTML = mapStore.popupContent.content
+      popupExpand.current.expanded = true;
     }
 
   }, [mapStore.popupContent]);
