@@ -3,6 +3,7 @@ import { makeAutoObservable } from "mobx";
 
 export class RiderStore {
   riders = {};
+  replayData = {};
 
   constructor() {
     makeAutoObservable(this);
@@ -11,6 +12,10 @@ export class RiderStore {
   // Action to update the riders data when new data is available
   setRiders(newRiders) {
     this.riders = newRiders;
+  }
+  
+  setReplayData(data) {
+    this.replayData = data;
   }
 }
 

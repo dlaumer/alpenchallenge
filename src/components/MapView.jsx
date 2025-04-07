@@ -48,6 +48,7 @@ const ArcGISMap = observer(() => {
     "rider_10": "black"
   };
 
+  
   useEffect(() => {
 
     const latestSimulation = new FeatureLayer({
@@ -59,6 +60,13 @@ const ArcGISMap = observer(() => {
       },
       refreshInterval: 1,
       visible: false
+    })
+
+    
+    const posHistory = new FeatureLayer({
+      portalItem: {  // autocasts as esri/portal/PortalItem
+        id: "3be23c44c1ae48f3a565ceefb0f22d53"
+      }
     })
 
     const route = new FeatureLayer({
@@ -171,6 +179,34 @@ const ArcGISMap = observer(() => {
       });
       return newData;
     };
+
+
+    posHistory.queryFeatures({
+      where: "1=1", // or use a smarter where clause
+      outFields: ["*"],
+      returnGeometry: true
+    }).then((results) => {
+      const replayData = {};
+
+      results.features.forEach((feature) => {
+        const attr = feature.attributes;
+        const riderId = attr.userId;
+        const timestamp = new Date(attr.ts_string).getTime(); // or use new Date(attr.ts).toISOString().slice(0, 19)
+
+        if (!replayData[riderId]) replayData[riderId] = {};
+        replayData[riderId][timestamp] = {
+          latitude: attr.latitude,
+          longitude: attr.longitude,
+          altitude: attr.altitude,
+          speed: attr.speed,
+          heading: attr.heading,
+          // optionally store more
+        };
+      });
+      console.log(replayData)
+      riderStore.setReplayData(replayData); // create a setter in your store
+    });
+
 
 
     // Helper functions to convert between degrees and radians.
