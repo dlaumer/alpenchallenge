@@ -92,7 +92,7 @@ const ArcGISMap = observer(() => {
     const map = new Map({                // Create a Map object
       basemap: "satellite",
       ground: "world-elevation",
-      layers: [animatedLayer, latestSimulation, route]
+      layers: [animatedLayer, latestSimulation, route, buildings]
     });
 
     const view = new SceneView({
@@ -308,7 +308,7 @@ const ArcGISMap = observer(() => {
             viewRef.current.goTo(
               {
                 center: followedGraphic.geometry,
-                zoom: view.zoom < 14 ? 19 : null,
+                zoom: view.zoom < 16 ? 19 : null,
                 tilt: 70,
                 heading: smoothedHeading,
               },
