@@ -20,6 +20,16 @@ const HeaderContainer = styled.header`
   margin-left: ${(props) => (props.panelOpen ? "250px" : "0")};
 `;
 
+const Timer = styled.span`
+   margin-left: 10px;
+   font-size: 16px;
+ `;
+ 
+ const LeftSection = styled.div`
+   display: flex;
+   align-items: center;
+ `;
+
 const Title = styled.h1`
   flex: 1;
   text-align: center;
@@ -67,9 +77,14 @@ const Header = observer(() => {
 
   return (
     <HeaderContainer panelOpen={uiStore.isPanelOpen}>
-      <MenuButton onClick={uiStore.togglePanel}>
-        <Menu size={28} />
-      </MenuButton>
+      <LeftSection>
+         <MenuButton onClick={uiStore.togglePanel}>
+           <Menu size={28} />
+         </MenuButton>
+         <Timer>
+           {mapStore.time ? mapStore.time.toLocaleTimeString('en-GB') : "Loading..."}
+         </Timer>
+       </LeftSection>
       <Title>{getTranslation("title")}</Title>
       <LanguageSelector
         value={languageStore.language}

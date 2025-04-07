@@ -301,7 +301,7 @@ const ArcGISMap = observer(() => {
             // Normalize the delta to the range [-180, 180]
             if (delta > 180) delta -= 360;
             if (delta < -180) delta += 360;
-            const smoothingFactor = 0.03; // Adjust this value to change smoothing speed.
+            const smoothingFactor = 0.005; // Adjust this value to change smoothing speed.
             let smoothedHeading = currentHeading + delta * smoothingFactor;
             smoothedHeading = (smoothedHeading + 360) % 360;
             // Use goTo without animation to instantly center the view on the followed rider.
