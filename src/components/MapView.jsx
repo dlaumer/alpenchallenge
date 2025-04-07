@@ -92,7 +92,7 @@ const ArcGISMap = observer(() => {
     const map = new Map({                // Create a Map object
       basemap: "satellite",
       ground: "world-elevation",
-      layers: [animatedLayer, latestSimulation, route, buildings]
+      layers: [animatedLayer, latestSimulation, route]
     });
 
     const view = new SceneView({
@@ -137,7 +137,7 @@ const ArcGISMap = observer(() => {
 
     popupExpand.current.watch("expanded", expanded => {
       if (!expanded) {
-        mapStore.toggleFollow(mapStore.riderFollowed);
+        //mapStore.toggleFollow(mapStore.riderFollowed);
       }
     })
     // Add the widget to the view's UI (you can change the position as needed)
@@ -295,20 +295,27 @@ const ArcGISMap = observer(() => {
             const followedGraphic = graphicsMap[mapStore.riderFollowed];
             const calculatedHeading = interpolationResult.heading;
 
-            // Smooth the heading transition to avoid drastic jumps.
+            // Smooth the heading transition only if the difference is less than 90 degrees.
             let currentHeading = view.camera.heading;
             let delta = calculatedHeading - currentHeading;
-            // Normalize the delta to the range [-180, 180]
+
+            // Normalize delta to the range [-180, 180]
             if (delta > 180) delta -= 360;
             if (delta < -180) delta += 360;
-            const smoothingFactor = 0.005; // Adjust this value to change smoothing speed.
-            let smoothedHeading = currentHeading + delta * smoothingFactor;
-            smoothedHeading = (smoothedHeading + 360) % 360;
+
+            let smoothedHeading;
+            if (Math.abs(delta) < 90) {
+              const smoothingFactor = 0.005; // Adjust this for smoothness
+              smoothedHeading = currentHeading + delta * smoothingFactor;
+              smoothedHeading = (smoothedHeading + 360) % 360;
+            } else {
+              smoothedHeading = calculatedHeading;
+            }
             // Use goTo without animation to instantly center the view on the followed rider.
             viewRef.current.goTo(
               {
                 center: followedGraphic.geometry,
-                zoom: view.zoom < 16 ? 19 : null,
+                zoom: view.zoom < 16 ? 20 : null,
                 tilt: 70,
                 heading: smoothedHeading,
               },

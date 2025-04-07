@@ -57,23 +57,8 @@ const LanguageSelector = styled.select`
   }
 `;
 
-const FollowButton = styled.button`
-  background: #61dafb;
-  border: none;
-  border-radius: 5px;
-  padding: 5px 10px;
-  cursor: pointer;
-  font-size: 14px;
-  margin-left: 10px;
-`;
 
 const Header = observer(() => {
-
-  const handleFollowClick = () => {
-    if (mapStore.riderSelected) {
-      mapStore.toggleFollow(mapStore.riderSelected);
-    }
-  };
 
   return (
     <HeaderContainer panelOpen={uiStore.isPanelOpen}>
@@ -95,11 +80,6 @@ const Header = observer(() => {
         <option value="it">IT</option>
         <option value="en">EN</option>
       </LanguageSelector>
-      {mapStore.riderSelected && (
-        <FollowButton onClick={handleFollowClick}>
-          {mapStore.riderFollowed === mapStore.riderSelected ? "Unfollow" : "Follow"}
-        </FollowButton>
-      )}
     </HeaderContainer>
   );
 });

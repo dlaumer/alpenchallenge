@@ -2,9 +2,26 @@ import React, { useState, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import mapStore from "../store/mapStore";
 import riderStore from "../store/riderStore"; // assuming riderStore is available
+import styled from "styled-components";
+
+const FollowButton = styled.button`
+  background: #61dafb;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 10px;
+`;
 
 const Popup = observer(() => {
   const [attributes, setAttributes] = useState(null);
+
+  const handleFollowClick = () => {
+    if (mapStore.riderSelected) {
+      mapStore.toggleFollow(mapStore.riderSelected);
+    }
+  };
 
   const formatTime = (time) => {
     const hours = time.getHours().toString().padStart(2, "0");
@@ -32,6 +49,9 @@ const Popup = observer(() => {
 
   return (
     <div style={{ padding: "10px" }}>
+      <FollowButton onClick={handleFollowClick}>
+        {mapStore.riderFollowed === mapStore.riderSelected ? "Unfollow" : "Follow"}
+      </FollowButton>
       <h2>{formatTime(new Date(mapStore.time))}</h2>
       <ul>
         <li><b>User:</b> {attributes.userId}</li>
