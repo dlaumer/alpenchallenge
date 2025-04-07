@@ -4,6 +4,9 @@ class MapStore {
   layerVisible = true; // Default visibility
   popupContent = null;
   view = null;
+  riderSelected = null;
+  time = null;
+
   constructor() {
     makeAutoObservable(this);
   }
@@ -20,6 +23,15 @@ class MapStore {
   setView(view) {
     this.view = view;
   }
+
+  setRiderSelected(riderSelected) {
+    this.riderSelected = riderSelected;
+  }
+
+  setTime(time) {
+    this.time = time;
+  }
+
 }
 
 const mapStore = new MapStore();

@@ -116,7 +116,7 @@ const ArcGISMap = observer(() => {
     });
     view.ui.add(basemapGalleryExpand.current, "top-right")
 
-    
+
     // Create a div for the popup content
     popupRef.current = document.createElement("div");
     popupRef.current.style.padding = "10px";
@@ -131,6 +131,11 @@ const ArcGISMap = observer(() => {
       expanded: false,
     });
 
+    popupExpand.current.watch("expanded", expanded => {
+      if (!expanded) {
+        mapStore.setRiderSelected(null);
+      }
+    })
     // Add the widget to the view's UI (you can change the position as needed)
     view.ui.add(popupExpand.current, "top-right");
 
@@ -163,6 +168,46 @@ const ArcGISMap = observer(() => {
       return newData;
     };
 
+    const setPopup = (userId, time) => {
+
+      const attributes = riderStore.riders[userId].previousPos;
+
+      // Build the HTML content for the popup.
+      const content = `
+      <h2>${formatTime(time)}</h2>
+      <ul>
+        <li><b>User:</b> ${attributes.userId}</li>
+        <li><b>Run ID:</b> ${attributes.runId}</li>
+        <li><b>Contest ID:</b> ${attributes.contestId}</li>
+        <li><b>Gig ID:</b> ${attributes.gigId}</li>
+        <li><b>Time:</b> ${attributes.ts_string}</li>
+        <li><b>Accuracy:</b> ${attributes.accuracy}</li>
+        <li><b>Heading:</b> ${attributes.heading}</li>
+        <li><b>Speed:</b> ${attributes.speed}</li>
+        <li><b>Longitude:</b> ${attributes.longitude}</li>
+        <li><b>Latitude:</b> ${attributes.latitude}</li>
+        <li><b>Altitude:</b> ${attributes.altitude}</li>
+      </ul>
+    `;
+      // Update the popupStore so that the reaction opens the popup.
+      mapStore.setPopupContent({
+        userId: attributes.userId,
+        content: content,
+      });
+
+      popupRef.current.innerHTML = mapStore.popupContent.content
+
+
+    }
+
+    const formatTime = (time) => {
+
+      const hours = time.getHours().toString().padStart(2, '0');
+      const minutes = time.getMinutes().toString().padStart(2, '0');
+      const seconds = time.getSeconds().toString().padStart(2, '0');
+
+      return `${hours}:${minutes}:${seconds}`;
+    }
     const interpolateAlongPath = (t, coordinates, cumulativeDistances) => {
       // Compute the target distance along the path.
       const totalDistance = cumulativeDistances[cumulativeDistances.length - 1];
@@ -232,24 +277,39 @@ const ArcGISMap = observer(() => {
             z: interpolated.altitude
           });
 
+          // Check if the current rider is selected and update its symbol accordingly.
+          const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
+          const color = fixedColorPalette[riderId] || "blue";
+          const symbol = {
+            type: "simple-marker",
+            color: color,
+            size: isSelected ? "16px" : "12px", // Bigger marker when selected
+            outline: {
+              color: isSelected ? "red" : "white", // Red border if selected, otherwise white
+              width: isSelected ? 3 : 0
+            }
+          };
           // Use a plain object to check if the graphic exists
           if (graphicsMap[riderId]) {
             graphicsMap[riderId].geometry = point;
+            graphicsMap[riderId].symbol = symbol; // Update symbol to reflect selection
           } else {
-            const color = fixedColorPalette[riderId] || "blue";
 
             const graphic = new Graphic({
               geometry: point,
               attributes: prev,
-              symbol: {
-                type: "simple-marker",
-                color: color,
-                size: "12px"
-              }
+              symbol: symbol
             });
             graphicsMap[riderId] = graphic;
             animatedLayer.add(graphic);
           }
+
+          mapStore.setTime(new Date(prev.ts + t * timeDiff - 60 * 60 * 1000))
+
+          if (mapStore.riderSelected != null && riderId == mapStore.riderSelected) {
+            setPopup(mapStore.riderSelected, new Date(prev.ts + t * timeDiff))
+          }
+
         }
       });
 
@@ -276,6 +336,7 @@ const ArcGISMap = observer(() => {
                 // Reset the animation timer when new positions come in.
                 animationStartTimeRef.current = Date.now();
               }
+
             });
           }
         );
@@ -294,32 +355,7 @@ const ArcGISMap = observer(() => {
             );
 
             if (result) {
-              const graphic = result.graphic;
-              const attributes = graphic.attributes;
-
-              // Build the HTML content for the popup.
-              const content = `
-            <ul>
-              <li><b>User:</b> ${attributes.userId}</li>
-              <li><b>Run ID:</b> ${attributes.runId}</li>
-              <li><b>Contest ID:</b> ${attributes.contestId}</li>
-              <li><b>Gig ID:</b> ${attributes.gigId}</li>
-              <li><b>Time:</b> ${attributes.ts_string}</li>
-              <li><b>Accuracy:</b> ${attributes.accuracy}</li>
-              <li><b>Heading:</b> ${attributes.heading}</li>
-              <li><b>Speed:</b> ${attributes.speed}</li>
-              <li><b>Longitude:</b> ${attributes.longitude}</li>
-              <li><b>Latitude:</b> ${attributes.latitude}</li>
-              <li><b>Altitude:</b> ${attributes.altitude}</li>
-            </ul>
-          `;
-              // Update the popupStore so that the reaction opens the popup.
-              mapStore.setPopupContent({
-                userId: attributes.userId,
-                content: content,
-                location: event.mapPoint
-              });
-
+              mapStore.setRiderSelected(result.graphic.attributes.userId)
             }
           }
         });
@@ -348,11 +384,19 @@ const ArcGISMap = observer(() => {
   useEffect(() => {
     if (viewRef.current) {
       // Show the popup content
-      popupRef.current.innerHTML = mapStore.popupContent.content
-      popupExpand.current.expanded = true;
+      if (mapStore.riderSelected != null) {
+        popupExpand.current.expanded = true;
+      }
+      else {
+        mapStore.setPopupContent(null)
+        popupRef.current.innerHTML = "Waiting for popup content...";
+        popupExpand.current.expanded = false;
+      }
     }
 
-  }, [mapStore.popupContent]);
+  }, [mapStore.riderSelected]);
+
+
 
   return <MapContainer ref={mapRef} />;
 });
