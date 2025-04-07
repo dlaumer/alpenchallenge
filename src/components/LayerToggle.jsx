@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
 import styled from "styled-components";
-import mapStore from "../store/MapStore";
+import mapStore from "../store/mapStore";
 
 const Button = styled.button`
   background: ${(props) => (props.active ? "green" : "red")};

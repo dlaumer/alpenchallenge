@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
 import { observer } from "mobx-react-lite";
-import mapStore from "../store/MapStore";
+import mapStore from "../store/mapStore";
 import riderStore from "../store/riderStore"; // your mobx store for riders
+import ReactDOM from "react-dom/client";
 
 import styled from "styled-components";
 import SceneView from "@arcgis/core/views/SceneView";
@@ -14,6 +15,7 @@ import Graphic from "@arcgis/core/Graphic";
 import Point from "@arcgis/core/geometry/Point";
 import * as reactiveUtils from "@arcgis/core/core/reactiveUtils";
 import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
+import Popup from "./Popup";
 
 const MapContainer = styled.div`
   width: 100%;
@@ -90,7 +92,7 @@ const ArcGISMap = observer(() => {
     const map = new Map({                // Create a Map object
       basemap: "satellite",
       ground: "world-elevation",
-      layers: [animatedLayer, latestSimulation, route, buildings]
+      layers: [animatedLayer, latestSimulation, route]
     });
 
     const view = new SceneView({
@@ -120,7 +122,9 @@ const ArcGISMap = observer(() => {
     // Create a div for the popup content
     popupRef.current = document.createElement("div");
     popupRef.current.style.padding = "10px";
-    popupRef.current.innerHTML = mapStore.popupContent || "Waiting for popup content...";
+
+    // Render the Popup component into popupRef.current using ReactDOM.createRoot
+    ReactDOM.createRoot(popupRef.current).render(<Popup />);
 
     // Create the Expand widget with the div as its content
     popupExpand.current = new Expand({
@@ -133,7 +137,7 @@ const ArcGISMap = observer(() => {
 
     popupExpand.current.watch("expanded", expanded => {
       if (!expanded) {
-        mapStore.setRiderSelected(null);
+        mapStore.toggleFollow(mapStore.riderFollowed);
       }
     })
     // Add the widget to the view's UI (you can change the position as needed)
@@ -168,46 +172,25 @@ const ArcGISMap = observer(() => {
       return newData;
     };
 
-    const setPopup = (userId, time) => {
 
-      const attributes = riderStore.riders[userId].previousPos;
+    // Helper functions to convert between degrees and radians.
+    const toRadians = (deg) => deg * Math.PI / 180;
+    const toDegrees = (rad) => rad * 180 / Math.PI;
 
-      // Build the HTML content for the popup.
-      const content = `
-      <h2>${formatTime(time)}</h2>
-      <ul>
-        <li><b>User:</b> ${attributes.userId}</li>
-        <li><b>Run ID:</b> ${attributes.runId}</li>
-        <li><b>Contest ID:</b> ${attributes.contestId}</li>
-        <li><b>Gig ID:</b> ${attributes.gigId}</li>
-        <li><b>Time:</b> ${attributes.ts_string}</li>
-        <li><b>Accuracy:</b> ${attributes.accuracy}</li>
-        <li><b>Heading:</b> ${attributes.heading}</li>
-        <li><b>Speed:</b> ${attributes.speed}</li>
-        <li><b>Longitude:</b> ${attributes.longitude}</li>
-        <li><b>Latitude:</b> ${attributes.latitude}</li>
-        <li><b>Altitude:</b> ${attributes.altitude}</li>
-      </ul>
-    `;
-      // Update the popupStore so that the reaction opens the popup.
-      mapStore.setPopupContent({
-        userId: attributes.userId,
-        content: content,
-      });
+    // Calculates the heading (bearing) from the previous position to the current position.
+    const calculateHeading = (prev, curr) => {
+      const lat1 = toRadians(prev[1]);
+      const lon1 = toRadians(prev[0]);
+      const lat2 = toRadians(curr[1]);
+      const lon2 = toRadians(curr[0]);
+      const dLon = lon2 - lon1;
+      const y = Math.sin(dLon) * Math.cos(lat2);
+      const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+      let brng = Math.atan2(y, x);
+      brng = toDegrees(brng);
+      return (brng + 360) % 360;
+    };
 
-      popupRef.current.innerHTML = mapStore.popupContent.content
-
-
-    }
-
-    const formatTime = (time) => {
-
-      const hours = time.getHours().toString().padStart(2, '0');
-      const minutes = time.getMinutes().toString().padStart(2, '0');
-      const seconds = time.getSeconds().toString().padStart(2, '0');
-
-      return `${hours}:${minutes}:${seconds}`;
-    }
     const interpolateAlongPath = (t, coordinates, cumulativeDistances) => {
       // Compute the target distance along the path.
       const totalDistance = cumulativeDistances[cumulativeDistances.length - 1];
@@ -239,11 +222,12 @@ const ArcGISMap = observer(() => {
       // Interpolate between the two coordinates.
       const startPoint = coordinates[segmentStartIndex];
       const endPoint = coordinates[segmentEndIndex];
+      let heading = calculateHeading(startPoint, endPoint);
       const interpolatedPoint = [
         startPoint[0] + segmentT * (endPoint[0] - startPoint[0]),
         startPoint[1] + segmentT * (endPoint[1] - startPoint[1])]
 
-      return interpolatedPoint;
+      return { interpolatedPoint: interpolatedPoint, heading: heading };
     }
 
     // Animation: Use requestAnimationFrame for smoother updates.
@@ -257,14 +241,16 @@ const ArcGISMap = observer(() => {
         const rider = riderStore.riders[riderId];
         if (rider && rider.previousPos && rider.currentPos) {
           const { previousPos: prev, currentPos: curr } = rider;
-
           // Compute the time difference between the two updates.
           const timeDiff = curr.ts - prev.ts;
           // Calculate interpolation factor (t), clamped between 0 and 1.
           let t = elapsed / timeDiff;
           if (t > 1) t = 1;
 
-          const interpolated2D = interpolateAlongPath(t, curr.path.geometry.coordinates, curr.cumulative)
+          mapStore.setTime(new Date(prev.ts + t * timeDiff - 60 * 60 * 1000))
+
+          const interpolationResult = interpolateAlongPath(t, curr.path.geometry.coordinates, curr.cumulative)
+          const interpolated2D = interpolationResult.interpolatedPoint;
           const interpolated = {
             longitude: interpolated2D[0],
             latitude: interpolated2D[1],
@@ -283,7 +269,7 @@ const ArcGISMap = observer(() => {
           const symbol = {
             type: "simple-marker",
             color: color,
-            size: isSelected ? "16px" : "12px", // Bigger marker when selected
+            size: isSelected ? "20px" : "16px", // Bigger marker when selected
             outline: {
               color: isSelected ? "red" : "white", // Red border if selected, otherwise white
               width: isSelected ? 3 : 0
@@ -304,14 +290,37 @@ const ArcGISMap = observer(() => {
             animatedLayer.add(graphic);
           }
 
-          mapStore.setTime(new Date(prev.ts + t * timeDiff - 60 * 60 * 1000))
+          // If a rider is followed, update the camera center to that rider's current position.
+          if (mapStore.riderFollowed == riderId && graphicsMap[mapStore.riderFollowed]) {
+            const followedGraphic = graphicsMap[mapStore.riderFollowed];
+            const calculatedHeading = interpolationResult.heading;
 
-          if (mapStore.riderSelected != null && riderId == mapStore.riderSelected) {
-            setPopup(mapStore.riderSelected, new Date(prev.ts + t * timeDiff))
+            // Smooth the heading transition to avoid drastic jumps.
+            let currentHeading = view.camera.heading;
+            let delta = calculatedHeading - currentHeading;
+            // Normalize the delta to the range [-180, 180]
+            if (delta > 180) delta -= 360;
+            if (delta < -180) delta += 360;
+            const smoothingFactor = 0.03; // Adjust this value to change smoothing speed.
+            let smoothedHeading = currentHeading + delta * smoothingFactor;
+            smoothedHeading = (smoothedHeading + 360) % 360;
+            // Use goTo without animation to instantly center the view on the followed rider.
+            viewRef.current.goTo(
+              {
+                center: followedGraphic.geometry,
+                zoom: view.zoom < 14 ? 19 : null,
+                tilt: 70,
+                heading: smoothedHeading,
+              },
+              { animate: false }
+            );
           }
-
         }
       });
+
+
+
+
 
       // Request the next animation frame for smooth updates
       animationFrameRef.current = requestAnimationFrame(animate);
@@ -372,15 +381,12 @@ const ArcGISMap = observer(() => {
     };
   }, []);
 
-  // React to layer visibility changes
   useEffect(() => {
     if (layerRef.current) {
       layerRef.current.visible = mapStore.layerVisible;
     }
   }, [mapStore.layerVisible]);
 
-
-  // React to layer visibility changes
   useEffect(() => {
     if (viewRef.current) {
       // Show the popup content

@@ -6,6 +6,7 @@ class MapStore {
   view = null;
   riderSelected = null;
   time = null;
+  riderFollowed = null; // New variable
 
   constructor() {
     makeAutoObservable(this);
@@ -32,6 +33,14 @@ class MapStore {
     this.time = time;
   }
 
+  // New method to toggle the followed rider.
+  toggleFollow(riderId) {
+    if (this.riderFollowed === riderId) {
+      this.riderFollowed = null;
+    } else {
+      this.riderFollowed = riderId;
+    }
+  }
 }
 
 const mapStore = new MapStore();

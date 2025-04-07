@@ -4,7 +4,8 @@ import { languageStore } from "../store/languageStore";
 import { observer } from "mobx-react-lite";
 import { Menu } from "lucide-react";
 import { getTranslation } from "../utils/getTranslation";
-import mapStore from "../store/MapStore"; // Import the mapStore
+import mapStore from "../store/mapStore";
+import React, { useState, useEffect } from "react";
 
 const HeaderContainer = styled.header`
   z-index: 100;
@@ -19,9 +20,10 @@ const HeaderContainer = styled.header`
   margin-left: ${(props) => (props.panelOpen ? "250px" : "0")};
 `;
 
-const LeftSection = styled.div`
-  display: flex;
-  align-items: center;
+const Title = styled.h1`
+  flex: 1;
+  text-align: center;
+  font-size: 20px;
 `;
 
 const MenuButton = styled.button`
@@ -32,17 +34,6 @@ const MenuButton = styled.button`
   font-size: 24px;
 `;
 
-const Timer = styled.span`
-  margin-left: 10px;
-  font-size: 16px;
-`;
-
-const Title = styled.h1`
-  flex: 1;
-  text-align: center;
-  font-size: 20px;
-`;
-
 const LanguageSelector = styled.select`
   background: none;
   color: white;
@@ -51,22 +42,34 @@ const LanguageSelector = styled.select`
   cursor: pointer;
 
   option {
-    color: black;
+    color: black; /* Ensures text is visible in the dropdown */
     background: white;
   }
 `;
 
+const FollowButton = styled.button`
+  background: #61dafb;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 10px;
+`;
+
 const Header = observer(() => {
+
+  const handleFollowClick = () => {
+    if (mapStore.riderSelected) {
+      mapStore.toggleFollow(mapStore.riderSelected);
+    }
+  };
+
   return (
     <HeaderContainer panelOpen={uiStore.isPanelOpen}>
-      <LeftSection>
-        <MenuButton onClick={uiStore.togglePanel}>
-          <Menu size={28} />
-        </MenuButton>
-        <Timer>
-          {mapStore.time ? mapStore.time.toLocaleTimeString('en-GB') : "Loading..."}
-        </Timer>
-      </LeftSection>
+      <MenuButton onClick={uiStore.togglePanel}>
+        <Menu size={28} />
+      </MenuButton>
       <Title>{getTranslation("title")}</Title>
       <LanguageSelector
         value={languageStore.language}
@@ -77,6 +80,11 @@ const Header = observer(() => {
         <option value="it">IT</option>
         <option value="en">EN</option>
       </LanguageSelector>
+      {mapStore.riderSelected && (
+        <FollowButton onClick={handleFollowClick}>
+          {mapStore.riderFollowed === mapStore.riderSelected ? "Unfollow" : "Follow"}
+        </FollowButton>
+      )}
     </HeaderContainer>
   );
 });
