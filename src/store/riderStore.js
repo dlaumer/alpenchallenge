@@ -7,6 +7,8 @@ class RiderStore {
   replayTimestamps = {};   // { riderId: [timestamp1, timestamp2, ...] }
   replayCache = {};        // { riderId: { lastTs, before, after, dataBefore, dataAfter } }
 
+  currentSmallestTimestamp = null;
+
   constructor() {
     makeAutoObservable(this);
   }
@@ -17,10 +19,11 @@ class RiderStore {
     const newData = this.processLiveResults(liveData);
     if (JSON.stringify(newData.newData) !== JSON.stringify(this.riders)) {
       this.riders = newData.newData
+      this.currentSmallestTimestamp = newData.smallestTimestamp;
+      // TODO: Update Replay Data as well
       if (!mapStore.replayMode) {
         mapStore.setTimeReference(newData.smallestTimestamp);
         mapStore.setTimeReferenceAnimation(Date.now());
-
       }
     }
   }

@@ -4,12 +4,11 @@ import mapStore from "../store/mapStore";
 import {
   Play,
   Pause,
-  SkipBack,
-  SkipForward
+  RotateCcw,
+  RotateCw
 } from "lucide-react";
 import riderStore from "../store/riderStore";
 import { observer } from "mobx-react-lite";
-
 const Container = styled.div`
   position: absolute;
   bottom: 20px;
@@ -19,13 +18,38 @@ const Container = styled.div`
   padding: 10px 15px;
   border-radius: 10px;
   display: flex;
+  flex-direction: row;
   align-items: center;
+  flex-wrap: wrap;
   font-family: sans-serif;
   font-size: 14px;
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
-  min-width: 800px;
-  max-width: 90%;
+  width: 90%;
+  max-width: 800px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
+
+const ControlsRow = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+
+  @media (max-width: 768px) {
+    margin-bottom: 10px;
+  }
+`;
+
+const SliderRow = styled.div`
+  flex: 1;
+  width: 100%;
+`;
+
+
 
 const LiveTag = styled.div`
   display: flex;
@@ -106,6 +130,7 @@ const SliderHandle = styled.div`
 const ReplaySlider = observer(() => {
   const [isDragging, setIsDragging] = useState(false);
   const sliderRef = useRef(null);
+  const [elapsedPlaying, setElapsedPlaying] = useState(0);
 
   const [startTs, endTs] = riderStore.getReplayTimeRange();
 
@@ -117,6 +142,19 @@ const ReplaySlider = observer(() => {
   const togglePlay = () => {
     mapStore.togglePlaying();
     mapStore.setReplayMode(true);
+
+    if (mapStore.playing) {
+      mapStore.setTimeReferenceAnimation(Date.now() - elapsedPlaying)
+    }
+    else {
+      setElapsedPlaying(Date.now() - mapStore.timeReferenceAnimation)
+    }
+  }
+
+  const setLive = () => {
+    mapStore.setReplayMode(false)
+    mapStore.setTimeReference(riderStore.currentSmallestTimestamp);
+    mapStore.setTimeReferenceAnimation(Date.now());
   }
 
   const jump = (deltaMs) => {
@@ -130,24 +168,35 @@ const ReplaySlider = observer(() => {
 
   const getProgress = () => {
     if (mapStore.time) {
-      console.log(((mapStore.time - startTs) / (endTs - startTs)) * 100)
-      return ((mapStore.time - startTs) / (endTs - startTs)) * 100;
+      if (mapStore.replayMode) {
+        return ((mapStore.time - startTs) / (riderStore.currentSmallestTimestamp - 60 * 60 * 1000 - startTs)) * 100; //TODO: Check why there is an hour difference sometimes
+      }
+      else {
+        return 100;
+      }
     }
   }
 
   const seekTo = (clientX) => {
     const rect = sliderRef.current.getBoundingClientRect();
     const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    const ts = startTs + percent * (endTs - startTs);
+    const ts = startTs + percent * (riderStore.currentSmallestTimestamp - 60 * 60 * 1000 - startTs);
 
-    mapStore.setReplayMode(true);
-    mapStore.setTimeReference(ts)
-    mapStore.setTimeReferenceAnimation(Date.now())
-    mapStore.setTime(ts);
+    if (percent == 1) {
+      setLive()
+    }
+    else {
+      mapStore.setReplayMode(true);
+      mapStore.setTimeReference(ts)
+      mapStore.setTimeReferenceAnimation(Date.now())
+      mapStore.setTime(ts);
+    }
   };
 
   const handleMouseDown = (e) => {
     setIsDragging(true);
+    document.body.style.userSelect = "none"; // Disable text selection
+
     seekTo(e.clientX);
   };
 
@@ -159,6 +208,27 @@ const ReplaySlider = observer(() => {
 
   const handleMouseUp = () => {
     setIsDragging(false);
+    document.body.style.userSelect = "auto"; // Re-enable text selection
+
+  };
+
+
+  // Mobile Touch Handlers
+  const handleTouchStart = (e) => {
+    setIsDragging(true);
+    document.body.classList.add("no-select");
+    seekTo(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    if (isDragging) {
+      seekTo(e.touches[0].clientX);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    document.body.classList.remove("no-select");
   };
 
 
@@ -166,15 +236,23 @@ const ReplaySlider = observer(() => {
     if (isDragging) {
       window.addEventListener("mousemove", handleMouseMove);
       window.addEventListener("mouseup", handleMouseUp);
+      window.addEventListener("touchmove", handleTouchMove);
+      window.addEventListener("touchend", handleTouchEnd);
     } else {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
     }
+  
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
     };
   }, [isDragging]);
+  
 
   if (!startTs || !endTs || isNaN(startTs) || isNaN(endTs)) {
     return <div style={{ display: "none" }} />;
@@ -182,24 +260,28 @@ const ReplaySlider = observer(() => {
 
   return (
     <Container>
-      <LiveTag onClick={() => { mapStore.setReplayMode(false) }} replay={mapStore.replayMode}>
-        <LiveDot replay={mapStore.replayMode} />
-        LIVE
-      </LiveTag>
-      <Time>{formatTime(mapStore.time)}</Time>
-      <Button onClick={() => jump(-60000)} title="Back 1 min">
-        <SkipBack size={18} />
-      </Button>
-      <Button onClick={togglePlay} title={mapStore.playing ? "Pause" : "Play"}>
-        {mapStore.playing ? <Pause size={18} /> : <Play size={18} />}
-      </Button>
-      <Button onClick={() => jump(60000)} title="Forward 1 min">
-        <SkipForward size={18} />
-      </Button>
-      <SliderWrapper ref={sliderRef} onMouseDown={handleMouseDown}>
-        <SliderProgress progress={getProgress()} />
-        <SliderHandle progress={getProgress()} />
-      </SliderWrapper>
+      <ControlsRow>
+        <LiveTag onClick={setLive} replay={mapStore.replayMode}>
+          <LiveDot replay={mapStore.replayMode} />
+          LIVE
+        </LiveTag>
+        <Time>{formatTime(mapStore.time)}</Time>
+        <Button onClick={() => jump(-60000)} title="Back 1 min">
+          <RotateCcw size={18} />
+        </Button>
+        <Button onClick={togglePlay} title={mapStore.playing ? "Pause" : "Play"}>
+          {mapStore.playing ? <Pause size={18} /> : <Play size={18} />}
+        </Button>
+        <Button onClick={() => jump(60000)} title="Forward 1 min">
+          <RotateCw size={18} />
+        </Button>
+      </ControlsRow>
+      <SliderRow>
+        <SliderWrapper ref={sliderRef} onMouseDown={handleMouseDown} onTouchStart={handleTouchStart}>
+          <SliderProgress progress={getProgress()} />
+          <SliderHandle progress={getProgress()} />
+        </SliderWrapper>
+      </SliderRow>
     </Container>
   );
 });
