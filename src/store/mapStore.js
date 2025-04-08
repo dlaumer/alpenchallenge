@@ -13,6 +13,8 @@ class MapStore {
   replayMode = false;
   playing = true;
 
+  replaySpeed = 1; // default to 1x
+
   constructor() {
     makeAutoObservable(this);
   }
@@ -61,6 +63,10 @@ class MapStore {
 
   togglePlaying() { 
     this.playing = !this.playing;
+  }
+
+  setReplaySpeed(speed) {
+    this.replaySpeed = speed;
   }
 }
 

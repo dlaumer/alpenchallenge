@@ -188,7 +188,11 @@ const ArcGISMap = observer(() => {
     const animate = () => {
 
       if (mapStore.playing && mapStore.timeReference) {
-        const elapsed = Date.now() - mapStore.timeReferenceAnimation;
+        let elapsed = Date.now() - mapStore.timeReferenceAnimation;
+
+        if (mapStore.replayMode) {
+          elapsed = elapsed * mapStore.replaySpeed;
+        }
         const currentTs = mapStore.timeReference + elapsed;
 
         if (mapStore.replayMode) {
