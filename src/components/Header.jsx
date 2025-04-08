@@ -67,7 +67,7 @@ const Header = observer(() => {
            <Menu size={28} />
          </MenuButton>
          <Timer>
-           {mapStore.time ? mapStore.time.toLocaleTimeString('en-GB') : "Loading..."}
+           {mapStore.time ? new Date(mapStore.time).toLocaleTimeString('en-GB') : "Loading..."}
          </Timer>
        </LeftSection>
       <Title>{getTranslation("title")}</Title>

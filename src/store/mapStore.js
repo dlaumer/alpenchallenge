@@ -5,11 +5,13 @@ class MapStore {
   popupContent = null;
   view = null;
   riderSelected = null;
-  time = null;
   riderFollowed = null; // New variable
 
+  time = null;
+  timeReference = null;
+  timeReferenceAnimation = Date.now();
   replayMode = false;
-
+  playing = true;
 
   constructor() {
     makeAutoObservable(this);
@@ -32,9 +34,7 @@ class MapStore {
     this.riderSelected = riderSelected;
   }
 
-  setTime(time) {
-    this.time = time;
-  }
+
 
   // New method to toggle the followed rider.
   toggleFollow(riderId) {
@@ -45,8 +45,22 @@ class MapStore {
     }
   }
 
+  setTime(time) {
+    this.time = time;
+  }
+
+  setTimeReference(time) {
+    this.timeReference = time;
+  }
+  setTimeReferenceAnimation(time) {
+    this.timeReferenceAnimation = time;
+  }
   setReplayMode(val) {
     this.replayMode = val;
+  }
+
+  togglePlaying() { 
+    this.playing = !this.playing;
   }
 }
 

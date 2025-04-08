@@ -33,6 +33,7 @@ const LiveTag = styled.div`
   margin-right: 10px;
   color: ${(props) => (props.replay ? "#666" : "red")};
   font-weight: bold;
+  cursor: pointer;
 `;
 
 const LiveDot = styled.div`
@@ -103,35 +104,46 @@ const SliderHandle = styled.div`
 `;
 
 const ReplaySlider = observer(() => {
-  const [playing, setPlaying] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const sliderRef = useRef(null);
-  const intervalRef = useRef(null);
 
   const [startTs, endTs] = riderStore.getReplayTimeRange();
-  const [currentTs, setCurrentTs] = useState(endTs);
 
   const formatTime = (ms) => {
     const d = new Date(ms);
     return d.toLocaleTimeString("en-GB");
   };
 
-  const togglePlay = () => setPlaying(!playing);
+  const togglePlay = () => {
+    mapStore.togglePlaying();
+    mapStore.setReplayMode(true);
+  }
 
   const jump = (deltaMs) => {
-    setCurrentTs((prev) =>
-      Math.max(startTs, Math.min(endTs, prev + deltaMs))
-    );
+    mapStore.setReplayMode(true);
+
+    const newTime = Math.max(startTs, Math.min(endTs, mapStore.time + deltaMs))
+    mapStore.setTimeReference(newTime)
+    mapStore.setTimeReferenceAnimation(Date.now())
+    mapStore.setTime(newTime)
   };
 
-  const getProgress = () =>
-    ((currentTs - startTs) / (endTs - startTs)) * 100;
+  const getProgress = () => {
+    if (mapStore.time) {
+      console.log(((mapStore.time - startTs) / (endTs - startTs)) * 100)
+      return ((mapStore.time - startTs) / (endTs - startTs)) * 100;
+    }
+  }
 
   const seekTo = (clientX) => {
     const rect = sliderRef.current.getBoundingClientRect();
     const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
     const ts = startTs + percent * (endTs - startTs);
-    setCurrentTs(ts);
+
+    mapStore.setReplayMode(true);
+    mapStore.setTimeReference(ts)
+    mapStore.setTimeReferenceAnimation(Date.now())
+    mapStore.setTime(ts);
   };
 
   const handleMouseDown = (e) => {
@@ -149,36 +161,6 @@ const ReplaySlider = observer(() => {
     setIsDragging(false);
   };
 
-  useEffect(() => {
-    if (startTs && endTs && (currentTs < startTs || currentTs > endTs)) {
-      setCurrentTs(endTs);
-    }
-  }, [startTs, endTs]);
-
-  useEffect(() => {
-    if (mapStore.time?.getTime() !== currentTs) {
-      mapStore.setReplayMode(true);
-      mapStore.setTime(new Date(currentTs));
-    }
-  }, [currentTs]);
-
-  useEffect(() => {
-    if (playing) {
-      intervalRef.current = setInterval(() => {
-        setCurrentTs((prev) => {
-          const next = prev + 1000;
-          if (next >= endTs) {
-            setPlaying(false);
-            return endTs;
-          }
-          return next;
-        });
-      }, 1000);
-    } else {
-      clearInterval(intervalRef.current);
-    }
-    return () => clearInterval(intervalRef.current);
-  }, [playing, endTs]);
 
   useEffect(() => {
     if (isDragging) {
@@ -200,16 +182,16 @@ const ReplaySlider = observer(() => {
 
   return (
     <Container>
-      <LiveTag replay={mapStore.replayMode}>
+      <LiveTag onClick={() => { mapStore.setReplayMode(false) }} replay={mapStore.replayMode}>
         <LiveDot replay={mapStore.replayMode} />
         LIVE
       </LiveTag>
-      <Time>{formatTime(currentTs)}</Time>
+      <Time>{formatTime(mapStore.time)}</Time>
       <Button onClick={() => jump(-60000)} title="Back 1 min">
         <SkipBack size={18} />
       </Button>
-      <Button onClick={togglePlay} title={playing ? "Pause" : "Play"}>
-        {playing ? <Pause size={18} /> : <Play size={18} />}
+      <Button onClick={togglePlay} title={mapStore.playing ? "Pause" : "Play"}>
+        {mapStore.playing ? <Pause size={18} /> : <Play size={18} />}
       </Button>
       <Button onClick={() => jump(60000)} title="Forward 1 min">
         <SkipForward size={18} />

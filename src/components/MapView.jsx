@@ -28,7 +28,6 @@ const ArcGISMap = observer(() => {
   const mapRef = useRef(null);
   const layerRef = useRef(null);
   const animationFrameRef = useRef(null);
-  const animationStartTimeRef = useRef(Date.now());
   const popupRef = useRef(null);
 
   const popupExpand = useRef(null);
@@ -151,35 +150,6 @@ const ArcGISMap = observer(() => {
     // Add the widget to the view's UI (you can change the position as needed)
     view.ui.add(popupExpand.current, "top-right");
 
-    // Process the feature layer's query results into the data format expected by your store.
-    // For each feature, we assume the attributes include a userId, current coordinates and a previousPos JSON string.
-    const processResults = (results) => {
-      const newData = {};
-      results.features.forEach((feature) => {
-        const attributes = feature.attributes;
-        const riderId = attributes.userId;
-        const currentPos = {
-          longitude: attributes.longitude,
-          latitude: attributes.latitude,
-          altitude: attributes.altitude,
-          ts: attributes.ts,
-          cumulative: JSON.parse(attributes.cumulative),
-          path: JSON.parse(attributes.path)
-        };
-        // Parse previousPos (which may be stored as a JSON string)
-        let previousPos = attributes.previousPos;
-        if (typeof previousPos === "string") {
-          try {
-            previousPos = JSON.parse(previousPos);
-          } catch (e) {
-            previousPos = null;
-          }
-        }
-        newData[riderId] = { previousPos, currentPos };
-      });
-      return newData;
-    };
-
 
     posHistory.queryFeatures({
       where: "1=1", // or use a smarter where clause
@@ -212,100 +182,110 @@ const ArcGISMap = observer(() => {
     // Use a plain object to store graphics keyed by rider ID.
     const graphicsMap = {};
     const animate = () => {
-      const elapsed = Date.now() - animationStartTimeRef.current;
 
-      if (riderStore.riders) {
-        Object.keys(mapStore.replayMode ? riderStore.replayData : riderStore.riders).forEach((riderId) => {
-          const currentTs = mapStore.replayMode
-            ? mapStore.time?.getTime()
-            : (() => {
-              const rider = riderStore.riders[riderId];
-              return rider?.previousPos?.ts + elapsed; //TODO: Deal with uneven timestamps
-            })();
+      if (mapStore.playing && mapStore.timeReference) {
+        const elapsed = Date.now() - mapStore.timeReferenceAnimation;
+        const currentTs = mapStore.timeReference + elapsed;
 
-          if (!currentTs) return;
+        if (mapStore.replayMode) {
+          mapStore.setTime(currentTs)
 
-          const interpolated = mapStore.replayMode
-            ? riderStore.getInterpolatedPosition(riderId, currentTs)
-            : riderStore.getInterpolatedLivePosition(riderId, currentTs);
+        }
+        else {
+          mapStore.setTime(currentTs - 60 * 60 * 1000)
 
-          if (!interpolated) return;
+        }
+        if (!currentTs) return;
+
+        if (riderStore.riders) {
+          Object.keys(mapStore.replayMode ? riderStore.replayData : riderStore.riders).forEach((riderId) => {
 
 
-          const point = new Point({
-            longitude: interpolated.longitude,
-            latitude: interpolated.latitude,
-            z: interpolated.altitude
-          });
+            const interpolated = mapStore.replayMode
+              ? null
+              : riderStore.getInterpolatedLivePosition(riderId, currentTs);
 
-          // Check if the current rider is selected and update its symbol accordingly.
-          const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
-          const color = fixedColorPalette[riderId] || "blue";
-          const symbol = {
-            type: "simple-marker",
-            color: color,
-            size: isSelected ? "20px" : "16px", // Bigger marker when selected
-            outline: {
-              color: isSelected ? "red" : "white", // Red border if selected, otherwise white
-              width: isSelected ? 3 : 0
-            }
-          };
-          // Use a plain object to check if the graphic exists
-          if (graphicsMap[riderId]) {
-            graphicsMap[riderId].geometry = point;
-            graphicsMap[riderId].symbol = symbol; // Update symbol to reflect selection
-          } else {
+            if (!interpolated) return;
 
-            const graphic = new Graphic({
-              geometry: point,
-              attributes: interpolated.prev,
-              symbol: symbol
+
+            const point = new Point({
+              longitude: interpolated.longitude,
+              latitude: interpolated.latitude,
+              z: interpolated.altitude
             });
-            graphicsMap[riderId] = graphic;
-            animatedLayer.add(graphic);
-          }
 
-          // If a rider is followed, update the camera center to that rider's current position.
-          if (mapStore.riderFollowed == riderId && graphicsMap[mapStore.riderFollowed]) {
-            const followedGraphic = graphicsMap[mapStore.riderFollowed];
-            const calculatedHeading = interpolated.heading;
-
-            // Smooth the heading transition only if the difference is less than 90 degrees.
-            let currentHeading = view.camera.heading;
-            let delta = calculatedHeading - currentHeading;
-
-            // Normalize delta to the range [-180, 180]
-            if (delta > 180) delta -= 360;
-            if (delta < -180) delta += 360;
-
-            let smoothedHeading;
-            if (Math.abs(delta) < 90) {
-              const smoothingFactor = 0.005; // Adjust this for smoothness
-              smoothedHeading = currentHeading + delta * smoothingFactor;
-              smoothedHeading = (smoothedHeading + 360) % 360;
+            // Check if the current rider is selected and update its symbol accordingly.
+            const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
+            const color = fixedColorPalette[riderId] || "blue";
+            const symbol = {
+              type: "simple-marker",
+              color: color,
+              size: isSelected ? "20px" : "16px", // Bigger marker when selected
+              outline: {
+                color: isSelected ? "red" : "white", // Red border if selected, otherwise white
+                width: isSelected ? 3 : 0
+              }
+            };
+            // Use a plain object to check if the graphic exists
+            if (graphicsMap[riderId]) {
+              graphicsMap[riderId].geometry = point;
+              graphicsMap[riderId].symbol = symbol; // Update symbol to reflect selection
             } else {
-              smoothedHeading = calculatedHeading;
+
+              const graphic = new Graphic({
+                geometry: point,
+                attributes: interpolated.prev,
+                symbol: symbol
+              });
+              graphicsMap[riderId] = graphic;
+              animatedLayer.add(graphic);
             }
-            // Use goTo without animation to instantly center the view on the followed rider.
-            viewRef.current.goTo(
-              {
-                center: followedGraphic.geometry,
-                zoom: view.zoom < 16 ? 20 : null,
-                tilt: 70,
-                heading: smoothedHeading,
-              },
-              { animate: false }
-            );
 
-          }
-        });
+            // If a rider is followed, update the camera center to that rider's current position.
+            if (mapStore.riderFollowed == riderId && graphicsMap[mapStore.riderFollowed]) {
+              const followedGraphic = graphicsMap[mapStore.riderFollowed];
+              const calculatedHeading = interpolated.heading;
+
+              // Smooth the heading transition only if the difference is less than 90 degrees.
+              let currentHeading = view.camera.heading;
+              let delta = calculatedHeading - currentHeading;
+
+              // Normalize delta to the range [-180, 180]
+              if (delta > 180) delta -= 360;
+              if (delta < -180) delta += 360;
+
+              let smoothedHeading;
+              if (Math.abs(delta) < 90) {
+                const smoothingFactor = 0.005; // Adjust this for smoothness
+                smoothedHeading = currentHeading + delta * smoothingFactor;
+                smoothedHeading = (smoothedHeading + 360) % 360;
+              } else {
+                smoothedHeading = calculatedHeading;
+              }
+              // Use goTo without animation to instantly center the view on the followed rider.
+              viewRef.current.goTo(
+                {
+                  center: followedGraphic.geometry,
+                  zoom: view.zoom < 16 ? 20 : null,
+                  tilt: 70,
+                  heading: smoothedHeading,
+                },
+                { animate: false }
+              );
+
+            }
+          });
+        }
       }
-
 
       // Request the next animation frame for smooth updates
       animationFrameRef.current = requestAnimationFrame(animate);
     };
 
+    // Query the layer for the initial points
+    latestSimulation.queryFeatures().then((results) => {
+      riderStore.setRiders(results);
+    });
     // Start the animation loop
     animationFrameRef.current = requestAnimationFrame(animate);
 
@@ -313,22 +293,13 @@ const ArcGISMap = observer(() => {
       window.view = view;
       viewRef.current = view;
       // Watch the layerView's updating property using reactiveUtils.when.
-      view.whenLayerView(latestSimulation).then((layerView) => {
-        reactiveUtils.when(
-          () => layerView.updating === false,
-          () => {
-            // Once updating is false, query features for new data.
-            latestSimulation.queryFeatures().then((results) => {
-              const newData = processResults(results);
-              if (JSON.stringify(newData) !== JSON.stringify(riderStore.riders)) {
-                riderStore.setRiders(newData);
-                // Reset the animation timer when new positions come in.
-                animationStartTimeRef.current = Date.now();
-              }
-
-            });
-          }
-        );
+      latestSimulation.on("refresh", function (event) {
+        if (event.dataChanged) {
+          // Once the layers is refreshed, query features for new data.
+          latestSimulation.queryFeatures().then((results) => {
+            riderStore.setRiders(results);
+          });
+        }
       });
 
       // Attach a click event to the view.

@@ -12,8 +12,17 @@ class RiderStore {
   }
 
   // Action to update the riders data when new data is available
-  setRiders(newRiders) {
-    this.riders = newRiders;
+  setRiders(liveData) {
+
+    const newData = this.processLiveResults(liveData);
+    if (JSON.stringify(newData.newData) !== JSON.stringify(this.riders)) {
+      this.riders = newData.newData
+      if (!mapStore.replayMode) {
+        mapStore.setTimeReference(newData.smallestTimestamp);
+        mapStore.setTimeReferenceAnimation(Date.now());
+
+      }
+    }
   }
 
   setReplayData(data) {
@@ -28,6 +37,41 @@ class RiderStore {
     this.replayCache = {};
   }
 
+  // Process the feature layer's query results into the data format expected by your store.
+  // For each feature, we assume the attributes include a userId, current coordinates and a previousPos JSON string.
+  processLiveResults(results) {
+    const newData = {};
+    let smallestTimestamp = new Date(Date.now() + 100000);
+    results.features.forEach((feature) => {
+      const attributes = feature.attributes;
+      const riderId = attributes.userId;
+      const currentPos = {
+        longitude: attributes.longitude,
+        latitude: attributes.latitude,
+        altitude: attributes.altitude,
+        ts: attributes.ts,
+        cumulative: JSON.parse(attributes.cumulative),
+        path: JSON.parse(attributes.path)
+      };
+      // Parse previousPos (which may be stored as a JSON string)
+      let previousPos = attributes.previousPos;
+      if (typeof previousPos === "string") {
+        try {
+          previousPos = JSON.parse(previousPos);
+        } catch (e) {
+          previousPos = null;
+        }
+      }
+      newData[riderId] = { previousPos, currentPos };
+
+      if (previousPos.ts < smallestTimestamp) {
+        smallestTimestamp = previousPos.ts
+      }
+    });
+
+    return { newData: newData, smallestTimestamp: smallestTimestamp };
+  };
+
   getInterpolatedLivePosition(riderId, currentTs) {
     const rider = this.riders[riderId];
     if (!rider || !rider.previousPos || !rider.currentPos) return null;
@@ -38,8 +82,9 @@ class RiderStore {
     if (timeDiff <= 0) return curr;
 
     const t = Math.max(0, Math.min(1, (currentTs - prev.ts) / timeDiff));
+
     if (!mapStore.replayMode) {
-      mapStore.setTime(new Date(prev.ts + t * timeDiff - 60 * 60 * 1000))
+      //mapStore.setTime(new Date(prev.ts + t * timeDiff - 60 * 60 * 1000).getTime())
     }
 
     const coords = curr.path?.geometry?.coordinates;
@@ -59,28 +104,34 @@ class RiderStore {
     if (!riderTimestamps || riderTimestamps.length === 0) return null;
 
     const cache = this.replayCache[riderId];
-
+    let interpolateData = null;
     if (
       cache &&
       currentTs >= cache.before &&
       currentTs <= cache.after
     ) {
-      return this.interpolateAlongPath(currentTs, cache.before, cache.after, cache.dataBefore, cache.dataAfter);
+      interpolateData = cache;
+
     }
+    else {
+      const [before, after] = this.findNearestTimestamps(riderTimestamps, currentTs);
+      const dataBefore = riderData[before];
+      const dataAfter = riderData[after];
+      interpolateData = {
+        lastTs: currentTs,
+        before,
+        after,
+        dataBefore,
+        dataAfter,
+      };
+    }
+    this.replayCache[riderId] = interpolateData
 
-    const [before, after] = this.findNearestTimestamps(riderTimestamps, currentTs);
-    const dataBefore = riderData[before];
-    const dataAfter = riderData[after];
-
-    this.replayCache[riderId] = {
-      lastTs: currentTs,
-      before,
-      after,
-      dataBefore,
-      dataAfter,
-    };
-
-    return this.interpolateAlongPath(currentTs, before, after, dataBefore, dataAfter);
+    return {
+      ...this.interpolateAlongPath(t, coords, cumulative, dataBefore.altitude, dataAfter.altitude, dataBefore.speed, dataAfter.speed),
+      ts: new Date(before) + t * timeDiff,
+      prev: dataBefore
+    }
   }
 
 
