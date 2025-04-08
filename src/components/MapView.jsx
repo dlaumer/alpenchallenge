@@ -48,7 +48,7 @@ const ArcGISMap = observer(() => {
     "rider_10": "black"
   };
 
-  
+
   useEffect(() => {
 
     const latestSimulation = new FeatureLayer({
@@ -62,7 +62,7 @@ const ArcGISMap = observer(() => {
       visible: false
     })
 
-    
+
     const posHistory = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
         id: "3be23c44c1ae48f3a565ceefb0f22d53"
@@ -208,90 +208,29 @@ const ArcGISMap = observer(() => {
     });
 
 
-
-    // Helper functions to convert between degrees and radians.
-    const toRadians = (deg) => deg * Math.PI / 180;
-    const toDegrees = (rad) => rad * 180 / Math.PI;
-
-    // Calculates the heading (bearing) from the previous position to the current position.
-    const calculateHeading = (prev, curr) => {
-      const lat1 = toRadians(prev[1]);
-      const lon1 = toRadians(prev[0]);
-      const lat2 = toRadians(curr[1]);
-      const lon2 = toRadians(curr[0]);
-      const dLon = lon2 - lon1;
-      const y = Math.sin(dLon) * Math.cos(lat2);
-      const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
-      let brng = Math.atan2(y, x);
-      brng = toDegrees(brng);
-      return (brng + 360) % 360;
-    };
-
-    const interpolateAlongPath = (t, coordinates, cumulativeDistances) => {
-      // Compute the target distance along the path.
-      const totalDistance = cumulativeDistances[cumulativeDistances.length - 1];
-      const targetDistance = t * totalDistance;
-
-      // Use binary search to find the segment where targetDistance falls.
-      let left = 0;
-      let right = cumulativeDistances.length - 1;
-      while (left <= right) {
-        const mid = Math.floor((left + right) / 2);
-        if (cumulativeDistances[mid] < targetDistance) {
-          left = mid + 1;
-        } else {
-          right = mid - 1;
-        }
-      }
-      // The target lies between indices (left - 1) and left.
-      const segmentStartIndex = Math.max(left - 1, 0);
-      const segmentEndIndex = left;
-
-      // Compute the relative fraction within the segment.
-      const segmentStartDistance = cumulativeDistances[segmentStartIndex];
-      const segmentEndDistance = cumulativeDistances[segmentEndIndex];
-      const segmentDistance = segmentEndDistance - segmentStartDistance;
-
-      // Avoid division by zero in degenerate cases.
-      const segmentT = segmentDistance === 0 ? 0 : (targetDistance - segmentStartDistance) / segmentDistance;
-
-      // Interpolate between the two coordinates.
-      const startPoint = coordinates[segmentStartIndex];
-      const endPoint = coordinates[segmentEndIndex];
-      let heading = calculateHeading(startPoint, endPoint);
-      const interpolatedPoint = [
-        startPoint[0] + segmentT * (endPoint[0] - startPoint[0]),
-        startPoint[1] + segmentT * (endPoint[1] - startPoint[1])]
-
-      return { interpolatedPoint: interpolatedPoint, heading: heading };
-    }
-
     // Animation: Use requestAnimationFrame for smoother updates.
     // Use a plain object to store graphics keyed by rider ID.
     const graphicsMap = {};
     const animate = () => {
       const elapsed = Date.now() - animationStartTimeRef.current;
 
-      // Loop through riders and update or add graphics
-      Object.keys(riderStore.riders).forEach((riderId) => {
-        const rider = riderStore.riders[riderId];
-        if (rider && rider.previousPos && rider.currentPos) {
-          const { previousPos: prev, currentPos: curr } = rider;
-          // Compute the time difference between the two updates.
-          const timeDiff = curr.ts - prev.ts;
-          // Calculate interpolation factor (t), clamped between 0 and 1.
-          let t = elapsed / timeDiff;
-          if (t > 1) t = 1;
+      if (riderStore.riders) {
+        Object.keys(mapStore.replayMode ? riderStore.replayData : riderStore.riders).forEach((riderId) => {
+          const currentTs = mapStore.replayMode
+            ? mapStore.time?.getTime()
+            : (() => {
+              const rider = riderStore.riders[riderId];
+              return rider?.previousPos?.ts + elapsed;
+            })();
 
-          mapStore.setTime(new Date(prev.ts + t * timeDiff - 60 * 60 * 1000))
+          if (!currentTs) return;
 
-          const interpolationResult = interpolateAlongPath(t, curr.path.geometry.coordinates, curr.cumulative)
-          const interpolated2D = interpolationResult.interpolatedPoint;
-          const interpolated = {
-            longitude: interpolated2D[0],
-            latitude: interpolated2D[1],
-            altitude: prev.altitude + (curr.altitude - prev.altitude) * t,
-          };
+          const interpolated = mapStore.replayMode
+            ? riderStore.getInterpolatedPosition(riderId, currentTs)
+            : riderStore.getInterpolatedLivePosition(riderId, currentTs);
+
+          if (!interpolated) return;
+
 
           const point = new Point({
             longitude: interpolated.longitude,
@@ -319,7 +258,7 @@ const ArcGISMap = observer(() => {
 
             const graphic = new Graphic({
               geometry: point,
-              attributes: prev,
+              attributes: interpolated.prev,
               symbol: symbol
             });
             graphicsMap[riderId] = graphic;
@@ -329,7 +268,7 @@ const ArcGISMap = observer(() => {
           // If a rider is followed, update the camera center to that rider's current position.
           if (mapStore.riderFollowed == riderId && graphicsMap[mapStore.riderFollowed]) {
             const followedGraphic = graphicsMap[mapStore.riderFollowed];
-            const calculatedHeading = interpolationResult.heading;
+            const calculatedHeading = interpolated.heading;
 
             // Smooth the heading transition only if the difference is less than 90 degrees.
             let currentHeading = view.camera.heading;
@@ -357,12 +296,10 @@ const ArcGISMap = observer(() => {
               },
               { animate: false }
             );
+
           }
-        }
-      });
-
-
-
+        });
+      }
 
 
       // Request the next animation frame for smooth updates

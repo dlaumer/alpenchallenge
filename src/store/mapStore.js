@@ -8,6 +8,9 @@ class MapStore {
   time = null;
   riderFollowed = null; // New variable
 
+  replayMode = false;
+
+
   constructor() {
     makeAutoObservable(this);
   }
@@ -40,6 +43,10 @@ class MapStore {
     } else {
       this.riderFollowed = riderId;
     }
+  }
+
+  setReplayMode(val) {
+    this.replayMode = val;
   }
 }
 

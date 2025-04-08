@@ -1,9 +1,11 @@
-// riderStore.js
 import { makeAutoObservable } from "mobx";
+import mapStore from "../store/mapStore";
+class RiderStore {
+  riders = {}
 
-export class RiderStore {
-  riders = {};
-  replayData = {};
+  replayData = {};         // { riderId: { timestamp: data, ... } }
+  replayTimestamps = {};   // { riderId: [timestamp1, timestamp2, ...] }
+  replayCache = {};        // { riderId: { lastTs, before, after, dataBefore, dataAfter } }
 
   constructor() {
     makeAutoObservable(this);
@@ -13,12 +15,137 @@ export class RiderStore {
   setRiders(newRiders) {
     this.riders = newRiders;
   }
-  
+
   setReplayData(data) {
     this.replayData = data;
+
+    this.replayTimestamps = {};
+    Object.keys(data).forEach((riderId) => {
+      const timestamps = Object.keys(data[riderId]).map(Number).sort((a, b) => a - b);
+      this.replayTimestamps[riderId] = timestamps;
+    });
+
+    this.replayCache = {};
   }
+
+  getInterpolatedLivePosition(riderId, currentTs) {
+    const rider = this.riders[riderId];
+    if (!rider || !rider.previousPos || !rider.currentPos) return null;
+
+    const prev = rider.previousPos;
+    const curr = rider.currentPos;
+    const timeDiff = curr.ts - prev.ts;
+    if (timeDiff <= 0) return curr;
+
+    const t = Math.max(0, Math.min(1, (currentTs - prev.ts) / timeDiff));
+    mapStore.setTime(new Date(prev.ts + t * timeDiff - 60 * 60 * 1000))
+
+    const coords = curr.path?.geometry?.coordinates;
+    const cumulative = curr.cumulative;
+    if (!coords || !cumulative) return curr;
+
+    return {
+      ...this.interpolateAlongPath(t, coords, cumulative, prev.altitude, curr.altitude, prev.speed, curr.speed),
+      ts: prev.ts + t * timeDiff,
+      prev: prev
+    };
+  }
+
+
+  interpolate(currentTs, beforeTs, afterTs, dataBefore, dataAfter) {
+    const range = afterTs - beforeTs;
+    if (range === 0 || !dataBefore || !dataAfter) return dataBefore;
+
+    const t = (currentTs - beforeTs) / range;
+    const coords = dataAfter.path?.geometry?.coordinates;
+    const cumulative = dataAfter.cumulative;
+    if (!coords || !cumulative) return dataAfter;
+
+    return {
+      ...this.interpolateAlongPath(t, coords, cumulative, dataBefore.altitude, dataAfter.altitude, dataBefore.speed, dataAfter.speed),
+      ts: currentTs
+    };
+  }
+
+
+  findNearestTimestamps(timestamps, target) {
+    let left = 0;
+    let right = timestamps.length - 1;
+
+    while (left <= right) {
+      const mid = Math.floor((left + right) / 2);
+      if (timestamps[mid] < target) {
+        left = mid + 1;
+      } else {
+        right = mid - 1;
+      }
+    }
+
+    const before = timestamps[Math.max(0, left - 1)];
+    const after = timestamps[Math.min(timestamps.length - 1, left)];
+    return [before, after];
+  }
+
+  toRadians(deg) {
+    return deg * Math.PI / 180;
+  }
+
+  toDegrees(rad) {
+    return rad * 180 / Math.PI;
+  }
+
+  calculateHeading(start, end) {
+    const lat1 = this.toRadians(start[1]);
+    const lon1 = this.toRadians(start[0]);
+    const lat2 = this.toRadians(end[1]);
+    const lon2 = this.toRadians(end[0]);
+
+    const dLon = lon2 - lon1;
+    const y = Math.sin(dLon) * Math.cos(lat2);
+    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+    let brng = Math.atan2(y, x);
+    return (this.toDegrees(brng) + 360) % 360;
+  }
+
+  interpolateAlongPath(t, coordinates, cumulativeDistances, altStart, altEnd, speedStart, speedEnd) {
+    const totalDistance = cumulativeDistances[cumulativeDistances.length - 1];
+    const targetDistance = t * totalDistance;
+
+    let left = 0;
+    let right = cumulativeDistances.length - 1;
+    while (left <= right) {
+      const mid = Math.floor((left + right) / 2);
+      if (cumulativeDistances[mid] < targetDistance) {
+        left = mid + 1;
+      } else {
+        right = mid - 1;
+      }
+    }
+
+    const i0 = Math.max(0, left - 1);
+    const i1 = Math.min(cumulativeDistances.length - 1, left);
+    const d0 = cumulativeDistances[i0];
+    const d1 = cumulativeDistances[i1];
+    const tSegment = d1 - d0 === 0 ? 0 : (targetDistance - d0) / (d1 - d0);
+
+    const p0 = coordinates[i0];
+    const p1 = coordinates[i1];
+    const interpolatedPoint = [
+      p0[0] + (p1[0] - p0[0]) * tSegment,
+      p0[1] + (p1[1] - p0[1]) * tSegment
+    ];
+    const heading = this.calculateHeading(p0, p1);
+
+    return {
+      longitude: interpolatedPoint[0],
+      latitude: interpolatedPoint[1],
+      altitude: altStart + (altEnd - altStart) * t,
+      heading,
+      speed: speedStart + (speedEnd - speedStart) * t
+    };
+  }
+
 }
 
-// Create and export a default instance for easy import in components like MapView.jsx
 const riderStore = new RiderStore();
 export default riderStore;
