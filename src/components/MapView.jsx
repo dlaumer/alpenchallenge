@@ -264,7 +264,8 @@ const ArcGISMap = observer(() => {
 
               let smoothedHeading;
               if (Math.abs(delta) < 90) {
-                const smoothingFactor = 0.005; // Adjust this for smoothness
+                let smoothingFactor = 0.005; // Adjust this for smoothness
+                if (mapStore.replayMode) {smoothingFactor = smoothingFactor * mapStore.replaySpeed}
                 smoothedHeading = currentHeading + delta * smoothingFactor;
                 smoothedHeading = (smoothedHeading + 360) % 360;
               } else {
