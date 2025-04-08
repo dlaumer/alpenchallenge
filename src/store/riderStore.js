@@ -130,10 +130,15 @@ class RiderStore {
     }
     this.replayCache[riderId] = interpolateData
 
+    const timeDiff = interpolateData.after - interpolateData.before;
+    if (timeDiff <= 0) return interpolateData.after;
+
+    const t = Math.max(0, Math.min(1, (currentTs - interpolateData.before) / timeDiff));
+
     return {
-      ...this.interpolateAlongPath(t, coords, cumulative, dataBefore.altitude, dataAfter.altitude, dataBefore.speed, dataAfter.speed),
-      ts: new Date(before) + t * timeDiff,
-      prev: dataBefore
+      ...this.interpolateAlongPath(t, interpolateData.dataAfter.path?.geometry?.coordinates, interpolateData.dataAfter.cumulative, interpolateData.dataBefore.altitude, interpolateData.dataAfter.altitude, interpolateData.dataBefore.speed, interpolateData.dataAfter.speed),
+      ts: new Date(interpolateData.before) + t * timeDiff,
+      prev: interpolateData.dataBefore
     }
   }
 

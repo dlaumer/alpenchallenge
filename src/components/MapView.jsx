@@ -164,16 +164,20 @@ const ArcGISMap = observer(() => {
         const timestamp = new Date(attr.ts_string).getTime(); // or use new Date(attr.ts).toISOString().slice(0, 19)
 
         if (!replayData[riderId]) replayData[riderId] = {};
-        replayData[riderId][timestamp] = {
+        replayData[riderId][timestamp] =   {
+          ts: attr.ts_string,
           latitude: attr.latitude,
           longitude: attr.longitude,
           altitude: attr.altitude,
           speed: attr.speed,
           heading: attr.heading,
+          cumulative: JSON.parse(attr.cumulative),
+          path: JSON.parse(attr.path),
+          index: attr.routeIndex,
+          previousPos: JSON.parse(attr.previousPos) 
           // optionally store more
         };
       });
-      console.log(replayData)
       riderStore.setReplayData(replayData); // create a setter in your store
     });
 
@@ -202,7 +206,7 @@ const ArcGISMap = observer(() => {
 
 
             const interpolated = mapStore.replayMode
-              ? null
+              ? riderStore.getInterpolatedPosition(riderId, currentTs)
               : riderStore.getInterpolatedLivePosition(riderId, currentTs);
 
             if (!interpolated) return;
