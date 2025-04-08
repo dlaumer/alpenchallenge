@@ -38,7 +38,9 @@ class RiderStore {
     if (timeDiff <= 0) return curr;
 
     const t = Math.max(0, Math.min(1, (currentTs - prev.ts) / timeDiff));
-    mapStore.setTime(new Date(prev.ts + t * timeDiff - 60 * 60 * 1000))
+    if (!mapStore.replayMode) {
+      mapStore.setTime(new Date(prev.ts + t * timeDiff - 60 * 60 * 1000))
+    }
 
     const coords = curr.path?.geometry?.coordinates;
     const cumulative = curr.cumulative;
@@ -49,6 +51,36 @@ class RiderStore {
       ts: prev.ts + t * timeDiff,
       prev: prev
     };
+  }
+
+  getInterpolatedPosition(riderId, currentTs) {
+    const riderTimestamps = this.replayTimestamps[riderId];
+    const riderData = this.replayData[riderId];
+    if (!riderTimestamps || riderTimestamps.length === 0) return null;
+
+    const cache = this.replayCache[riderId];
+
+    if (
+      cache &&
+      currentTs >= cache.before &&
+      currentTs <= cache.after
+    ) {
+      return this.interpolateAlongPath(currentTs, cache.before, cache.after, cache.dataBefore, cache.dataAfter);
+    }
+
+    const [before, after] = this.findNearestTimestamps(riderTimestamps, currentTs);
+    const dataBefore = riderData[before];
+    const dataAfter = riderData[after];
+
+    this.replayCache[riderId] = {
+      lastTs: currentTs,
+      before,
+      after,
+      dataBefore,
+      dataAfter,
+    };
+
+    return this.interpolateAlongPath(currentTs, before, after, dataBefore, dataAfter);
   }
 
 
@@ -145,6 +177,14 @@ class RiderStore {
     };
   }
 
+  getReplayTimeRange() {
+    const allTimestamps = Object.values(this.replayTimestamps).flat();
+    if (allTimestamps.length === 0) return [null, null];
+
+    const minTs = Math.min(...allTimestamps);
+    const maxTs = Math.max(...allTimestamps);
+    return [minTs, maxTs];
+  }
 }
 
 const riderStore = new RiderStore();

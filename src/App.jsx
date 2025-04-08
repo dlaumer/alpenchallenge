@@ -7,6 +7,7 @@ import { uiStore } from "./store/uiStore";
 import GlobalStyles from "./styles/globalStyles";
 import { languageStore } from "./store/languageStore";
 import { useEffect, useState } from "react";
+import ReplaySlider from "./components/ReplaySlider";
 
 const Container = styled.div`
   display: flex;
@@ -42,6 +43,9 @@ const App = observer(() => {
       <MainContent panelOpen={uiStore.isPanelOpen}>
         <MapContainer>
           <MapView />
+          <ReplaySlider
+            
+          />
         </MapContainer>
       </MainContent>
     </Container>

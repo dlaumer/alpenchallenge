@@ -220,7 +220,7 @@ const ArcGISMap = observer(() => {
             ? mapStore.time?.getTime()
             : (() => {
               const rider = riderStore.riders[riderId];
-              return rider?.previousPos?.ts + elapsed;
+              return rider?.previousPos?.ts + elapsed; //TODO: Deal with uneven timestamps
             })();
 
           if (!currentTs) return;
