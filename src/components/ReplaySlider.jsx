@@ -191,6 +191,7 @@ const ReplaySlider = observer(() => {
     mapStore.setReplayMode(false)
     mapStore.setTimeReference(riderStore.currentSmallestTimestamp);
     mapStore.setTimeReferenceAnimation(Date.now());
+    mapStore.replaySpeed = 1;
   }
 
   const jump = (deltaMs) => {
@@ -205,7 +206,12 @@ const ReplaySlider = observer(() => {
   const getProgress = () => {
     if (mapStore.time) {
       if (mapStore.replayMode) {
-        return ((mapStore.time - startTs) / (riderStore.currentSmallestTimestamp - 60 * 60 * 1000 - startTs)) * 100; //TODO: Check why there is an hour difference sometimes
+        let percent = ((mapStore.time - startTs) / (riderStore.currentSmallestTimestamp - 60 * 60 * 1000 - startTs)) * 100; //TODO: Check why there is an hour difference sometimes
+        if (percent > 100) {
+          percent = 100;
+          setLive()
+        }
+        return percent  
       }
       else {
         return 100;

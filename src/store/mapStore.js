@@ -13,6 +13,8 @@ class MapStore {
   replayMode = false;
   playing = true;
 
+  updating = false;
+  t = 0;
   replaySpeed = 1; // default to 1x
 
   constructor() {
@@ -67,6 +69,13 @@ class MapStore {
 
   setReplaySpeed(speed) {
     this.replaySpeed = speed;
+  }
+
+  setUpdating(updating) {
+    this.updating = updating;
+  }
+  setT(t) {
+    this.t = t;
   }
 }
 

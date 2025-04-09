@@ -156,29 +156,7 @@ const ArcGISMap = observer(() => {
       outFields: ["*"],
       returnGeometry: true
     }).then((results) => {
-      const replayData = {};
-
-      results.features.forEach((feature) => {
-        const attr = feature.attributes;
-        const riderId = attr.userId;
-        const timestamp = new Date(attr.ts_string).getTime(); // or use new Date(attr.ts).toISOString().slice(0, 19)
-
-        if (!replayData[riderId]) replayData[riderId] = {};
-        replayData[riderId][timestamp] =   {
-          ts: attr.ts_string,
-          latitude: attr.latitude,
-          longitude: attr.longitude,
-          altitude: attr.altitude,
-          speed: attr.speed,
-          heading: attr.heading,
-          cumulative: JSON.parse(attr.cumulative),
-          path: JSON.parse(attr.path),
-          index: attr.routeIndex,
-          previousPos: JSON.parse(attr.previousPos) 
-          // optionally store more
-        };
-      });
-      riderStore.setReplayData(replayData); // create a setter in your store
+      riderStore.setReplayData(results); // create a setter in your store
     });
 
 
@@ -304,6 +282,7 @@ const ArcGISMap = observer(() => {
       // Watch the layerView's updating property using reactiveUtils.when.
       latestSimulation.on("refresh", function (event) {
         if (event.dataChanged) {
+          mapStore.setUpdating(true);
           // Once the layers is refreshed, query features for new data.
           latestSimulation.queryFeatures().then((results) => {
             riderStore.setRiders(results);

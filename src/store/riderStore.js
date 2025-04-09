@@ -20,26 +20,57 @@ class RiderStore {
     if (JSON.stringify(newData.newData) !== JSON.stringify(this.riders)) {
       this.riders = newData.newData
       this.currentSmallestTimestamp = newData.smallestTimestamp;
-      // TODO: Update Replay Data as well
       if (!mapStore.replayMode) {
         mapStore.setTimeReference(newData.smallestTimestamp);
         mapStore.setTimeReferenceAnimation(Date.now());
       }
     }
+    mapStore.setUpdating(false);
   }
 
-  setReplayData(data) {
-    this.replayData = data;
+  setReplayData(results) {
+
+    this.replayData = {};
+    results.features.forEach((feature) => {
+      const attr = feature.attributes;
+      const riderId = attr.userId;
+      const timestamp = new Date(attr.ts_string).getTime(); // or use new Date(attr.ts).toISOString().slice(0, 19)
+
+      if (!this.replayData[riderId]) this.replayData[riderId] = {};
+      this.replayData[riderId][timestamp] = this.parseAttributes(attr)
+    });
+
 
     this.replayTimestamps = {};
-    Object.keys(data).forEach((riderId) => {
-      const timestamps = Object.keys(data[riderId]).map(Number).sort((a, b) => a - b);
+    Object.keys(this.replayData).forEach((riderId) => {
+      const timestamps = Object.keys(this.replayData[riderId]).map(Number).sort((a, b) => a - b);
       this.replayTimestamps[riderId] = timestamps;
     });
 
     this.replayCache = {};
   }
 
+
+
+
+  // Process the feature layer's query results into the data format expected by your store.
+  // For each feature, we assume the attributes include a userId, current coordinates and a previousPos JSON string.
+  parseAttributes(attr) {
+
+    return {
+      ts: attr.ts_string,
+      latitude: attr.latitude,
+      longitude: attr.longitude,
+      altitude: attr.altitude,
+      speed: attr.speed,
+      heading: attr.heading,
+      cumulative: JSON.parse(attr.cumulative),
+      path: JSON.parse(attr.path),
+      index: attr.routeIndex,
+      previousPos: JSON.parse(attr.previousPos)
+      // optionally store more
+    };
+  };
   // Process the feature layer's query results into the data format expected by your store.
   // For each feature, we assume the attributes include a userId, current coordinates and a previousPos JSON string.
   processLiveResults(results) {
@@ -66,7 +97,10 @@ class RiderStore {
         }
       }
       newData[riderId] = { previousPos, currentPos };
-
+      if (this.replayData[riderId] && !(new Date(attributes.ts).getTime() in Object.keys(this.replayData[riderId]))) {
+        this.replayData[riderId][attributes.ts] = this.parseAttributes(attributes)
+        this.replayTimestamps[riderId].push(attributes.ts);
+      }
       if (previousPos.ts < smallestTimestamp) {
         smallestTimestamp = previousPos.ts
       }
@@ -94,6 +128,7 @@ class RiderStore {
     const cumulative = curr.cumulative;
     if (!coords || !cumulative) return curr;
 
+    mapStore.setT(t);
     return {
       ...this.interpolateAlongPath(t, coords, cumulative, prev.altitude, curr.altitude, prev.speed, curr.speed),
       ts: prev.ts + t * timeDiff,
@@ -134,6 +169,8 @@ class RiderStore {
     if (timeDiff <= 0) return interpolateData.after;
 
     const t = Math.max(0, Math.min(1, (currentTs - interpolateData.before) / timeDiff));
+
+    mapStore.setT(t);
 
     return {
       ...this.interpolateAlongPath(t, interpolateData.dataAfter.path?.geometry?.coordinates, interpolateData.dataAfter.cumulative, interpolateData.dataBefore.altitude, interpolateData.dataAfter.altitude, interpolateData.dataBefore.speed, interpolateData.dataAfter.speed),
