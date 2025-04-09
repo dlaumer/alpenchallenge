@@ -17,6 +17,8 @@ class MapStore {
   t = 0;
   replaySpeed = 1; // default to 1x
 
+  popupVisible = false;
+
   constructor() {
     makeAutoObservable(this);
   }
@@ -63,7 +65,7 @@ class MapStore {
     this.replayMode = val;
   }
 
-  togglePlaying() { 
+  togglePlaying() {
     this.playing = !this.playing;
   }
 
@@ -77,6 +79,11 @@ class MapStore {
   setT(t) {
     this.t = t;
   }
+
+  setPopupVisible(val) {
+    this.popupVisible = val;
+  }
+
 }
 
 const mapStore = new MapStore();

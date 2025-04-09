@@ -1,5 +1,8 @@
 import Header from "./components/Header";
 import SidePanel from "./components/SidePanel";
+import FavoritePanel from "./components/FavoritePanel";
+import Popup from "./components/Popup";
+
 import MapView from "./components/MapView";
 import styled from "styled-components";
 import { observer } from "mobx-react-lite";
@@ -39,6 +42,8 @@ const App = observer(() => {
     <Container>
       <GlobalStyles />
       <SidePanel />
+      <FavoritePanel />
+      <Popup />
       <Header />
       <MainContent panelOpen={uiStore.isPanelOpen}>
         <MapContainer>

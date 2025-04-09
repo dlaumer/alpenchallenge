@@ -1,5 +1,7 @@
 import { makeAutoObservable } from "mobx";
 import mapStore from "../store/mapStore";
+import uiStore from "../store/uiStore";
+
 class RiderStore {
   riders = {}
 
@@ -8,6 +10,8 @@ class RiderStore {
   replayCache = {};        // { riderId: { lastTs, before, after, dataBefore, dataAfter } }
 
   currentSmallestTimestamp = null;
+
+  favorites = []
 
   constructor() {
     makeAutoObservable(this);
@@ -281,6 +285,25 @@ class RiderStore {
     const maxTs = Math.max(...allTimestamps);
     return [minTs, maxTs];
   }
+  toggleFavorite(riderId) {
+    const index = mapStore.lastFavoriteSlotClicked;
+
+    if (this.favorites.includes(riderId)) {
+      this.favorites = this.favorites.filter(id => id !== riderId);
+    } else if (typeof index === "number") {
+      const updated = [...this.favorites];
+      while (updated.length <= index) updated.push(null);
+      updated[index] = riderId;
+      this.favorites = updated;
+      uiStore.setLastFavoriteSlot(null);
+    } else {
+      // only allow max 4
+      const clean = this.favorites.filter(Boolean);
+      if (clean.length >= 4) return;
+      this.favorites.push(riderId);
+    }
+  }
+
 }
 
 const riderStore = new RiderStore();

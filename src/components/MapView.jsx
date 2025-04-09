@@ -125,32 +125,7 @@ const ArcGISMap = observer(() => {
     });
     view.ui.add(basemapGalleryExpand.current, "top-right")
 
-
-    // Create a div for the popup content
-    popupRef.current = document.createElement("div");
-    popupRef.current.style.padding = "10px";
-
-    // Render the Popup component into popupRef.current using ReactDOM.createRoot
-    ReactDOM.createRoot(popupRef.current).render(<Popup />);
-
-    // Create the Expand widget with the div as its content
-    popupExpand.current = new Expand({
-      view,
-      content: popupRef.current,
-      expandIconClass: "esri-icon-description",
-      expandTooltip: "Show popup content",
-      expanded: false,
-    });
-
-    popupExpand.current.watch("expanded", expanded => {
-      if (!expanded) {
-        //mapStore.toggleFollow(mapStore.riderFollowed);
-      }
-    })
-    // Add the widget to the view's UI (you can change the position as needed)
-    view.ui.add(popupExpand.current, "top-right");
-
-
+    
     posHistory.queryFeatures({
       where: "1=1", // or use a smarter where clause
       outFields: ["*"],
@@ -303,7 +278,8 @@ const ArcGISMap = observer(() => {
             );
 
             if (result) {
-              mapStore.setRiderSelected(result.graphic.attributes.userId)
+              mapStore.setRiderSelected(result.graphic.attributes.userId);
+              mapStore.setPopupVisible(true);
             }
           }
         });
@@ -325,21 +301,6 @@ const ArcGISMap = observer(() => {
       layerRef.current.visible = mapStore.layerVisible;
     }
   }, [mapStore.layerVisible]);
-
-  useEffect(() => {
-    if (viewRef.current) {
-      // Show the popup content
-      if (mapStore.riderSelected != null) {
-        popupExpand.current.expanded = true;
-      }
-      else {
-        mapStore.setPopupContent(null)
-        popupRef.current.innerHTML = "Waiting for popup content...";
-        popupExpand.current.expanded = false;
-      }
-    }
-
-  }, [mapStore.riderSelected]);
 
 
 
