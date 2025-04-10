@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { observer } from "mobx-react-lite";
 import mapStore from "../store/mapStore";
 import riderStore from "../store/riderStore"; // your mobx store for riders
-import ReactDOM from "react-dom/client";
+import uiStore from "../store/uiStore";
 
 import styled from "styled-components";
 import SceneView from "@arcgis/core/views/SceneView";
@@ -13,9 +13,8 @@ import SceneLayer from "@arcgis/core/layers/SceneLayer";
 import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
 import Graphic from "@arcgis/core/Graphic";
 import Point from "@arcgis/core/geometry/Point";
-import * as reactiveUtils from "@arcgis/core/core/reactiveUtils";
 import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
-import Popup from "./Popup";
+import Weather from "@arcgis/core/widgets/Weather";
 
 const MapContainer = styled.div`
   width: 100%;
@@ -47,6 +46,13 @@ const ArcGISMap = observer(() => {
     "rider_10": "black"
   };
 
+  useEffect(() => {
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+      uiStore.setIsMobile(true)
+      uiStore.favoritePanelCollapsed = true;
+    }
+  }, []);
 
   useEffect(() => {
 
@@ -74,6 +80,14 @@ const ArcGISMap = observer(() => {
       },
       elevationInfo: {
         mode: "on-the-ground"
+      },
+      renderer: {
+        type: "simple",
+        symbol: {
+          type: "simple-line",
+          color: "darkred",
+          width: "4px"
+        }
       }
     })
 
@@ -91,7 +105,8 @@ const ArcGISMap = observer(() => {
     // Create a GraphicsLayer that will display the animated points
     const animatedLayer = new GraphicsLayer({
       elevationInfo: {
-        mode: "on-the-ground"
+        mode: "relative-to-ground",
+        offset: 0
       },
     });
 
@@ -99,7 +114,7 @@ const ArcGISMap = observer(() => {
     const map = new Map({                // Create a Map object
       basemap: "satellite",
       ground: "world-elevation",
-      layers: [animatedLayer, latestSimulation, route]
+      layers: [animatedLayer, latestSimulation, route, buildings]
     });
 
     const view = new SceneView({
@@ -125,7 +140,34 @@ const ArcGISMap = observer(() => {
     });
     view.ui.add(basemapGalleryExpand.current, "top-right")
 
-    
+    // Create a toggle button for the Favorite Panel
+    const toggleFavoritePanelBtn = document.createElement("button");
+    toggleFavoritePanelBtn.innerText = "⭐";
+    toggleFavoritePanelBtn.className = "esri-widget esri-widget--button";
+    toggleFavoritePanelBtn.style.marginTop = "10px";
+    toggleFavoritePanelBtn.style.padding = "6px 12px";
+    toggleFavoritePanelBtn.style.cursor = "pointer";
+    toggleFavoritePanelBtn.style.border = "none";
+    toggleFavoritePanelBtn.style.boxShadow = "none";
+    toggleFavoritePanelBtn.style.outline = "none"; // for focus ring
+    toggleFavoritePanelBtn.style.background = "white"; // or whatever you like
+    toggleFavoritePanelBtn.onclick = () => {
+      uiStore.toggleFavoritePanel();
+    };
+
+    view.ui.add(toggleFavoritePanelBtn, "top-left");
+
+    const weather = new Weather({
+      view: view,  // The view that provides access to the map's "streets-vector" basemap
+    });
+    const weatherExpand = new Expand({
+      content: weather,
+      view: view
+    });
+    view.ui.add(weatherExpand, "top-right")
+
+
+
     posHistory.queryFeatures({
       where: "1=1", // or use a smarter where clause
       outFields: ["*"],
@@ -172,21 +214,61 @@ const ArcGISMap = observer(() => {
             const point = new Point({
               longitude: interpolated.longitude,
               latitude: interpolated.latitude,
-              z: interpolated.altitude
             });
 
             // Check if the current rider is selected and update its symbol accordingly.
             const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
             const color = fixedColorPalette[riderId] || "blue";
+
             const symbol = {
-              type: "simple-marker",
-              color: color,
-              size: isSelected ? "20px" : "16px", // Bigger marker when selected
-              outline: {
-                color: isSelected ? "red" : "white", // Red border if selected, otherwise white
-                width: isSelected ? 3 : 0
+              type: "point-3d",
+              symbolLayers: [{
+                type: "icon",
+                resource: { primitive: "circle" },
+                size: 13,
+                outline: {
+                  color: "white",
+                  size: 1  // thickness of the outline
+                },
+                material: { color: isSelected ? "darkred" : riderStore.favorites.includes(riderId) ? [252, 213, 63] : [35, 112, 190] },
+                anchor: "center",
+                callout: {
+                  type: "line",
+                  size: 1,
+                  color: "black"
+                }
+              }],
+              verticalOffset: {
+                screenLength: 0,
+                maxWorldLength: 100,
+                minWorldLength: 50
               }
             };
+
+            /*
+
+            const symbol = {
+              type: "point-3d",
+              symbolLayers: [{
+                type: "object",
+                resource: { primitive: "sphere" },
+                material: { color: isSelected ? "darkred" : "blue" },
+                anchor: "bottom",
+                callout: {
+                  type: "line",
+                  size: 1.5,
+                  color: "black"
+                }
+              }],
+              verticalOffset: {
+                screenLength: 0,
+                maxWorldLength: 0,
+                minWorldLength: 0
+              }
+            }
+            
+            */
+
             // Use a plain object to check if the graphic exists
             if (graphicsMap[riderId]) {
               graphicsMap[riderId].geometry = point;
@@ -218,7 +300,7 @@ const ArcGISMap = observer(() => {
               let smoothedHeading;
               if (Math.abs(delta) < 90) {
                 let smoothingFactor = 0.005; // Adjust this for smoothness
-                if (mapStore.replayMode) {smoothingFactor = smoothingFactor * mapStore.replaySpeed}
+                if (mapStore.replayMode) { smoothingFactor = smoothingFactor * mapStore.replaySpeed }
                 smoothedHeading = currentHeading + delta * smoothingFactor;
                 smoothedHeading = (smoothedHeading + 360) % 360;
               } else {
@@ -227,7 +309,11 @@ const ArcGISMap = observer(() => {
               // Use goTo without animation to instantly center the view on the followed rider.
               viewRef.current.goTo(
                 {
-                  center: followedGraphic.geometry,
+                  center: new Point({
+                    longitude: followedGraphic.geometry.longitude,
+                    latitude: followedGraphic.geometry.latitude,
+                    z: followedGraphic.attributes.altitude,
+                  }),
                   zoom: view.zoom < 16 ? 20 : null,
                   tilt: 70,
                   heading: smoothedHeading,

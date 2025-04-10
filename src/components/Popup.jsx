@@ -8,13 +8,12 @@ import { Star, StarOff, ChevronLeft } from "lucide-react";
 const FloatingPopup = styled.div`
   position: absolute;
   top: 130px;
-  left: 150px;
-    top: 50%;
-  transform: translateY(-50%);
+  left: 130px;
+  top: 350px;
   z-index: 100;
   background: white;
   width: 380px;
-  height: 320px;
+  height: 370px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   display: flex;
@@ -224,13 +223,22 @@ const Popup = observer(() => {
           const selected = mapStore.riderSelected === riderId;
           const isFav = riderStore.favorites?.includes(riderId);
           const speed = data?.previousPos?.speed?.toFixed(1) ?? "0.0";
+          const isFollowed = mapStore.riderFollowed === riderId;
 
           return (
             <RiderRow
               key={riderId}
               selected={selected}
               ref={selected ? selectedRef : null}
-              onClick={() => mapStore.setRiderSelected(riderId)}
+              onClick={() => {
+                if (mapStore.riderSelected == riderId) {
+                  mapStore.setRiderSelected(null)
+                }
+                else {
+                  mapStore.setRiderSelected(riderId)
+                }
+              }
+              }
             >
               <LeftGroup>
                 <Avatar>👤</Avatar>
@@ -256,7 +264,7 @@ const Popup = observer(() => {
                     mapStore.toggleFollow(riderId);
                   }}
                 >
-                  Follow
+                  {isFollowed ? "Unfollow" : "Follow"}
                 </FollowButton>
               </Buttons>
             </RiderRow>

@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { observer } from "mobx-react-lite";
 import { Menu } from "lucide-react";
-import { uiStore } from "../store/uiStore";
+import uiStore from "../store/uiStore";
 import { languageStore } from "../store/languageStore";
 import { getTranslation } from "../utils/getTranslation";
 import { keyframes } from "styled-components";
@@ -20,7 +20,7 @@ const HeaderContainer = styled.header`
   align-items: center;
   justify-content: space-between;
   height: 64px;
-  background-color: white;
+  background-color: #d3dbe5;
   color: black;
   padding: 0 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -231,7 +231,7 @@ const Header = observer(() => {
         <Dropdown>
           <DropdownButton onClick={() => setOpen(!open)}>
             <FlagIcon src={flagIcons[currentLang]} alt={currentLang} />
-            {langLabels[currentLang]}
+            {!uiStore.isMobile && langLabels[currentLang]}
           </DropdownButton>
           {open && (
             <DropdownList>
