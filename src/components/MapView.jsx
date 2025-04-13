@@ -43,6 +43,10 @@ const ArcGISMap = observer(() => {
   const popupExpand = useRef(null);
   const basemapGalleryExpand = useRef(null);
 
+  const frameCounterRef = useRef(0);
+  const lastFrameTimeRef = useRef(performance.now());
+  const targetFrameTime = 1000 / 30; // Target ~30 fps
+
   // Define a fixed color palette for riders 1 to 10.
   const fixedColorPalette = {
     "rider_1": "red",
@@ -69,7 +73,7 @@ const ArcGISMap = observer(() => {
 
     const latestSimulation = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "5c85573c6f3541b79dfc9b97978a9afa"
+        id: "976e8350026f4fc78a4325e8c600b01d"
       },
       elevationInfo: {
         mode: "on-the-ground"
@@ -81,13 +85,13 @@ const ArcGISMap = observer(() => {
 
     const posHistory = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "3be23c44c1ae48f3a565ceefb0f22d53"
+        id: "0c5ee79f9caa4531afddaeadf58f7df5"
       }
     })
 
     const route = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "496d79bd13fe4cbb9b97608a44dc3b12"
+        id: "77b9738872bb4f98b28520b7ce3bfdb9"
       },
       elevationInfo: {
         mode: "on-the-ground"
@@ -198,6 +202,16 @@ const ArcGISMap = observer(() => {
     const graphicsMap = {};
     graphicsMapRef.current = graphicsMap;
     const animate = () => {
+
+      const now = performance.now();
+      const delta = now - lastFrameTimeRef.current;
+
+      if (delta < targetFrameTime) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+        return;
+      }
+      lastFrameTimeRef.current = now;
+
 
       if (mapStore.playing && mapStore.timeReference) {
         animation(graphicsMap)
