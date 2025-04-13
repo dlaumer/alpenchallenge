@@ -65,6 +65,35 @@ jobs:
           mkdir -p dist/simulation1000
           cp -r simulation1000/dist/* dist/simulation1000/
 
+      # --- Build simulation1000 Branch Version ---
+      # Check out the simulation1000 branch into a subfolder called "simulation1000"
+      - name: Checkout simulation1000 branch
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: simulation1000
+          path: simulation1000
+
+      - name: Setup Node.js for simulation1000 branch
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies (simulation1000)
+        working-directory: simulation1000
+        run: npm ci
+
+      # Build the simulation1000 branch version with a different base path.
+      - name: Build simulation1000 branch version
+        working-directory: simulation1000
+        run: VITE_BASE_PATH=/simulation1000/ npm run build
+
+      # Copy the simulation1000 branch build output into a subfolder of the main build.
+      - name: Copy simulation1000 build into main dist folder
+        run: |
+          mkdir -p dist/simulation1000
+          cp -r simulation1000/dist/* dist/simulation1000/
+
       - name: Remove unnecessary files
         run: find dist -type l -delete  # Remove symlinks
 
