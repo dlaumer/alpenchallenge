@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: "/alpenchallenge/", // IMPORTANT: Set this to your repo name
+  base: process.env.VITE_BASE_PATH || '/', // Defaults to '/' if not set
   build: {
     outDir: "dist",
     emptyOutDir: true,
