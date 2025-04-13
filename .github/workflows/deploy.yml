@@ -33,7 +33,8 @@ jobs:
         run: rm -rf dist  # Ensure a clean build
 
       - name: Build main version (root deploy)
-        run: npm run build
+        # This build uses the base "/alpenchallenge/"
+        run: VITE_BASE_PATH=/alpenchallenge/ npm run build
 
       # --- Build simulation1000 Branch Version ---
       # Check out the simulation1000 branch into a subfolder called "simulation1000"
@@ -53,12 +54,12 @@ jobs:
         working-directory: simulation1000
         run: npm ci
 
-      # Build the simulation1000 branch version with a different base path.
       - name: Build simulation1000 branch version
         working-directory: simulation1000
-        run: VITE_BASE_PATH=/simulation1000/ npm run build
+        # This build uses the base "/alpenchallenge/simulation1000/"
+        run: VITE_BASE_PATH=/alpenchallenge/simulation1000/ npm run build
 
-      # Copy the simulation1000 branch build output into a subfolder of the main build.
+      # Copy the simulation1000 build output into a subfolder of the main build.
       - name: Copy simulation1000 build into main dist folder
         run: |
           mkdir -p dist/simulation1000
