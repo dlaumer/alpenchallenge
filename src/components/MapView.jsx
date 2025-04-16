@@ -16,6 +16,16 @@ import Point from "@arcgis/core/geometry/Point";
 import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 import Weather from "@arcgis/core/widgets/Weather";
 
+import WebStyleSymbol from "@arcgis/core/symbols/WebStyleSymbol";
+
+import bluePinSymbol from "../assets/blue-pin-symbol.svg";
+import redPinSymbol from "../assets/red-pin-symbol.svg";
+import yellowPinSymbol from "../assets/yellow-pin-symbol.svg";
+import roadBike from '../assets/Road_Bike.glb'
+
+
+import { Anchor } from "lucide-react";
+
 const MapContainer = styled.div`
   width: 100%;
   height: 100%;
@@ -107,6 +117,10 @@ const ArcGISMap = observer(() => {
       elevationInfo: {
         mode: "relative-to-ground",
         offset: 0
+      },
+      screenSizePerspectiveEnabled: false,
+      featureReduction: {
+        type: "selection"
       },
     });
 
@@ -220,30 +234,63 @@ const ArcGISMap = observer(() => {
             const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
             const color = fixedColorPalette[riderId] || "blue";
 
-            const symbol = {
+            // Create the symbol
+            const symbol2D = {
               type: "point-3d",
-              symbolLayers: [{
-                type: "icon",
-                resource: { primitive: "circle" },
-                size: 13,
-                outline: {
-                  color: "white",
-                  size: 1  // thickness of the outline
+              symbolLayers: [
+                {
+                  type: "icon",
+                  resource: {
+                    href: isSelected ? redPinSymbol: riderStore.favorites.includes(riderId) ? yellowPinSymbol : bluePinSymbol, // adjust path if needed
+                  },
+                  size: 45, // adjust size if needed
+                  anchor: "relative",
+                  anchorPosition: { x: 0, y: 0.25 },
+
                 },
-                material: { color: isSelected ? "darkred" : riderStore.favorites.includes(riderId) ? [252, 213, 63] : [35, 112, 190] },
-                anchor: "center",
-                callout: {
-                  type: "line",
-                  size: 1,
-                  color: "black"
-                }
-              }],
+              ],
               verticalOffset: {
-                screenLength: 0,
-                maxWorldLength: 100,
-                minWorldLength: 50
+                screenLength: 20,
+                maxWorldLength: 50,
+                minWorldLength: 15
+              },
+
+              callout: {
+                type: "line", // autocasts as new LineCallout3D()
+                color: "white",
+                size: 1,
               }
             };
+
+
+            // Create the symbol
+            const symbol3D = {
+              type: "point-3d",
+              symbolLayers: [
+
+                {
+                  type: "object",
+                  anchor: "bottom",
+                  anchorPosition: {
+                    x: 0,
+                    y: 0,
+                    z: 0
+                  },
+                  castShadows: false,
+                  depth: 10,
+                  heading: interpolated.heading,
+                  height: 10,
+                  resource: {
+                    href: roadBike,
+                  },
+                  roll: 0,
+                  tilt: 0,
+                  width: 10
+                },
+              ],
+            };
+
+
 
             /*
 
@@ -271,22 +318,31 @@ const ArcGISMap = observer(() => {
 
             // Use a plain object to check if the graphic exists
             if (graphicsMap[riderId]) {
-              graphicsMap[riderId].geometry = point;
-              graphicsMap[riderId].symbol = symbol; // Update symbol to reflect selection
+              graphicsMap[riderId].graphic3D.geometry = point;
+              graphicsMap[riderId].graphic3D.symbol = symbol3D;
+              graphicsMap[riderId].graphic2D.geometry = point;
+              graphicsMap[riderId].graphic2D.symbol = symbol2D; // Update symbol to reflect selection
             } else {
 
-              const graphic = new Graphic({
+              const graphic2D = new Graphic({
                 geometry: point,
                 attributes: interpolated.prev,
-                symbol: symbol
+                symbol: symbol2D
               });
-              graphicsMap[riderId] = graphic;
-              animatedLayer.add(graphic);
+              const graphic3D = new Graphic({
+                geometry: point,
+                attributes: interpolated.prev,
+                symbol: symbol3D
+              });
+              graphicsMap[riderId] = { graphic3D: graphic3D, graphic2D: graphic2D };
+              animatedLayer.add(graphic3D);
+              animatedLayer.add(graphic2D);
+
             }
 
             // If a rider is followed, update the camera center to that rider's current position.
             if (mapStore.riderFollowed == riderId && graphicsMap[mapStore.riderFollowed]) {
-              const followedGraphic = graphicsMap[mapStore.riderFollowed];
+              const followedGraphic = graphicsMap[mapStore.riderFollowed].graphic3D;
               const calculatedHeading = interpolated.heading;
 
               // Smooth the heading transition only if the difference is less than 90 degrees.
