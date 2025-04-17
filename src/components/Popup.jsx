@@ -157,7 +157,6 @@ const StarButton = styled.button`
   padding: 4px;
   color: ${(props) => (props.active ? "#1e70bf" : "#888")};
   cursor: pointer;
-
   &:hover {
     opacity: 0.8;
   }
@@ -172,7 +171,6 @@ const FollowButton = styled.button`
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-
   &:hover {
     background: #1f89eb;
   }
@@ -199,8 +197,6 @@ const Popup = observer(() => {
 
   return (
     <FloatingPopup>
-
-
       <HeaderBar>
         <CollapseButton
           title="Hide"
@@ -216,7 +212,6 @@ const Popup = observer(() => {
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </HeaderBar>
-
 
       <RiderList>
         {filteredRiders.map(([riderId, data]) => {

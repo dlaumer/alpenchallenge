@@ -17,6 +17,8 @@ class MapStore {
   t = 0;
   replaySpeed = 1; // default to 1x
 
+  jumpTime = false;
+
   popupVisible = false;
 
   constructor() {
@@ -80,6 +82,10 @@ class MapStore {
     this.t = t;
   }
 
+  setJumpTime(jumpTime) {
+    this.jumpTime = jumpTime;
+  }
+  
   setPopupVisible(val) {
     this.popupVisible = val;
   }
