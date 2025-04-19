@@ -85,6 +85,16 @@ const ArcGISMap = observer(() => {
       }
     })
 
+
+    const specialPoints = new FeatureLayer({
+      portalItem: {  // autocasts as esri/portal/PortalItem
+        id: "398629a847f84793a978adb7d71efa6f"
+      },
+      elevationInfo: {
+        mode: "on-the-ground"
+      },
+    })
+
     const route = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
         id: "496d79bd13fe4cbb9b97608a44dc3b12"
@@ -130,7 +140,7 @@ const ArcGISMap = observer(() => {
     const map = new Map({                // Create a Map object
       basemap: "satellite",
       ground: "world-elevation",
-      layers: [animatedLayer, latestSimulation, route, buildings]
+      layers: [animatedLayer, latestSimulation, route, specialPoints, buildings]
     });
 
     const view = new SceneView({
