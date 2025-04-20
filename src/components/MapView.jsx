@@ -15,8 +15,9 @@ import Graphic from "@arcgis/core/Graphic";
 import Point from "@arcgis/core/geometry/Point";
 import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 import Weather from "@arcgis/core/widgets/Weather";
+import Editor from "@arcgis/core/widgets/Editor";
+import { pointTypeRenderer } from "../utils/renderers";
 
-import WebStyleSymbol from "@arcgis/core/symbols/WebStyleSymbol";
 
 import bluePinSymbol from "../assets/blue-pin-symbol.svg";
 import redPinSymbol from "../assets/red-pin-symbol.svg";
@@ -75,14 +76,16 @@ const ArcGISMap = observer(() => {
         mode: "on-the-ground"
       },
       refreshInterval: 1,
-      visible: false
+      visible: false,
+      popupEnabled: false
     })
 
 
     const posHistory = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
         id: "3be23c44c1ae48f3a565ceefb0f22d53"
-      }
+      },
+      popupEnabled: false
     })
 
 
@@ -91,8 +94,24 @@ const ArcGISMap = observer(() => {
         id: "398629a847f84793a978adb7d71efa6f"
       },
       elevationInfo: {
-        mode: "on-the-ground"
+        mode: "relative-to-ground",
       },
+      renderer: pointTypeRenderer,
+      popupTemplate: {
+        title: "{Label}", // replace with actual attribute name
+        content: [
+          {
+            type: "fields",
+            title: "{title}",
+            fieldInfos: [
+              { fieldName: "pointType", label: "Type" },
+              { fieldName: "description", label: "Description" }, // optional
+              { fieldName: "urlLink", label: "URL Link" } // optional
+
+            ]
+          }
+        ]
+      }
     })
 
     const route = new FeatureLayer({
@@ -109,7 +128,8 @@ const ArcGISMap = observer(() => {
           color: "darkred",
           width: "4px"
         }
-      }
+      },
+      popupEnabled: false
     })
 
 
@@ -119,7 +139,8 @@ const ArcGISMap = observer(() => {
       },
       elevationInfo: {
         mode: "on-the-ground"
-      }
+      },
+      popupEnabled: false
     })
 
 
@@ -133,6 +154,7 @@ const ArcGISMap = observer(() => {
       featureReduction: {
         type: "selection"
       },
+      popupEnabled: false
     });
 
     layerRef.current = animatedLayer;
@@ -166,6 +188,23 @@ const ArcGISMap = observer(() => {
     });
     view.ui.add(basemapGalleryExpand.current, "top-right")
 
+
+    const weather = new Weather({
+      view: view,  // The view that provides access to the map's "streets-vector" basemap
+    });
+    const weatherExpand = new Expand({
+      content: weather,
+      view: view
+    });
+    view.ui.add(weatherExpand, "top-right")
+
+    const edit = new Expand({
+      content: new Editor({
+        view: view}),
+      view: view
+    });
+    view.ui.add(edit, "top-right")
+
     // Create a toggle button for the Favorite Panel
     const toggleFavoritePanelBtn = document.createElement("button");
     toggleFavoritePanelBtn.innerText = "⭐";
@@ -183,14 +222,7 @@ const ArcGISMap = observer(() => {
 
     view.ui.add(toggleFavoritePanelBtn, "top-left");
 
-    const weather = new Weather({
-      view: view,  // The view that provides access to the map's "streets-vector" basemap
-    });
-    const weatherExpand = new Expand({
-      content: weather,
-      view: view
-    });
-    view.ui.add(weatherExpand, "top-right")
+
 
 
 
