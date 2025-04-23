@@ -89,7 +89,7 @@ const ArcGISMap = observer(() => {
 
     const posHistory = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "0c5ee79f9caa4531afddaeadf58f7df5"
+        id: "2b65b945827e4bdd986b2a65b9ae9b46"
       },
       popupEnabled: false
     })
