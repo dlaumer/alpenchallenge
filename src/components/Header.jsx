@@ -174,7 +174,6 @@ const ProgressBar = styled.div.attrs(({ $progress }) => ({
 `;
 
 
-
 const Header = observer(() => {
   const [open, setOpen] = useState(false);
   const [animateDot, setAnimateDot] = useState(false);

@@ -10,14 +10,16 @@ import Map from "@arcgis/core/Map";
 import Expand from "@arcgis/core/widgets/Expand";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import SceneLayer from "@arcgis/core/layers/SceneLayer";
-import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
+import StreamLayer from "@arcgis/core/layers/StreamLayer";
 import Graphic from "@arcgis/core/Graphic";
 import Point from "@arcgis/core/geometry/Point";
 import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 import Weather from "@arcgis/core/widgets/Weather";
 import Editor from "@arcgis/core/widgets/Editor";
 import { pointTypeRenderer } from "../utils/renderers";
+import PointSymbol3D from "@arcgis/core/symbols/PointSymbol3D";
 
+import ObjectSymbol3DLayer from "@arcgis/core/symbols/ObjectSymbol3DLayer";
 
 import bluePinSymbol from "../assets/blue-pin-symbol.svg";
 import redPinSymbol from "../assets/red-pin-symbol.svg";
@@ -146,18 +148,40 @@ const ArcGISMap = observer(() => {
     })
 
 
-    // Create a GraphicsLayer that will display the animated points
-    const animatedLayer = new GraphicsLayer({
+    // new: client‑side StreamLayer
+    const animatedLayer = new StreamLayer({
       elevationInfo: {
-        mode: "relative-to-ground",
-        offset: 0
+        mode: "on-the-ground"
       },
-      screenSizePerspectiveEnabled: false,
-      featureReduction: {
-        type: "selection"
+      // define schema: must include an OID (objectIdField) and a trackId
+      fields: [
+        { name: "OBJECTID", alias: "ObjectID", type: "oid" },
+        { name: "TRACKID", alias: "Rider ID", type: "string" },
+        { name: "SPEED", alias: "Speed", type: "double" }
+      ],
+      timeInfo: {
+        trackIdField: "TRACKID"
       },
-      popupEnabled: false
+      geometryType: "point",               // required
+      spatialReference: { wkid: 4326 },    // match your data
+      updateInterval: 0,                   // we'll push every frame
+      purgeOptions: {
+        type: "manual"                     // so we can clear old features each tick
+      },
+      renderer: {
+        type: "simple",                    // simple-marker renderer
+        symbol: new PointSymbol3D({
+          symbolLayers: [new ObjectSymbol3DLayer({
+            width: 15,  // diameter of the object from east to west in meters
+            height: 100,  // height of the object in meters
+            depth: 15,  // diameter of the object from north to south in meters
+            resource: { primitive: "cylinder" },
+            material: { color: "red" }
+          })]
+        })
+      }
     });
+
 
     layerRef.current = animatedLayer;
 
@@ -273,6 +297,7 @@ const ArcGISMap = observer(() => {
     // Use a plain object to store graphics keyed by rider ID.
     const graphicsMap = {};
     graphicsMapRef.current = graphicsMap;
+    
     const animate = () => {
 
       if (mapStore.playing && mapStore.timeReference) {
@@ -336,11 +361,11 @@ const ArcGISMap = observer(() => {
             const result = response.results.find((result) =>
               result.graphic &&
               result.graphic.attributes &&
-              result.graphic.attributes.userId
+              result.graphic.attributes.TRACKID
             );
 
             if (result) {
-              mapStore.setRiderSelected(result.graphic.attributes.userId);
+              mapStore.setRiderSelected(result.graphic.attributes.TRACKID);
               mapStore.setPopupVisible(true);
             }
           }
@@ -429,8 +454,12 @@ const ArcGISMap = observer(() => {
 
   }, [riderStore.downloadProgress]);
 
+  let objectIdCounter = 1;
 
   const animation = (graphicsMap) => {
+
+    const features = [];
+
     let elapsed = Date.now() - mapStore.timeReferenceAnimation;
 
     if (mapStore.replayMode) {
@@ -454,108 +483,18 @@ const ArcGISMap = observer(() => {
 
         if (!interpolated) return;
 
-        // Check if the current rider is selected and update its symbol accordingly.
-        const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
-
-
-        // Create the symbol
-          const symbol3D = {
-            type: "point-3d",
-            symbolLayers: [
-
-              {
-                type: "object",
-                anchor: "bottom",
-                anchorPosition: {
-                  x: 0,
-                  y: 0,
-                  z: 0
-                },
-                castShadows: false,
-                depth: 3,
-                heading: interpolated.heading,
-                height: 3,
-                resource: {
-                  href: roadBike,
-                },
-                roll: 0,
-                tilt: 0,
-                width: 3
-              },
-            ],
-          };
-
-        // Use a plain object to check if the graphic exists
-        if (graphicsMap[riderId]) {
-          graphicsMap[riderId].graphic3D.symbol = symbol3D;
-          const geom = graphicsMap[riderId].graphic2D.geometry.clone();
-          // for 2D use geom.x / geom.y; in a SceneView you can use geom.longitude / geom.latitude
-          geom.longitude = interpolated.longitude;
-          geom.latitude = interpolated.latitude;
-          geom.z = 0;
-          graphicsMap[riderId].graphic2D.geometry = geom;
-          graphicsMap[riderId].graphic3D.geometry = geom;
-
-        } else {
-
-
-          
-
-
-          // Create the symbol
-          const symbol2D = {
-            type: "point-3d",
-            symbolLayers: [
-              {
-                type: "icon",
-                resource: {
-                  href: isSelected ? redPinSymbol : riderStore.favorites.includes(riderId) ? yellowPinSymbol : bluePinSymbol, // adjust path if needed
-                },
-                size: 45, // adjust size if needed
-                anchor: "relative",
-                anchorPosition: { x: 0, y: 0.25 },
-
-              },
-            ],
-            verticalOffset: {
-              screenLength: 20,
-              maxWorldLength: 50,
-              minWorldLength: 15
-            },
-
-            callout: {
-              type: "line", // autocasts as new LineCallout3D()
-              color: "white",
-              size: 1,
-            }
-          };
-
-          const graphic2D = new Graphic({
-            geometry: new Point({
-              longitude: interpolated.longitude,
-              latitude: interpolated.latitude,
-              z: 0,
-            }),
-            attributes: { userId: riderId, altitude: interpolated.altitude },
-            symbol: symbol2D
-          });
-
-
-          const graphic3D = new Graphic({
-            geometry: new Point({
-              longitude: interpolated.longitude,
-              latitude: interpolated.latitude,
-              z: 0,
-            }),
-            attributes: { userId: riderId, altitude: interpolated.altitude },
-            symbol: symbol3D
-          });
-
-          graphicsMap[riderId] = { graphic3D: graphic3D, graphic2D: graphic2D };
-          layerRef.current.add(graphicsMap[riderId].graphic3D);
-          layerRef.current.add(graphicsMap[riderId].graphic2D);
-
-        }
+        features.push({
+          attributes: {
+            OBJECTID: objectIdCounter++,
+            TRACKID: riderId,
+            SPEED: interpolated.speed
+          },
+          geometry: {
+            x: interpolated.longitude,
+            y: interpolated.latitude,
+            spatialReference: { wkid: 4326 }
+          }
+        });
 
         // If a rider is followed, update the camera center to that rider's current position.
         if (mapStore.riderFollowed == riderId && graphicsMap[mapStore.riderFollowed]) {
@@ -596,6 +535,9 @@ const ArcGISMap = observer(() => {
 
         }
       });
+      layerRef.current.sendMessageToClient({ type: "clear" });
+      layerRef.current.sendMessageToClient({ type: "features", features });
+
     }
   }
 
