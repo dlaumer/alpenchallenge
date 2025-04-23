@@ -163,13 +163,15 @@ const ProgressBarWrapper = styled.div`
   background: transparent;
 `;
 
-const ProgressBar = styled.div`
+const ProgressBar = styled.div.attrs(props => ({
+  style: {
+    width: props.progress * 100 + "%",
+  },
+}))`
   height: 100%;
   background: red;
-  width: ${({ progress }) => `${progress * 100}%`};
   transition: width 0.3s ease;
 `;
-
 
 
 const Header = observer(() => {
