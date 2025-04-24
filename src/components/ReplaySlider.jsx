@@ -1,3 +1,4 @@
+// ReplaySlider.jsx
 import React, { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
 import mapStore from "../store/mapStore";
@@ -156,7 +157,7 @@ const SpeedSelector = styled.select`
   }
 `;
 
-/* New: Buffering styles */
+/* Buffering styles */
 const BufferingTag = styled.div`
   display: flex;
   align-items: center;
@@ -256,6 +257,7 @@ const ReplaySlider = observer(() => {
   const handleMouseMove = e => {
     if (isDragging) seekTo(e.clientX);
   };
+
   const handleMouseUp = () => {
     setIsDragging(false);
     document.body.style.userSelect = "auto";
@@ -266,9 +268,11 @@ const ReplaySlider = observer(() => {
     document.body.classList.add("no-select");
     seekTo(e.touches[0].clientX);
   };
+
   const handleTouchMove = e => {
     if (isDragging) seekTo(e.touches[0].clientX);
   };
+
   const handleTouchEnd = () => {
     setIsDragging(false);
     document.body.classList.remove("no-select");
@@ -301,14 +305,19 @@ const ReplaySlider = observer(() => {
   return (
     <Container>
       <ControlsRow>
-        {mapStore.buffering ? (
+        {mapStore.replayMode ? (
+          <LiveTag onClick={setLive} replay={true}>
+            <LiveDot replay={true} />
+            LIVE
+          </LiveTag>
+        ) : mapStore.buffering ? (
           <BufferingTag>
             <SpinnerIcon size={14} />
             Buffering
           </BufferingTag>
         ) : (
-          <LiveTag onClick={setLive} replay={mapStore.replayMode}>
-            <LiveDot replay={mapStore.replayMode} />
+          <LiveTag onClick={setLive} replay={false}>
+            <LiveDot replay={false} />
             LIVE
           </LiveTag>
         )}
