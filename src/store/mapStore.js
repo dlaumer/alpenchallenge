@@ -13,6 +13,7 @@ class MapStore {
   replayMode = false;
   playing = true;
 
+  buffering = false;
   updating = false;
   t = 0;
   replaySpeed = 1; // default to 1x
@@ -73,6 +74,10 @@ class MapStore {
 
   setReplaySpeed(speed) {
     this.replaySpeed = speed;
+  }
+
+  setBuffering(buffering) {
+    this.buffering = buffering;
   }
 
   setUpdating(updating) {

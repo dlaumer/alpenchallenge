@@ -358,13 +358,15 @@ const ArcGISMap = observer(() => {
     }
     const currentTs = mapStore.timeReference + elapsed;
 
-    if (mapStore.replayMode) {
-      mapStore.setTime(currentTs)
+    if (mapStore.t != 1) {
+      if (mapStore.replayMode) {
+        mapStore.setTime(currentTs)
 
-    }
-    else {
-      mapStore.setTime(currentTs - 60 * 60 * 1000)
+      }
+      else {
+        mapStore.setTime(currentTs - 60 * 60 * 1000)
 
+      }
     }
     if (!currentTs) return;
 
