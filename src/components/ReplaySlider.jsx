@@ -1,14 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
 import mapStore from "../store/mapStore";
-import {
-  Play,
-  Pause,
-  RotateCcw,
-  RotateCw
-} from "lucide-react";
+import { Play, Pause, RotateCcw, RotateCw, Loader } from "lucide-react";
 import riderStore from "../store/riderStore";
 import { observer } from "mobx-react-lite";
+
 const Container = styled.div`
   position: absolute;
   bottom: 20px;
@@ -49,13 +45,11 @@ const SliderRow = styled.div`
   width: 100%;
 `;
 
-
-
 const LiveTag = styled.div`
   display: flex;
   align-items: center;
   margin-right: 10px;
-  color: ${(props) => (props.replay ? "#666" : "red")};
+  color: ${props => (props.replay ? "#666" : "red")};
   font-weight: bold;
   cursor: pointer;
 `;
@@ -65,8 +59,8 @@ const LiveDot = styled.div`
   height: 10px;
   border-radius: 50%;
   margin-right: 6px;
-  background-color: ${(props) => (props.replay ? "#999" : "red")};
-  animation: ${(props) => (props.replay ? "none" : "pulse 1.2s infinite ease-in-out")};
+  background-color: ${props => (props.replay ? "#999" : "red")};
+  animation: ${props => (props.replay ? "none" : "pulse 1.2s infinite ease-in-out")};
 
   @keyframes pulse {
     0% { transform: scale(1); opacity: 1; }
@@ -110,7 +104,7 @@ const SliderProgress = styled.div`
   height: 100%;
   background: darkred;
   border-radius: 4px;
-  width: ${(props) => props.progress}%;
+  width: ${props => props.progress}%;
   pointer-events: none;
 `;
 
@@ -123,9 +117,10 @@ const SliderHandle = styled.div`
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  left: ${(props) => props.progress}%;
+  left: ${props => props.progress}%;
   pointer-events: none;
 `;
+
 const SpeedSelector = styled.select`
   margin-left: 10px;
   padding: 4px 10px;
@@ -161,7 +156,25 @@ const SpeedSelector = styled.select`
   }
 `;
 
+/* New: Buffering styles */
+const BufferingTag = styled.div`
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  color: #666;
+  font-weight: bold;
+  cursor: default;
+`;
 
+const SpinnerIcon = styled(Loader)`
+  margin-right: 6px;
+  animation: spin 1.2s linear infinite;
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
 
 const ReplaySlider = observer(() => {
   const [isDragging, setIsDragging] = useState(false);
@@ -170,7 +183,7 @@ const ReplaySlider = observer(() => {
 
   const [startTs, endTs] = riderStore.getReplayTimeRange();
 
-  const formatTime = (ms) => {
+  const formatTime = ms => {
     const d = new Date(ms);
     return d.toLocaleTimeString("en-GB");
   };
@@ -178,104 +191,88 @@ const ReplaySlider = observer(() => {
   const togglePlay = () => {
     mapStore.togglePlaying();
     mapStore.setReplayMode(true);
-
     if (mapStore.playing) {
-      mapStore.setTimeReferenceAnimation(Date.now() - elapsedPlaying)
+      mapStore.setTimeReferenceAnimation(Date.now() - elapsedPlaying);
+    } else {
+      setElapsedPlaying(Date.now() - mapStore.timeReferenceAnimation);
     }
-    else {
-      setElapsedPlaying(Date.now() - mapStore.timeReferenceAnimation)
-    }
-  }
+  };
 
   const setLive = () => {
-    mapStore.setReplayMode(false)
+    mapStore.setReplayMode(false);
     mapStore.setTimeReference(riderStore.currentSmallestTimestamp);
     mapStore.setTimeReferenceAnimation(Date.now());
     mapStore.replaySpeed = 1;
-  }
+  };
 
-  const jump = (deltaMs) => {
+  const jump = deltaMs => {
     mapStore.setReplayMode(true);
-
-    const newTime = Math.max(startTs, Math.min(endTs, mapStore.time + deltaMs))
-    mapStore.setTimeReference(newTime)
-    mapStore.setTimeReferenceAnimation(Date.now())
-    mapStore.setTime(newTime)
+    const newTime = Math.max(
+      startTs,
+      Math.min(endTs, mapStore.time + deltaMs)
+    );
+    mapStore.setTimeReference(newTime);
+    mapStore.setTimeReferenceAnimation(Date.now());
+    mapStore.setTime(newTime);
     mapStore.setJumpTime(true);
-
   };
 
   const getProgress = () => {
-    if (mapStore.time) {
-      if (mapStore.replayMode) {
-        let percent = ((mapStore.time - startTs) / (riderStore.currentSmallestTimestamp - 60 * 60 * 1000 - startTs)) * 100; //TODO: Check why there is an hour difference sometimes
-        if (percent > 100 && mapStore.playing) {
-          percent = 100;
-          setLive()
-        }
-        return percent  
+    if (!mapStore.time) return 0;
+    if (mapStore.replayMode) {
+      let pct = ((mapStore.time - startTs) /
+        (riderStore.currentSmallestTimestamp - 60 * 60 * 1000 - startTs)) * 100;
+      if (pct > 100 && mapStore.playing) {
+        pct = 100;
+        setLive();
       }
-      else {
-        return 100;
-      }
+      return pct;
     }
-  }
+    return 100;
+  };
 
-  const seekTo = (clientX) => {
+  const seekTo = clientX => {
     const rect = sliderRef.current.getBoundingClientRect();
-    const percent = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    const ts = startTs + percent * (riderStore.currentSmallestTimestamp - 60 * 60 * 1000 - startTs);
-
-    if (percent == 1 && mapStore.playing) {
-      setLive()
-    }
-    else {
+    const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const ts = startTs + pct *
+      (riderStore.currentSmallestTimestamp - 60 * 60 * 1000 - startTs);
+    if (pct === 1 && mapStore.playing) {
+      setLive();
+    } else {
       mapStore.setReplayMode(true);
-      mapStore.setTimeReference(ts)
-      mapStore.setTimeReferenceAnimation(Date.now())
+      mapStore.setTimeReference(ts);
+      mapStore.setTimeReferenceAnimation(Date.now());
       mapStore.setTime(ts);
       mapStore.setJumpTime(true);
     }
   };
 
-  const handleMouseDown = (e) => {
+  const handleMouseDown = e => {
     setIsDragging(true);
-    document.body.style.userSelect = "none"; // Disable text selection
-
+    document.body.style.userSelect = "none";
     seekTo(e.clientX);
   };
 
-  const handleMouseMove = (e) => {
-    if (isDragging) {
-      seekTo(e.clientX);
-    }
+  const handleMouseMove = e => {
+    if (isDragging) seekTo(e.clientX);
   };
-
   const handleMouseUp = () => {
     setIsDragging(false);
-    document.body.style.userSelect = "auto"; // Re-enable text selection
-
+    document.body.style.userSelect = "auto";
   };
 
-
-  // Mobile Touch Handlers
-  const handleTouchStart = (e) => {
+  const handleTouchStart = e => {
     setIsDragging(true);
     document.body.classList.add("no-select");
     seekTo(e.touches[0].clientX);
   };
-
-  const handleTouchMove = (e) => {
-    if (isDragging) {
-      seekTo(e.touches[0].clientX);
-    }
+  const handleTouchMove = e => {
+    if (isDragging) seekTo(e.touches[0].clientX);
   };
-
   const handleTouchEnd = () => {
     setIsDragging(false);
     document.body.classList.remove("no-select");
   };
-
 
   useEffect(() => {
     if (isDragging) {
@@ -289,7 +286,6 @@ const ReplaySlider = observer(() => {
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", handleTouchEnd);
     }
-
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
@@ -298,18 +294,24 @@ const ReplaySlider = observer(() => {
     };
   }, [isDragging]);
 
-
   if (!startTs || !endTs || isNaN(startTs) || isNaN(endTs)) {
-    return <div style={{ display: "none" }} />;
+    return null;
   }
 
   return (
     <Container>
       <ControlsRow>
-        <LiveTag onClick={setLive} replay={mapStore.replayMode}>
-          <LiveDot replay={mapStore.replayMode} />
-          LIVE
-        </LiveTag>
+        {mapStore.buffering ? (
+          <BufferingTag>
+            <SpinnerIcon size={14} />
+            Buffering
+          </BufferingTag>
+        ) : (
+          <LiveTag onClick={setLive} replay={mapStore.replayMode}>
+            <LiveDot replay={mapStore.replayMode} />
+            LIVE
+          </LiveTag>
+        )}
         <Time>{formatTime(mapStore.time)}</Time>
         <Button onClick={() => jump(-60000)} title="Back 1 min">
           <RotateCcw size={18} />
@@ -322,11 +324,10 @@ const ReplaySlider = observer(() => {
         </Button>
         <SpeedSelector
           value={mapStore.replaySpeed}
-          onChange={(e) => {
-            mapStore.setReplaySpeed(Number(e.target.value))
-
-            mapStore.setTimeReference(mapStore.time)
-            mapStore.setTimeReferenceAnimation(Date.now())
+          onChange={e => {
+            mapStore.setReplaySpeed(Number(e.target.value));
+            mapStore.setTimeReference(mapStore.time);
+            mapStore.setTimeReferenceAnimation(Date.now());
           }}
         >
           <option value={1}>1x</option>
@@ -337,7 +338,11 @@ const ReplaySlider = observer(() => {
         </SpeedSelector>
       </ControlsRow>
       <SliderRow>
-        <SliderWrapper ref={sliderRef} onMouseDown={handleMouseDown} onTouchStart={handleTouchStart}>
+        <SliderWrapper
+          ref={sliderRef}
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+        >
           <SliderProgress progress={getProgress()} />
           <SliderHandle progress={getProgress()} />
         </SliderWrapper>

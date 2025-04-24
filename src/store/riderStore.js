@@ -29,6 +29,7 @@ class RiderStore {
         mapStore.setTimeReferenceAnimation(Date.now());
       }
     }
+    mapStore.setBuffering(false);
     mapStore.setUpdating(false);
   }
 
@@ -123,7 +124,9 @@ class RiderStore {
     if (timeDiff <= 0) return curr;
 
     const t = Math.max(0, Math.min(1, (currentTs - prev.ts) / timeDiff));
-
+    if (t == 1) {
+      mapStore.setBuffering(true);
+    }
     if (!mapStore.replayMode) {
       //mapStore.setTime(new Date(prev.ts + t * timeDiff - 60 * 60 * 1000).getTime())
     }

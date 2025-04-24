@@ -88,9 +88,7 @@ const ArcGISMap = observer(() => {
 
 
     const posHistory = new FeatureLayer({
-      portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "2b65b945827e4bdd986b2a65b9ae9b46"
-      },
+      url: "https://services1.arcgis.com/i9MtZ1vtgD3gTnyL/arcgis/rest/services/posHistorySimulation1000_2/FeatureServer",
       popupEnabled: false
     })
 
@@ -268,7 +266,7 @@ const ArcGISMap = observer(() => {
     // Use a plain object to store graphics keyed by rider ID.
     const graphicsMap = {};
     graphicsMapRef.current = graphicsMap;
-    
+
     const animate = () => {
 
       const now = performance.now();
@@ -403,13 +401,15 @@ const ArcGISMap = observer(() => {
     }
     const currentTs = mapStore.timeReference + elapsed;
 
-    if (mapStore.replayMode) {
-      mapStore.setTime(currentTs)
+    if (mapStore.t != 1) {
+      if (mapStore.replayMode) {
+        mapStore.setTime(currentTs)
 
-    }
-    else {
-      mapStore.setTime(currentTs - 60 * 60 * 1000)
+      }
+      else {
+        mapStore.setTime(currentTs - 60 * 60 * 1000)
 
+      }
     }
     if (!currentTs) return;
 
