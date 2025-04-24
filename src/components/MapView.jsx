@@ -122,7 +122,7 @@ const ArcGISMap = observer(() => {
 
     const route = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "77b9738872bb4f98b28520b7ce3bfdb9"
+        id: "86096603da9c49878889f3f92dc2ec55"
       },
       elevationInfo: {
         mode: "on-the-ground"
