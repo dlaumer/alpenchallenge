@@ -16,7 +16,7 @@ import Point from "@arcgis/core/geometry/Point";
 import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 import Weather from "@arcgis/core/widgets/Weather";
 import Editor from "@arcgis/core/widgets/Editor";
-import { pointTypeRenderer } from "../utils/renderers";
+import { specialPointsTypeRenderer, streamLayerRenderer2 } from "../utils/renderers";
 import PointSymbol3D from "@arcgis/core/symbols/PointSymbol3D";
 
 import ObjectSymbol3DLayer from "@arcgis/core/symbols/ObjectSymbol3DLayer";
@@ -88,7 +88,7 @@ const ArcGISMap = observer(() => {
 
 
     const posHistory = new FeatureLayer({
-      url: "https://services1.arcgis.com/i9MtZ1vtgD3gTnyL/arcgis/rest/services/posHistorySimulation1000_2/FeatureServer",
+      url: "https://services1.arcgis.com/i9MtZ1vtgD3gTnyL/arcgis/rest/services/posHistorySimulation1000_4/FeatureServer",
       popupEnabled: false
     })
 
@@ -100,7 +100,7 @@ const ArcGISMap = observer(() => {
       elevationInfo: {
         mode: "relative-to-ground",
       },
-      renderer: pointTypeRenderer,
+      renderer: specialPointsTypeRenderer,
       popupTemplate: {
         title: "{Label}", // replace with actual attribute name
         content: [
@@ -162,24 +162,14 @@ const ArcGISMap = observer(() => {
       timeInfo: {
         trackIdField: "TRACKID"
       },
+      popupEnabled: false,
       geometryType: "point",               // required
       spatialReference: { wkid: 4326 },    // match your data
       updateInterval: 0,                   // we'll push every frame
       purgeOptions: {
         type: "manual"                     // so we can clear old features each tick
       },
-      renderer: {
-        type: "simple",                    // simple-marker renderer
-        symbol: new PointSymbol3D({
-          symbolLayers: [new ObjectSymbol3DLayer({
-            width: 15,  // diameter of the object from east to west in meters
-            height: 100,  // height of the object in meters
-            depth: 15,  // diameter of the object from north to south in meters
-            resource: { primitive: "cylinder" },
-            material: { color: "red" }
-          })]
-        })
-      }
+      renderer: streamLayerRenderer2, // use the renderer we created above
     });
 
 
@@ -250,14 +240,45 @@ const ArcGISMap = observer(() => {
     view.ui.add(toggleFavoritePanelBtn, "top-left");
 
 
+    /**
+     * Recursively fetches *all* features from a layer by paginating
+     * based on layer.capabilities.query.maxRecordCount.
+     */
+    /**
+ * Recursively fetches all features from a layer by paging
+ * via the Query.start / Query.num properties.
+ */
+    async function fetchAllFeatures(layer) {
+      const max = 10000;  // e.g. 2000
+      let allFeatures = [];
+      let start = 0;
 
+      while (true) {
+        // build a fresh Query each time
+        const query = layer.createQuery();
+        query.where = "1=1";                // your where-clause
+        query.outFields = ["*"];
+        query.returnGeometry = false;
+        query.start = start;                // zero-based offset :contentReference[oaicite:0]{index=0}
+        query.num = max;                    // page size
+        query.maxRecordCountFactor = 5; // optional, but useful for large datasets
 
+        const result = await layer.queryFeatures(query);
 
-    posHistory.queryFeatures({
-      where: "1=1", // or use a smarter where clause
-      outFields: ["*"],
-      returnGeometry: true
-    }).then((results) => {
+        allFeatures.push(...result.features);
+
+        // if we hit the service’s maxRecordCount, loop for the next “page”
+        if (result.exceededTransferLimit) {
+          start += max;
+        } else {
+          break;
+        }
+      }
+
+      return allFeatures;
+    }
+
+    fetchAllFeatures(posHistory).then((results) => {
       riderStore.setReplayData(results); // create a setter in your store
     });
 
@@ -347,47 +368,6 @@ const ArcGISMap = observer(() => {
 
   }, [mapStore.jumpTime]);
 
-  useEffect(() => {
-    const disposer = reaction(
-      () => [riderStore.favorites.slice(), mapStore.riderSelected],               // data function
-      ([newFavorites, newRiderSelected], [oldFavorites, oldRiderSelected]) => {
-        [...newFavorites, ...oldFavorites, newRiderSelected, oldRiderSelected].forEach((riderId) => {
-          if (graphicsMapRef.current[riderId]) {
-            const graphic2D = graphicsMapRef.current[riderId].graphic2D;
-            const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
-            graphic2D.symbol = {
-              type: "point-3d",
-              symbolLayers: [
-                {
-                  type: "icon",
-                  resource: {
-                    href: isSelected ? redPinSymbol : riderStore.favorites.includes(riderId) ? yellowPinSymbol : bluePinSymbol, // adjust path if needed
-                  },
-                  size: 45, // adjust size if needed
-                  anchor: "relative",
-                  anchorPosition: { x: 0, y: 0.25 },
-
-                },
-              ],
-              verticalOffset: {
-                screenLength: 20,
-                maxWorldLength: 50,
-                minWorldLength: 15
-              },
-
-              callout: {
-                type: "line", // autocasts as new LineCallout3D()
-                color: "white",
-                size: 1,
-              }
-            };
-          }
-        });
-      }
-    );
-    return () => disposer();  // clean up
-  }, []);
-
   let objectIdCounter = 1;
 
   const animation = (graphicsMap) => {
@@ -427,7 +407,8 @@ const ArcGISMap = observer(() => {
           attributes: {
             OBJECTID: objectIdCounter++,
             TRACKID: riderId,
-            SPEED: interpolated.speed
+            SPEED: interpolated.speed,
+            symbolisation: mapStore.riderSelected == riderId ? "selected" : riderStore.favorites[0] == riderId ? "favorite" : riderStore.favorites[1] == riderId ? "favorite" : riderStore.favorites[2] == riderId ? "favorite" : riderStore.favorites[3] == riderId ? "favorite" : "none",
           },
           geometry: {
             x: interpolated.longitude,

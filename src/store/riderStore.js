@@ -36,7 +36,7 @@ class RiderStore {
   setReplayData(results) {
 
     this.replayData = {};
-    results.features.forEach((feature) => {
+    results.forEach((feature) => {
       const attr = feature.attributes;
       const riderId = attr.userId;
       const timestamp = new Date(attr.ts_string).getTime(); // or use new Date(attr.ts).toISOString().slice(0, 19)
@@ -286,7 +286,7 @@ class RiderStore {
 
     const minTs = Math.min(...allTimestamps);
     const maxTs = Math.max(...allTimestamps);
-    return [minTs, maxTs];
+    return [minTs - 60 * 60 * 1000, maxTs - 60 * 60 *1000];
   }
   toggleFavorite(riderId) {
     const index = mapStore.lastFavoriteSlotClicked;

@@ -298,10 +298,6 @@ const ReplaySlider = observer(() => {
     };
   }, [isDragging]);
 
-  if (!startTs || !endTs || isNaN(startTs) || isNaN(endTs)) {
-    return null;
-  }
-
   return (
     <Container>
       <ControlsRow>
