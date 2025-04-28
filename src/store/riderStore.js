@@ -9,6 +9,8 @@ class RiderStore {
   replayTimestamps = {};   // { riderId: [timestamp1, timestamp2, ...] }
   replayCache = {};        // { riderId: { lastTs, before, after, dataBefore, dataAfter } }
 
+  downloadProgress = 0;
+
   currentSmallestTimestamp = null;
 
   favorites = []
@@ -42,7 +44,9 @@ class RiderStore {
       const timestamp = new Date(attr.ts_string).getTime(); // or use new Date(attr.ts).toISOString().slice(0, 19)
 
       if (!this.replayData[riderId]) this.replayData[riderId] = {};
-      this.replayData[riderId][timestamp] = this.parseAttributes(attr)
+      if (attr.previousPos != "") {
+        this.replayData[riderId][timestamp] = this.parseAttributes(attr)
+      }
     });
 
 
@@ -52,6 +56,7 @@ class RiderStore {
       this.replayTimestamps[riderId] = timestamps;
     });
 
+    this.clearDownloadProgress()
     this.replayCache = {};
   }
 
@@ -102,7 +107,7 @@ class RiderStore {
         }
       }
       newData[riderId] = { previousPos, currentPos };
-      if (this.replayData[riderId] && !(new Date(attributes.ts).getTime() in Object.keys(this.replayData[riderId]))) {
+      if (attributes.previousPos != "" && this.replayData[riderId] && !(new Date(attributes.ts).getTime() in Object.keys(this.replayData[riderId]))) {
         this.replayData[riderId][attributes.ts] = this.parseAttributes(attributes)
         this.replayTimestamps[riderId].push(attributes.ts);
       }
@@ -288,6 +293,14 @@ class RiderStore {
     const maxTs = Math.max(...allTimestamps);
     return [minTs - 60 * 60 * 1000, maxTs - 60 * 60 *1000];
   }
+
+  setDownloadProgress(progress) {
+    this.downloadProgress = progress;
+  }
+  clearDownloadProgress() {
+    this.downloadProgress = null;
+  }
+
   toggleFavorite(riderId) {
     const index = mapStore.lastFavoriteSlotClicked;
 

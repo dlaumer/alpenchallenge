@@ -248,16 +248,18 @@ const ArcGISMap = observer(() => {
  * Recursively fetches all features from a layer by paging
  * via the Query.start / Query.num properties.
  */
-    async function fetchAllFeatures(layer) {
+    async function fetchAllFeatures(layer, count) {
       const max = 10000;  // e.g. 2000
       let allFeatures = [];
       let start = 0;
+
+      riderStore.setDownloadProgress(0)
 
       while (true) {
         // build a fresh Query each time
         const query = layer.createQuery();
         query.where = "1=1";                // your where-clause
-        query.outFields = ["*"];
+        query.outFields = ["userId"];
         query.returnGeometry = false;
         query.start = start;                // zero-based offset :contentReference[oaicite:0]{index=0}
         query.num = max;                    // page size
@@ -266,6 +268,8 @@ const ArcGISMap = observer(() => {
         const result = await layer.queryFeatures(query);
 
         allFeatures.push(...result.features);
+        
+        riderStore.setDownloadProgress(Math.min(allFeatures.length/count,1))
 
         // if we hit the service’s maxRecordCount, loop for the next “page”
         if (result.exceededTransferLimit) {
@@ -278,9 +282,6 @@ const ArcGISMap = observer(() => {
       return allFeatures;
     }
 
-    fetchAllFeatures(posHistory).then((results) => {
-      riderStore.setReplayData(results); // create a setter in your store
-    });
 
 
     // Animation: Use requestAnimationFrame for smoother updates.
@@ -351,6 +352,20 @@ const ArcGISMap = observer(() => {
     });
 
 
+    posHistory
+      .queryFeatureCount({ where: "1=1" })
+      .then(count => {
+        console.log("Total features:", count);
+        fetchAllFeatures(posHistory, count).then((results) => {
+          riderStore.clearDownloadProgress()
+          //riderStore.setReplayData(results); // create a setter in your store
+        });
+      })
+      .catch(err => console.error(err));
+
+
+
+
     // Clean up on component unmount.
     return () => {
       if (animationFrameRef.current) {
@@ -367,6 +382,12 @@ const ArcGISMap = observer(() => {
     mapStore.setJumpTime(false);
 
   }, [mapStore.jumpTime]);
+
+  useEffect(() => {
+    console.log("Download progress:", riderStore.downloadProgress);
+
+  }, [riderStore.downloadProgress]);
+
 
   let objectIdCounter = 1;
 
