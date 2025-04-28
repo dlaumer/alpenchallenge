@@ -85,41 +85,13 @@ const Button = styled.button`
   color: #333;
   padding: 4px;
 
-  &:hover {
+  &:hover:enabled {
     opacity: 0.8;
   }
-`;
-
-const SliderWrapper = styled.div`
-  flex: 1;
-  height: 8px;
-  background: #ccc;
-  border-radius: 4px;
-  margin-left: 15px;
-  margin-right: 5px;
-  position: relative;
-  cursor: pointer;
-`;
-
-const SliderProgress = styled.div`
-  height: 100%;
-  background: darkred;
-  border-radius: 4px;
-  width: ${props => props.$progress}%;
-  pointer-events: none;
-`;
-
-const SliderHandle = styled.div`
-  width: 14px;
-  height: 14px;
-  background: white;
-  border: 2px solid darkred;
-  border-radius: 50%;
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  left: ${props => props.$progress}%;
-  pointer-events: none;
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `;
 
 const SpeedSelector = styled.select`
@@ -135,10 +107,6 @@ const SpeedSelector = styled.select`
   cursor: pointer;
   font-family: inherit;
   height: 32px;
-  display: flex;
-  align-items: center;
-  -webkit-appearance: none;
-  -moz-appearance: none;
   appearance: none;
 
   &:hover {
@@ -152,19 +120,50 @@ const SpeedSelector = styled.select`
   }
 
   option {
+    background: #f1f4f8;
     color: #222;
-    background-color: #f1f4f8;
   }
 `;
 
-/* Buffering styles */
+const SliderWrapper = styled.div`
+  flex: 1;
+  height: 8px;
+  background: #ccc;
+  border-radius: 4px;
+  margin-left: 15px;
+  margin-right: 5px;
+  position: relative;
+  cursor: ${props => (props.disabled ? "not-allowed" : "pointer")};
+  pointer-events: ${props => (props.disabled ? "none" : "auto")};
+`;
+
+const SliderProgress = styled.div`
+  height: 100%;
+  background: darkred;
+  border-radius: 4px;
+  width: ${props => props.progress}%;
+  transition: width 0.3s ease;
+`;
+
+const SliderHandle = styled.div`
+  width: 14px;
+  height: 14px;
+  background: white;
+  border: 2px solid darkred;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  left: ${props => props.progress}%;
+  pointer-events: none;
+`;
+
 const BufferingTag = styled.div`
   display: flex;
   align-items: center;
   margin-right: 10px;
   color: #666;
   font-weight: bold;
-  cursor: default;
 `;
 
 const SpinnerIcon = styled(Loader)`
@@ -206,23 +205,20 @@ const ReplaySlider = observer(() => {
     mapStore.replaySpeed = 1;
   };
 
-  const jump = deltaMs => {
-    mapStore.setReplayMode(true);
-    const newTime = Math.max(
-      startTs,
-      Math.min(endTs, mapStore.time + deltaMs)
-    );
-    mapStore.setTimeReference(newTime);
-    mapStore.setTimeReferenceAnimation(Date.now());
-    mapStore.setTime(newTime);
-    mapStore.setJumpTime(true);
-  };
+  const isDownloading = riderStore.downloadProgress != null;
+  const downloadPct = isDownloading
+    ? Math.max(0, Math.min(1, riderStore.downloadProgress)) * 100
+    : 0;
 
-  const getProgress = () => {
+  const getReplayPct = () => {
     if (!mapStore.time) return 0;
     if (mapStore.replayMode) {
-      let pct = ((mapStore.time - startTs) /
-        (riderStore.currentSmallestTimestamp - 60 * 60 * 1000 - startTs)) * 100;
+      let pct =
+        ((mapStore.time - startTs) /
+          (riderStore.currentSmallestTimestamp -
+            60 * 60 * 1000 -
+            startTs)) *
+        100;
       if (pct > 100 && mapStore.playing) {
         pct = 100;
         setLive();
@@ -232,30 +228,60 @@ const ReplaySlider = observer(() => {
     return 100;
   };
 
-  const seekTo = clientX => {
-    const rect = sliderRef.current.getBoundingClientRect();
-    const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    const ts = startTs + pct *
-      (riderStore.currentSmallestTimestamp - 60 * 60 * 1000 - startTs);
-    if (pct === 1 && mapStore.playing) {
-      setLive();
-    } else {
+  // barProgress fills by downloadPct during download, else by replay
+  const barProgress = isDownloading ? downloadPct : getReplayPct();
+  // handle stays at end (100%) when downloading, else follows replay
+  const handlePos = isDownloading ? 100 : getReplayPct();
+
+  const jump = deltaMs => {
+    if (!isDownloading) {
       mapStore.setReplayMode(true);
-      mapStore.setTimeReference(ts);
+      const newTime = Math.max(
+        startTs,
+        Math.min(endTs, mapStore.time + deltaMs)
+      );
+      mapStore.setTimeReference(newTime);
       mapStore.setTimeReferenceAnimation(Date.now());
-      mapStore.setTime(ts);
+      mapStore.setTime(newTime);
       mapStore.setJumpTime(true);
     }
   };
 
+  const seekTo = clientX => {
+    if (!isDownloading) {
+      const rect = sliderRef.current.getBoundingClientRect();
+      const pct = Math.max(
+        0,
+        Math.min(1, (clientX - rect.left) / rect.width)
+      );
+      const ts =
+        startTs +
+        pct *
+          (riderStore.currentSmallestTimestamp -
+            60 * 60 * 1000 -
+            startTs);
+      if (pct === 1 && mapStore.playing) {
+        setLive();
+      } else {
+        mapStore.setReplayMode(true);
+        mapStore.setTimeReference(ts);
+        mapStore.setTimeReferenceAnimation(Date.now());
+        mapStore.setTime(ts);
+        mapStore.setJumpTime(true);
+      }
+    }
+  };
+
   const handleMouseDown = e => {
-    setIsDragging(true);
-    document.body.style.userSelect = "none";
-    seekTo(e.clientX);
+    if (!isDownloading) {
+      setIsDragging(true);
+      document.body.style.userSelect = "none";
+      seekTo(e.clientX);
+    }
   };
 
   const handleMouseMove = e => {
-    if (isDragging) seekTo(e.clientX);
+    if (isDragging && !isDownloading) seekTo(e.clientX);
   };
 
   const handleMouseUp = () => {
@@ -264,13 +290,15 @@ const ReplaySlider = observer(() => {
   };
 
   const handleTouchStart = e => {
-    setIsDragging(true);
-    document.body.classList.add("no-select");
-    seekTo(e.touches[0].clientX);
+    if (!isDownloading) {
+      setIsDragging(true);
+      document.body.classList.add("no-select");
+      seekTo(e.touches[0].clientX);
+    }
   };
 
   const handleTouchMove = e => {
-    if (isDragging) seekTo(e.touches[0].clientX);
+    if (isDragging && !isDownloading) seekTo(e.touches[0].clientX);
   };
 
   const handleTouchEnd = () => {
@@ -279,7 +307,7 @@ const ReplaySlider = observer(() => {
   };
 
   useEffect(() => {
-    if (isDragging) {
+    if (isDragging && !isDownloading) {
       window.addEventListener("mousemove", handleMouseMove);
       window.addEventListener("mouseup", handleMouseUp);
       window.addEventListener("touchmove", handleTouchMove);
@@ -296,7 +324,7 @@ const ReplaySlider = observer(() => {
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [isDragging]);
+  }, [isDragging, isDownloading]);
 
   return (
     <Container>
@@ -306,7 +334,7 @@ const ReplaySlider = observer(() => {
             <LiveDot $replay={true} />
             LIVE
           </LiveTag>
-        ) : mapStore.buffering ? (
+        ) : mapStore.buffering  ? (
           <BufferingTag>
             <SpinnerIcon size={14} />
             Buffering
@@ -317,22 +345,39 @@ const ReplaySlider = observer(() => {
             LIVE
           </LiveTag>
         )}
+
         <Time>{formatTime(mapStore.time)}</Time>
-        <Button onClick={() => jump(-60000)} title="Back 1 min">
+
+        <Button
+          onClick={() => jump(-60000)}
+          disabled={isDownloading}
+          title="Back 1 min"
+        >
           <RotateCcw size={18} />
         </Button>
-        <Button onClick={togglePlay} title={mapStore.playing ? "Pause" : "Play"}>
+        <Button
+          onClick={togglePlay}
+          disabled={isDownloading}
+          title={mapStore.playing ? "Pause" : "Play"}
+        >
           {mapStore.playing ? <Pause size={18} /> : <Play size={18} />}
         </Button>
-        <Button onClick={() => jump(60000)} title="Forward 1 min">
+        <Button
+          onClick={() => jump(60000)}
+          disabled={isDownloading}
+          title="Forward 1 min"
+        >
           <RotateCw size={18} />
         </Button>
+
         <SpeedSelector
           value={mapStore.replaySpeed}
           onChange={e => {
-            mapStore.setReplaySpeed(Number(e.target.value));
-            mapStore.setTimeReference(mapStore.time);
-            mapStore.setTimeReferenceAnimation(Date.now());
+            if (!isDownloading) {
+              mapStore.setReplaySpeed(Number(e.target.value));
+              mapStore.setTimeReference(mapStore.time);
+              mapStore.setTimeReferenceAnimation(Date.now());
+            }
           }}
         >
           <option value={1}>1x</option>
@@ -342,9 +387,11 @@ const ReplaySlider = observer(() => {
           <option value={100}>100x</option>
         </SpeedSelector>
       </ControlsRow>
+
       <SliderRow>
         <SliderWrapper
           ref={sliderRef}
+          disabled={isDownloading}
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
         >

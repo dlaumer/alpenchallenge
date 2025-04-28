@@ -225,17 +225,45 @@ const ArcGISMap = observer(() => {
     view.ui.add(toggleFavoritePanelBtn, "top-left");
 
 
+    /**
+     * Recursively fetches *all* features from a layer by paginating
+     * based on layer.capabilities.query.maxRecordCount.
+     */
+    /**
+ * Recursively fetches all features from a layer by paging
+ * via the Query.start / Query.num properties.
+ */
+    async function fetchAllFeatures(layer, count) {
+      const max = 10000;  // e.g. 2000
+      let allFeatures = [];
+      let start = 0;
 
+      riderStore.setDownloadProgress(0)
 
+      while (true) {
+        // build a fresh Query each time
+        const query = layer.createQuery();
+        query.where = "1=1";                // your where-clause
+        query.outFields = ["userId"];
+        query.returnGeometry = false;
+        query.start = start;                // zero-based offset :contentReference[oaicite:0]{index=0}
+        query.num = max;                    // page size
+        query.maxRecordCountFactor = 5; // optional, but useful for large datasets
 
-    posHistory.queryFeatures({
-      where: "1=1", // or use a smarter where clause
-      outFields: ["*"],
-      returnGeometry: true
-    }).then((results) => {
-      //riderStore.setReplayData(results); // create a setter in your store
-    });
+        allFeatures.push(...result.features);
+        
+        riderStore.setDownloadProgress(Math.min(allFeatures.length/count,1))
 
+        // if we hit the service’s maxRecordCount, loop for the next “page”
+        if (result.exceededTransferLimit) {
+          start += max;
+        } else {
+          break;
+        }
+      }
+
+      return allFeatures;
+    }
 
 
 
@@ -321,6 +349,20 @@ const ArcGISMap = observer(() => {
     });
 
 
+    posHistory
+      .queryFeatureCount({ where: "1=1" })
+      .then(count => {
+        console.log("Total features:", count);
+        fetchAllFeatures(posHistory, count).then((results) => {
+          riderStore.clearDownloadProgress()
+          //riderStore.setReplayData(results); // create a setter in your store
+        });
+      })
+      .catch(err => console.error(err));
+
+
+
+
     // Clean up on component unmount.
     return () => {
       // cleanup loop & listeners
@@ -338,45 +380,10 @@ const ArcGISMap = observer(() => {
   }, [mapStore.jumpTime]);
 
   useEffect(() => {
-    const disposer = reaction(
-      () => [riderStore.favorites.slice(), mapStore.riderSelected],               // data function
-      ([newFavorites, newRiderSelected], [oldFavorites, oldRiderSelected]) => {
-        [...newFavorites, ...oldFavorites, newRiderSelected, oldRiderSelected].forEach((riderId) => {
-          if (graphicsMapRef.current[riderId]) {
-            const graphic2D = graphicsMapRef.current[riderId].graphic2D;
-            const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
-            graphic2D.symbol = {
-              type: "point-3d",
-              symbolLayers: [
-                {
-                  type: "icon",
-                  resource: {
-                    href: isSelected ? redPinSymbol : riderStore.favorites.includes(riderId) ? yellowPinSymbol : bluePinSymbol, // adjust path if needed
-                  },
-                  size: 45, // adjust size if needed
-                  anchor: "relative",
-                  anchorPosition: { x: 0, y: 0.25 },
+    console.log("Download progress:", riderStore.downloadProgress);
 
-                },
-              ],
-              verticalOffset: {
-                screenLength: 20,
-                maxWorldLength: 50,
-                minWorldLength: 15
-              },
+  }, [riderStore.downloadProgress]);
 
-              callout: {
-                type: "line", // autocasts as new LineCallout3D()
-                color: "white",
-                size: 1,
-              }
-            };
-          }
-        });
-      }
-    );
-    return () => disposer();  // clean up
-  }, []);
 
   const animation = (graphicsMap) => {
     let elapsed = Date.now() - mapStore.timeReferenceAnimation;
