@@ -409,45 +409,10 @@ const ArcGISMap = observer(() => {
 
 
   useEffect(() => {
-    const disposer = reaction(
-      () => [riderStore.favorites.slice(), mapStore.riderSelected],               // data function
-      ([newFavorites, newRiderSelected], [oldFavorites, oldRiderSelected]) => {
-        [...newFavorites, ...oldFavorites, newRiderSelected, oldRiderSelected].forEach((riderId) => {
-          if (graphicsMapRef.current[riderId]) {
-            const graphic2D = graphicsMapRef.current[riderId].graphic2D;
-            const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
-            graphic2D.symbol = {
-              type: "point-3d",
-              symbolLayers: [
-                {
-                  type: "icon",
-                  resource: {
-                    href: isSelected ? redPinSymbol : riderStore.favorites.includes(riderId) ? yellowPinSymbol : bluePinSymbol, // adjust path if needed
-                  },
-                  size: 45, // adjust size if needed
-                  anchor: "relative",
-                  anchorPosition: { x: 0, y: 0.25 },
+    console.log("Download progress:", riderStore.downloadProgress);
 
-                },
-              ],
-              verticalOffset: {
-                screenLength: 20,
-                maxWorldLength: 50,
-                minWorldLength: 15
-              },
+  }, [riderStore.downloadProgress]);
 
-              callout: {
-                type: "line", // autocasts as new LineCallout3D()
-                color: "white",
-                size: 1,
-              }
-            };
-          }
-        });
-      }
-    );
-    return () => disposer();  // clean up
-  }, []);
 
   useEffect(() => {
     console.log("Download progress:", riderStore.downloadProgress);
