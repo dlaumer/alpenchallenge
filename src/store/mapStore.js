@@ -16,6 +16,7 @@ class MapStore {
   buffering = false;
   updating = false;
   t = 0;
+  refreshT = 0
   replaySpeed = 1; // default to 1x
 
   jumpTime = false;
@@ -85,6 +86,10 @@ class MapStore {
   }
   setT(t) {
     this.t = t;
+  }
+
+  setRefreshT(t) {
+    this.refreshT = t;
   }
 
   setJumpTime(jumpTime) {

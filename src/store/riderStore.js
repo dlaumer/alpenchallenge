@@ -9,6 +9,8 @@ class RiderStore {
   replayTimestamps = {};   // { riderId: [timestamp1, timestamp2, ...] }
   replayCache = {};        // { riderId: { lastTs, before, after, dataBefore, dataAfter } }
 
+  animatedRiders = []
+
   currentSmallestTimestamp = null;
 
   favorites = []
@@ -135,7 +137,7 @@ class RiderStore {
     const cumulative = curr.cumulative;
     if (!coords || !cumulative) return curr;
 
-    mapStore.setT(t);
+    //mapStore.setT(t);
     return {
       ...this.interpolateAlongPath(t, coords, cumulative, prev.altitude, curr.altitude, prev.speed, curr.speed),
       ts: prev.ts + t * timeDiff,
@@ -288,6 +290,19 @@ class RiderStore {
     const maxTs = Math.max(...allTimestamps);
     return [minTs, maxTs];
   }
+
+  addAnimatedRider(riderId) {
+    if (!this.animatedRiders.includes(riderId)) {
+      this.animatedRiders.push(riderId);
+    }
+  } 
+  removeAnimatedRider(riderId) {
+    this.animatedRiders = this.animatedRiders.filter(id => id !== riderId);
+  }
+  clearAnimatedRiders() {
+    this.animatedRiders = [];
+  }
+
   toggleFavorite(riderId) {
     const index = mapStore.lastFavoriteSlotClicked;
 

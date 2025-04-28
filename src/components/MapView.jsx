@@ -17,6 +17,7 @@ import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 import Weather from "@arcgis/core/widgets/Weather";
 import Editor from "@arcgis/core/widgets/Editor";
 import { pointTypeRenderer } from "../utils/renderers";
+import ElevationProfile from "@arcgis/core/widgets/ElevationProfile";
 
 
 import bluePinSymbol from "../assets/blue-pin-symbol.svg";
@@ -37,6 +38,8 @@ const MapContainer = styled.div`
 const ArcGISMap = observer(() => {
   const viewRef = useRef(null);
   const mapRef = useRef(null);
+  const latestSimulationRef = useRef(null);
+
   const layerRef = useRef(null);
   const animationFrameRef = useRef(null);
   const graphicsMapRef = useRef(null);
@@ -70,21 +73,51 @@ const ArcGISMap = observer(() => {
 
     const latestSimulation = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "5c85573c6f3541b79dfc9b97978a9afa"
+        id: "976e8350026f4fc78a4325e8c600b01d"
       },
       elevationInfo: {
-        mode: "on-the-ground"
+        mode: "absolute-height",
       },
+      outFields: ["userId"],
       refreshInterval: 1,
-      visible: false,
-      popupEnabled: false
-    })
+      visible: true,
+      popupEnabled: false,
+      renderer: {
+        type: "simple",
+        symbol: {
+          type: "point-3d",
+          symbolLayers: [
+            {
+              type: "icon",
+              resource: {
+                href: bluePinSymbol, // adjust path if needed
+              },
+              size: 25, // adjust size if needed
+              anchor: "relative",
+              anchorPosition: { x: 0, y: 0.25 },
 
+            },
+          ],
+          verticalOffset: {
+            screenLength: 20,
+            maxWorldLength: 50,
+            minWorldLength: 15
+          },
+
+          callout: {
+            type: "line", // autocasts as new LineCallout3D()
+            color: "white",
+            size: 1,
+          }
+        }
+
+      }
+
+    })
+    latestSimulationRef.current = latestSimulation;
 
     const posHistory = new FeatureLayer({
-      portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "3be23c44c1ae48f3a565ceefb0f22d53"
-      },
+      url: "https://services1.arcgis.com/i9MtZ1vtgD3gTnyL/arcgis/rest/services/posHistorySimulation1000_4/FeatureServer",
       popupEnabled: false
     })
 
@@ -114,9 +147,10 @@ const ArcGISMap = observer(() => {
       }
     })
 
+
     const route = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "496d79bd13fe4cbb9b97608a44dc3b12"
+        id: "86096603da9c49878889f3f92dc2ec55"
       },
       elevationInfo: {
         mode: "on-the-ground"
@@ -200,10 +234,27 @@ const ArcGISMap = observer(() => {
 
     const edit = new Expand({
       content: new Editor({
-        view: view}),
+        view: view
+      }),
       view: view
     });
     view.ui.add(edit, "top-right")
+
+    const elevationProfile = new Expand({
+      view: view,
+      content: new ElevationProfile({
+        view: view,
+        profiles: [{
+          type: "ground" // first profile line samples the ground elevation
+        }],
+        // hide the select button
+        // this button can be displayed when there are polylines in the
+        // scene to select and display the elevation profile for
+
+      })
+    })
+
+    view.ui.add(elevationProfile, "top-right")
 
     // Create a toggle button for the Favorite Panel
     const toggleFavoritePanelBtn = document.createElement("button");
@@ -225,7 +276,7 @@ const ArcGISMap = observer(() => {
 
 
 
-
+    /*
     posHistory.queryFeatures({
       where: "1=1", // or use a smarter where clause
       outFields: ["*"],
@@ -233,7 +284,7 @@ const ArcGISMap = observer(() => {
     }).then((results) => {
       riderStore.setReplayData(results); // create a setter in your store
     });
-
+  */
 
     // Animation: Use requestAnimationFrame for smoother updates.
     // Use a plain object to store graphics keyed by rider ID.
@@ -309,11 +360,28 @@ const ArcGISMap = observer(() => {
 
   }, [mapStore.jumpTime]);
 
+
+  useEffect(() => {
+
+    const selected = [...riderStore.favorites];
+    if (mapStore.riderSelected) {
+      selected.push(mapStore.riderSelected);
+    }
+    if (selected.length) {
+      // wrap each ID in single-quotes and escape any quotes inside
+      const list = selected
+        .map(id => `'${id.replace(/'/g, '')}'`)
+        .join(", ");
+        latestSimulationRef.current.definitionExpression = `userId NOT IN (${list})`;
+    }
+
+  }, [mapStore.riderSelected, riderStore.favorites]);
+
   useEffect(() => {
     const disposer = reaction(
       () => [riderStore.favorites.slice(), mapStore.riderSelected],               // data function
-      ([newFavorites,newRiderSelected], [oldFavorites,oldRiderSelected]) => {
-        [...newFavorites,...oldFavorites, newRiderSelected, oldRiderSelected].forEach((riderId) => {
+      ([newFavorites, newRiderSelected], [oldFavorites, oldRiderSelected]) => {
+        [...newFavorites, ...oldFavorites, newRiderSelected, oldRiderSelected].forEach((riderId) => {
           if (graphicsMapRef.current[riderId]) {
             const graphic2D = graphicsMapRef.current[riderId].graphic2D;
             const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
@@ -371,7 +439,18 @@ const ArcGISMap = observer(() => {
     if (!currentTs) return;
 
     if (riderStore.riders) {
-      Object.keys(mapStore.replayMode ? riderStore.replayData : riderStore.riders).forEach((riderId) => {
+      const oneRider = riderStore.riders[Object.keys(riderStore.riders)[0]];
+
+      const prev = oneRider.previousPos;
+      const curr = oneRider.currentPos;
+
+      const timeDiff = curr.ts - prev.ts;
+
+      const t = Math.max(0, Math.min(1, (currentTs - prev.ts) / timeDiff));
+
+      mapStore.setT(t);
+
+      riderStore.animatedRiders.forEach((riderId) => {
 
 
         const interpolated = mapStore.replayMode
