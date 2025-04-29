@@ -309,12 +309,16 @@ class RiderStore {
     if (this.favorites.includes(riderId)) {
       this.favorites = this.favorites.filter(id => id !== riderId);
     } else if (typeof index === "number") {
+      mapStore.setRiderSelected(null);
+
       const updated = [...this.favorites];
       while (updated.length <= index) updated.push(null);
       updated[index] = riderId;
       this.favorites = updated;
       uiStore.setLastFavoriteSlot(null);
     } else {
+      mapStore.setRiderSelected(null);
+
       // only allow max 4
       const clean = this.favorites.filter(Boolean);
       if (clean.length >= 4) return;

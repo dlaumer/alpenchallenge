@@ -16,9 +16,9 @@ import Point from "@arcgis/core/geometry/Point";
 import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 import Weather from "@arcgis/core/widgets/Weather";
 import Editor from "@arcgis/core/widgets/Editor";
-import { pointTypeRenderer } from "../utils/renderers";
+import { pointTypeRenderer, createSymbol, latestSimulationRenderer } from "../utils/renderers";
 import ElevationProfile from "@arcgis/core/widgets/ElevationProfile";
-
+import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
 
 import bluePinSymbol from "../assets/blue-pin-symbol.svg";
 import redPinSymbol from "../assets/red-pin-symbol.svg";
@@ -82,39 +82,10 @@ const ArcGISMap = observer(() => {
       refreshInterval: 1,
       visible: true,
       popupEnabled: false,
-      renderer: {
-        type: "simple",
-        symbol: {
-          type: "point-3d",
-          symbolLayers: [
-            {
-              type: "icon",
-              resource: {
-                href: bluePinSymbol, // adjust path if needed
-              },
-              size: 25, // adjust size if needed
-              anchor: "relative",
-              anchorPosition: { x: 0, y: 0.25 },
-
-            },
-          ],
-          verticalOffset: {
-            screenLength: 20,
-            maxWorldLength: 50,
-            minWorldLength: 15
-          },
-
-          callout: {
-            type: "line", // autocasts as new LineCallout3D()
-            color: "white",
-            size: 1,
-          }
-        }
-
-      }
-
+      renderer: latestSimulationRenderer
     })
     latestSimulationRef.current = latestSimulation;
+
 
     const posHistory = new FeatureLayer({
       url: "https://services1.arcgis.com/i9MtZ1vtgD3gTnyL/arcgis/rest/services/posHistorySimulation1000_4/FeatureServer",
@@ -300,12 +271,13 @@ const ArcGISMap = observer(() => {
       animationFrameRef.current = requestAnimationFrame(animate);
     };
 
+
+    // Start the animation loop
+    animationFrameRef.current = requestAnimationFrame(animate);
     // Query the layer for the initial points
     latestSimulation.queryFeatures().then((results) => {
       riderStore.setRiders(results);
     });
-    // Start the animation loop
-    animationFrameRef.current = requestAnimationFrame(animate);
 
     view.when(() => {
       window.view = view;
@@ -360,59 +332,42 @@ const ArcGISMap = observer(() => {
 
   }, [mapStore.jumpTime]);
 
-
-  useEffect(() => {
-
-    const selected = [...riderStore.favorites];
-    if (mapStore.riderSelected) {
-      selected.push(mapStore.riderSelected);
-    }
-    if (selected.length) {
-      // wrap each ID in single-quotes and escape any quotes inside
-      const list = selected
-        .map(id => `'${id.replace(/'/g, '')}'`)
-        .join(", ");
-        latestSimulationRef.current.definitionExpression = `userId NOT IN (${list})`;
-    }
-
-  }, [mapStore.riderSelected, riderStore.favorites]);
-
   useEffect(() => {
     const disposer = reaction(
       () => [riderStore.favorites.slice(), mapStore.riderSelected],               // data function
       ([newFavorites, newRiderSelected], [oldFavorites, oldRiderSelected]) => {
-        [...newFavorites, ...oldFavorites, newRiderSelected, oldRiderSelected].forEach((riderId) => {
-          if (graphicsMapRef.current[riderId]) {
-            const graphic2D = graphicsMapRef.current[riderId].graphic2D;
-            const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
-            graphic2D.symbol = {
-              type: "point-3d",
-              symbolLayers: [
-                {
-                  type: "icon",
-                  resource: {
-                    href: isSelected ? redPinSymbol : riderStore.favorites.includes(riderId) ? yellowPinSymbol : bluePinSymbol, // adjust path if needed
-                  },
-                  size: 45, // adjust size if needed
-                  anchor: "relative",
-                  anchorPosition: { x: 0, y: 0.25 },
 
-                },
-              ],
-              verticalOffset: {
-                screenLength: 20,
-                maxWorldLength: 50,
-                minWorldLength: 15
-              },
+        // build uniqueValueInfos
+        const uniqueValueInfos = [];
 
-              callout: {
-                type: "line", // autocasts as new LineCallout3D()
-                color: "white",
-                size: 1,
-              }
-            };
-          }
+        // selected first (if any)
+        if (newRiderSelected) {
+          uniqueValueInfos.push({
+            value: newRiderSelected,
+            symbol: createSymbol(redPinSymbol, 35),
+            label: "Selected"
+          });
+        }
+
+        // then favorites (excluding the selected one)
+        newFavorites
+          .filter(id => id !== newRiderSelected)
+          .forEach(id => {
+            uniqueValueInfos.push({
+              value: id,
+              symbol: createSymbol(yellowPinSymbol, 35),
+              label: "Favorite"
+            });
+          });
+
+        // finally set the new renderer on the layer
+        latestSimulationRef.current.renderer = new UniqueValueRenderer({
+          field: "userId",
+          defaultSymbol: createSymbol(bluePinSymbol, 15),
+          defaultLabel: "Other riders",
+          uniqueValueInfos: uniqueValueInfos
         });
+
       }
     );
     return () => disposer();  // clean up
@@ -450,142 +405,149 @@ const ArcGISMap = observer(() => {
 
       mapStore.setT(t);
 
-      riderStore.animatedRiders.forEach((riderId) => {
+      if (mapStore.riderFollowed) {
+        latestSimulationRef.current.visible = false;
+        [mapStore.riderFollowed].forEach((riderId) => {
 
 
-        const interpolated = mapStore.replayMode
-          ? riderStore.getInterpolatedPosition(riderId, currentTs)
-          : riderStore.getInterpolatedLivePosition(riderId, currentTs);
+          const interpolated = mapStore.replayMode
+            ? riderStore.getInterpolatedPosition(riderId, currentTs)
+            : riderStore.getInterpolatedLivePosition(riderId, currentTs);
 
-        if (!interpolated) return;
-
-
-        const point = new Point({
-          longitude: interpolated.longitude,
-          latitude: interpolated.latitude,
-        });
-
-        // Check if the current rider is selected and update its symbol accordingly.
-        const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
-
-        // Create the symbol
-        const symbol2D = {
-          type: "point-3d",
-          symbolLayers: [
-            {
-              type: "icon",
-              resource: {
-                href: isSelected ? redPinSymbol : riderStore.favorites.includes(riderId) ? yellowPinSymbol : bluePinSymbol, // adjust path if needed
-              },
-              size: 45, // adjust size if needed
-              anchor: "relative",
-              anchorPosition: { x: 0, y: 0.25 },
-
-            },
-          ],
-          verticalOffset: {
-            screenLength: 20,
-            maxWorldLength: 50,
-            minWorldLength: 15
-          },
-
-          callout: {
-            type: "line", // autocasts as new LineCallout3D()
-            color: "white",
-            size: 1,
-          }
-        };
+          if (!interpolated) return;
 
 
-        // Create the symbol
-        const symbol3D = {
-          type: "point-3d",
-          symbolLayers: [
-
-            {
-              type: "object",
-              anchor: "bottom",
-              anchorPosition: {
-                x: 0,
-                y: 0,
-                z: 0
-              },
-              castShadows: false,
-              depth: 3,
-              heading: interpolated.heading,
-              height: 3,
-              resource: {
-                href: roadBike,
-              },
-              roll: 0,
-              tilt: 0,
-              width: 3
-            },
-          ],
-        };
-
-        // Use a plain object to check if the graphic exists
-        if (graphicsMap[riderId]) {
-          graphicsMap[riderId].graphic3D.geometry = point;
-          graphicsMap[riderId].graphic3D.symbol = symbol3D;
-          graphicsMap[riderId].graphic2D.geometry = point;
-        } else {
-
-          const graphic2D = new Graphic({
-            geometry: point,
-            attributes: interpolated.prev,
-            symbol: symbol2D
+          const point = new Point({
+            longitude: interpolated.longitude,
+            latitude: interpolated.latitude,
           });
-          const graphic3D = new Graphic({
-            geometry: point,
-            attributes: interpolated.prev,
-            symbol: symbol3D
-          });
-          graphicsMap[riderId] = { graphic3D: graphic3D, graphic2D: graphic2D };
-          layerRef.current.add(graphicsMap[riderId].graphic3D);
-          layerRef.current.add(graphicsMap[riderId].graphic2D);
 
-        }
+          // Check if the current rider is selected and update its symbol accordingly.
+          const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
 
-        // If a rider is followed, update the camera center to that rider's current position.
-        if (mapStore.riderFollowed == riderId && graphicsMap[mapStore.riderFollowed]) {
-          const followedGraphic = graphicsMap[mapStore.riderFollowed].graphic3D;
-          const calculatedHeading = interpolated.heading;
+          // Create the symbol
+          const symbol2D = {
+            type: "point-3d",
+            symbolLayers: [
+              {
+                type: "icon",
+                resource: {
+                  href: isSelected ? redPinSymbol : riderStore.favorites.includes(riderId) ? yellowPinSymbol : bluePinSymbol, // adjust path if needed
+                },
+                size: 45, // adjust size if needed
+                anchor: "relative",
+                anchorPosition: { x: 0, y: 0.25 },
 
-          // Smooth the heading transition only if the difference is less than 90 degrees.
-          let currentHeading = viewRef.current.camera.heading;
-          let delta = calculatedHeading - currentHeading;
+              },
+            ],
+            verticalOffset: {
+              screenLength: 20,
+              maxWorldLength: 50,
+              minWorldLength: 15
+            },
 
-          // Normalize delta to the range [-180, 180]
-          if (delta > 180) delta -= 360;
-          if (delta < -180) delta += 360;
+            callout: {
+              type: "line", // autocasts as new LineCallout3D()
+              color: "white",
+              size: 1,
+            }
+          };
 
-          let smoothedHeading;
-          if (Math.abs(delta) < 90) {
-            let smoothingFactor = 0.005; // Adjust this for smoothness
-            if (mapStore.replayMode) { smoothingFactor = smoothingFactor * mapStore.replaySpeed }
-            smoothedHeading = currentHeading + delta * smoothingFactor;
-            smoothedHeading = (smoothedHeading + 360) % 360;
+
+          // Create the symbol
+          const symbol3D = {
+            type: "point-3d",
+            symbolLayers: [
+
+              {
+                type: "object",
+                anchor: "bottom",
+                anchorPosition: {
+                  x: 0,
+                  y: 0,
+                  z: 0
+                },
+                castShadows: false,
+                depth: 3,
+                heading: interpolated.heading,
+                height: 3,
+                resource: {
+                  href: roadBike,
+                },
+                roll: 0,
+                tilt: 0,
+                width: 3
+              },
+            ],
+          };
+
+
+          // Use a plain object to check if the graphic exists
+          if (graphicsMap[riderId]) {
+            graphicsMap[riderId].graphic3D.geometry = point;
+            graphicsMap[riderId].graphic3D.symbol = symbol3D;
+            graphicsMap[riderId].graphic2D.geometry = point;
           } else {
-            smoothedHeading = calculatedHeading;
-          }
-          // Use goTo without animation to instantly center the view on the followed rider.
-          viewRef.current.goTo(
-            {
-              center: new Point({
-                longitude: followedGraphic.geometry.longitude,
-                latitude: followedGraphic.geometry.latitude,
-                z: followedGraphic.attributes.altitude,
-              }),
-              zoom: viewRef.current.zoom < 16 ? 20 : null,
-              tilt: 70,
-              heading: smoothedHeading,
-            },
-            { animate: false }
-          );
 
-        }
-      });
+            const graphic2D = new Graphic({
+              geometry: point,
+              attributes: interpolated.prev,
+              symbol: symbol2D
+            });
+            const graphic3D = new Graphic({
+              geometry: point,
+              attributes: interpolated.prev,
+              symbol: symbol3D
+            });
+            graphicsMap[riderId] = { graphic3D: graphic3D, graphic2D: graphic2D };
+            layerRef.current.add(graphicsMap[riderId].graphic3D);
+            layerRef.current.add(graphicsMap[riderId].graphic2D);
+
+          }
+
+          // If a rider is followed, update the camera center to that rider's current position.
+          if (mapStore.riderFollowed == riderId && graphicsMap[mapStore.riderFollowed]) {
+            const followedGraphic = graphicsMap[mapStore.riderFollowed].graphic3D;
+            const calculatedHeading = interpolated.heading;
+
+            // Smooth the heading transition only if the difference is less than 90 degrees.
+            let currentHeading = viewRef.current.camera.heading;
+            let delta = calculatedHeading - currentHeading;
+
+            // Normalize delta to the range [-180, 180]
+            if (delta > 180) delta -= 360;
+            if (delta < -180) delta += 360;
+
+            let smoothedHeading;
+            if (Math.abs(delta) < 90) {
+              let smoothingFactor = 0.005; // Adjust this for smoothness
+              if (mapStore.replayMode) { smoothingFactor = smoothingFactor * mapStore.replaySpeed }
+              smoothedHeading = currentHeading + delta * smoothingFactor;
+              smoothedHeading = (smoothedHeading + 360) % 360;
+            } else {
+              smoothedHeading = calculatedHeading;
+            }
+            // Use goTo without animation to instantly center the view on the followed rider.
+            viewRef.current.goTo(
+              {
+                center: new Point({
+                  longitude: followedGraphic.geometry.longitude,
+                  latitude: followedGraphic.geometry.latitude,
+                  z: followedGraphic.attributes.altitude,
+                }),
+                zoom: viewRef.current.zoom < 16 ? 20 : null,
+                tilt: 70,
+                heading: smoothedHeading,
+              },
+              { animate: false }
+            );
+
+          }
+        });
+      }
+      else {
+        latestSimulationRef.current.visible = true;
+      }
     }
   }
 
