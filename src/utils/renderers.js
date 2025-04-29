@@ -36,9 +36,9 @@ export const createSymbol = (icon, size) => (
       })
     ],
     verticalOffset: new Symbol3DVerticalOffset({
-      maxWorldLength: 20,
-      minWorldLength: 50,
-      screenLength: 15
+      maxWorldLength: 50 + size,
+      minWorldLength: size,
+      screenLength: 20
     })
   })
 );

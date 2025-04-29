@@ -9,8 +9,6 @@ class RiderStore {
   replayTimestamps = {};   // { riderId: [timestamp1, timestamp2, ...] }
   replayCache = {};        // { riderId: { lastTs, before, after, dataBefore, dataAfter } }
 
-  animatedRiders = []
-
   currentSmallestTimestamp = null;
 
   favorites = []
@@ -92,7 +90,8 @@ class RiderStore {
         altitude: attributes.altitude,
         ts: attributes.ts,
         cumulative: JSON.parse(attributes.cumulative),
-        path: JSON.parse(attributes.path)
+        path: JSON.parse(attributes.path),
+        routeIndex: attributes.routeIndex
       };
       // Parse previousPos (which may be stored as a JSON string)
       let previousPos = attributes.previousPos;
@@ -289,18 +288,6 @@ class RiderStore {
     const minTs = Math.min(...allTimestamps);
     const maxTs = Math.max(...allTimestamps);
     return [minTs, maxTs];
-  }
-
-  addAnimatedRider(riderId) {
-    if (!this.animatedRiders.includes(riderId)) {
-      this.animatedRiders.push(riderId);
-    }
-  } 
-  removeAnimatedRider(riderId) {
-    this.animatedRiders = this.animatedRiders.filter(id => id !== riderId);
-  }
-  clearAnimatedRiders() {
-    this.animatedRiders = [];
   }
 
   toggleFavorite(riderId) {

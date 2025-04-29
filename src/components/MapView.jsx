@@ -332,6 +332,59 @@ const ArcGISMap = observer(() => {
 
   }, [mapStore.jumpTime]);
 
+
+  useEffect(() => {
+    if (mapStore.riderFollowed == "") {
+      mapStore.setRiderFollowedClose(null);
+      graphicsMapRef.current = {}
+      layerRef.current.removeAll();
+      layerRef.current.visible = false;
+      latestSimulationRef.current.visible = true;
+    }
+    else {
+      layerRef.current.visible = true;
+      latestSimulationRef.current.visible = false;
+
+      const riders = riderStore.riders;
+      const followedId = mapStore.riderFollowed;
+      if (followedId && riders[followedId]) {
+
+
+        // Build map: routeIndex → [riderIds]
+        const indexMap = Object.entries(riders).reduce((acc, [id, data]) => {
+          const idx = data.currentPos.routeIndex;
+          if (idx != null) {
+            (acc[idx] = acc[idx] || []).push(id);
+          }
+          return acc;
+        }, {});
+
+        const followedIdx = riders[followedId].currentPos.routeIndex;
+        const before = [];
+        const after = [];
+        let offset = 1;
+        const maxIdx = Math.max(...Object.keys(indexMap).map(Number));
+
+        // Fan out until we have enough on each side or we run out of indices
+        while ((before.length < 10 || after.length < 10) && offset <= maxIdx) {
+          if (after.length < 10) {
+            const ahead = indexMap[followedIdx + offset] || [];
+            after.push(...ahead);
+          }
+          if (before.length < 10) {
+            const behind = indexMap[followedIdx - offset] || [];
+            before.push(...behind);
+          }
+          offset++;
+        }
+
+        mapStore.setRiderFollowedClose([...before, ...after]);
+        console.log(mapStore.riderFollowedClose)
+      }
+    }
+
+  }, [mapStore.riderFollowed]);
+
   useEffect(() => {
     const disposer = reaction(
       () => [riderStore.favorites.slice(), mapStore.riderSelected],               // data function
@@ -405,9 +458,8 @@ const ArcGISMap = observer(() => {
 
       mapStore.setT(t);
 
-      if (mapStore.riderFollowed) {
-        latestSimulationRef.current.visible = false;
-        [mapStore.riderFollowed].forEach((riderId) => {
+      if (mapStore.riderFollowed && mapStore.riderFollowedClose) {
+        [mapStore.riderFollowed,...mapStore.riderFollowedClose].forEach((riderId) => {
 
 
           const interpolated = mapStore.replayMode
@@ -426,32 +478,7 @@ const ArcGISMap = observer(() => {
           const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
 
           // Create the symbol
-          const symbol2D = {
-            type: "point-3d",
-            symbolLayers: [
-              {
-                type: "icon",
-                resource: {
-                  href: isSelected ? redPinSymbol : riderStore.favorites.includes(riderId) ? yellowPinSymbol : bluePinSymbol, // adjust path if needed
-                },
-                size: 45, // adjust size if needed
-                anchor: "relative",
-                anchorPosition: { x: 0, y: 0.25 },
-
-              },
-            ],
-            verticalOffset: {
-              screenLength: 20,
-              maxWorldLength: 50,
-              minWorldLength: 15
-            },
-
-            callout: {
-              type: "line", // autocasts as new LineCallout3D()
-              color: "white",
-              size: 1,
-            }
-          };
+          const symbol2D = createSymbol(isSelected ? redPinSymbol : riderStore.favorites.includes(riderId) ? yellowPinSymbol : bluePinSymbol, isSelected ? 35 : riderStore.favorites.includes(riderId) ? 35 : 15);
 
 
           // Create the symbol
@@ -544,9 +571,6 @@ const ArcGISMap = observer(() => {
 
           }
         });
-      }
-      else {
-        latestSimulationRef.current.visible = true;
       }
     }
   }

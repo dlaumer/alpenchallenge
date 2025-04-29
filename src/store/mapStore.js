@@ -5,7 +5,8 @@ class MapStore {
   popupContent = null;
   view = null;
   riderSelected = null;
-  riderFollowed = null; // New variable
+  riderFollowed = ""; // New variable
+  riderFollowedClose = null;
 
   time = null;
   timeReference = null;
@@ -49,10 +50,14 @@ class MapStore {
   // New method to toggle the followed rider.
   toggleFollow(riderId) {
     if (this.riderFollowed === riderId) {
-      this.riderFollowed = null;
+      this.riderFollowed = "";
     } else {
       this.riderFollowed = riderId;
     }
+  }
+
+  setRiderFollowedClose(riderIds) {
+    this.riderFollowedClose = riderIds;
   }
 
   setTime(time) {
