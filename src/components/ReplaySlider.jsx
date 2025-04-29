@@ -5,10 +5,11 @@ import mapStore from "../store/mapStore";
 import { Play, Pause, RotateCcw, RotateCw, Loader } from "lucide-react";
 import riderStore from "../store/riderStore";
 import { observer } from "mobx-react-lite";
+import uiStore from "../store/uiStore";
 
 const Container = styled.div`
   position: absolute;
-  bottom: 20px;
+  bottom: ${(props) => (props.shiftedUp ? "240px" : "50px")};
   left: 50%;
   transform: translateX(-50%);
   background: #e0e6ed;
@@ -29,6 +30,7 @@ const Container = styled.div`
     align-items: stretch;
   }
 `;
+
 
 const ControlsRow = styled.div`
   display: flex;
@@ -301,7 +303,7 @@ const ReplaySlider = observer(() => {
 
 
   return (
-    <Container>
+    <Container shiftedUp={!uiStore.elevationProfileCollapsed}>
       <ControlsRow>
         {mapStore.replayMode ? (
           <LiveTag onClick={setLive} replay={true}>

@@ -5,6 +5,8 @@ class UIStore {
   lastFavoriteSlotClicked = null;
   favoritePanelCollapsed = false;
   isMobile = false;
+  elevationProfileCollapsed = true;
+
 
   constructor() {
     this.favoritePanelCollapsed = false;
@@ -27,6 +29,10 @@ class UIStore {
 
   setIsMobile = (isMobile) => {
     this.isMobile = isMobile;
+  };
+
+  toggleElevationProfile = () => {
+    this.elevationProfileCollapsed = !this.elevationProfileCollapsed;
   };
 }
 

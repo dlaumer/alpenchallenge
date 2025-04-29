@@ -35,7 +35,7 @@ const MapContainer = styled.div`
   position: absolute;
 `;
 
-const ArcGISMap = observer(() => {
+const ArcGISMap = observer(({ elevationWidgetRef }) => {
   const viewRef = useRef(null);
   const mapRef = useRef(null);
   const latestSimulationRef = useRef(null);
@@ -211,22 +211,6 @@ const ArcGISMap = observer(() => {
     });
     view.ui.add(edit, "top-right")
 
-    const elevationProfile = new Expand({
-      view: view,
-      content: new ElevationProfile({
-        view: view,
-        profiles: [{
-          type: "ground" // first profile line samples the ground elevation
-        }],
-        // hide the select button
-        // this button can be displayed when there are polylines in the
-        // scene to select and display the elevation profile for
-
-      })
-    })
-
-    view.ui.add(elevationProfile, "top-right")
-
     // Create a toggle button for the Favorite Panel
     const toggleFavoritePanelBtn = document.createElement("button");
     toggleFavoritePanelBtn.innerText = "⭐";
@@ -282,6 +266,57 @@ const ArcGISMap = observer(() => {
     view.when(() => {
       window.view = view;
       viewRef.current = view;
+
+      if (elevationWidgetRef?.current) {
+        const profileWidget = new ElevationProfile({
+          view: view,
+          container: elevationWidgetRef.current,
+          profiles: [
+            {
+              type: "ground",
+              color: "darkred",
+              title: "Ground Elevation"
+            }
+          ],
+          visibleElements: {
+            sketchButton: false,
+            selectButton: false,
+            clearButton: false,
+            settingsButton: false,
+            legend: false,
+            headingLevel: false, // optional, removes <h3>
+            elevationInfo: false, // optional, removes labels like "ground"
+            chart: true // this must stay if you want the graph
+          }
+        });
+
+        profileWidget.viewModel.highlightEnabled = false; // ✅ disable highlight glow
+
+        // ⚠️ Query the first route line and set it as input
+        route.when(() => {
+          const query = route.createQuery();
+          query.returnGeometry = true;
+          query.outFields = ["*"];
+          query.where = "1=1"; // all features
+
+          route.queryFeatures(query).then((results) => {
+            const polylineFeature = results.features[0];
+            if (polylineFeature?.geometry) {
+              const graphic = new Graphic({
+                geometry: polylineFeature.geometry,
+                symbol: {
+                  type: "simple-line",
+                  color: [0, 0, 0, 0], // fully transparent RGBA
+                  width: 0
+                }
+              });
+              profileWidget.input = graphic; // ✅ Correct: must be a Graphic
+            }
+          });
+        });
+      }
+
+
       // Watch the layerView's updating property using reactiveUtils.when.
       latestSimulation.on("refresh", function (event) {
         if (event.dataChanged) {
@@ -459,7 +494,7 @@ const ArcGISMap = observer(() => {
       mapStore.setT(t);
 
       if (mapStore.riderFollowed && mapStore.riderFollowedClose) {
-        [mapStore.riderFollowed,...mapStore.riderFollowedClose].forEach((riderId) => {
+        [mapStore.riderFollowed, ...mapStore.riderFollowedClose].forEach((riderId) => {
 
 
           const interpolated = mapStore.replayMode

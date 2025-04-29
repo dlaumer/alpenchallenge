@@ -2,6 +2,7 @@ import Header from "./components/Header";
 import SidePanel from "./components/SidePanel";
 import FavoritePanel from "./components/FavoritePanel";
 import Popup from "./components/Popup";
+import ElevationProfile from "./components/ElevationProfile";
 
 import MapView from "./components/MapView";
 import styled from "styled-components";
@@ -11,6 +12,7 @@ import GlobalStyles from "./styles/globalStyles";
 import { languageStore } from "./store/languageStore";
 import { useEffect, useState } from "react";
 import ReplaySlider from "./components/ReplaySlider";
+import { useRef } from "react";
 
 const Container = styled.div`
   display: flex;
@@ -34,6 +36,7 @@ const MapContainer = styled.div`
 
 const App = observer(() => {
 
+  const elevationWidgetRef = useRef();
   useEffect(() => {
     languageStore.initLanguageFromURL();
   }, []);
@@ -47,12 +50,11 @@ const App = observer(() => {
       <Header />
       <MainContent panelOpen={uiStore.isPanelOpen}>
         <MapContainer>
-          <MapView />
-          <ReplaySlider
-            
-          />
+          <MapView elevationWidgetRef={elevationWidgetRef} />
+          <ReplaySlider />
         </MapContainer>
       </MainContent>
+      <ElevationProfile widgetRef={elevationWidgetRef} />
     </Container>
   );
 });
