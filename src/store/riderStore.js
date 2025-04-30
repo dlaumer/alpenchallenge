@@ -19,15 +19,13 @@ class RiderStore {
 
   // Action to update the riders data when new data is available
   setRiders(liveData) {
-
+    this.riders = {}; // force clear old ones
     const newData = this.processLiveResults(liveData);
-    if (JSON.stringify(newData.newData) !== JSON.stringify(this.riders)) {
-      this.riders = newData.newData
-      this.currentSmallestTimestamp = newData.smallestTimestamp;
-      if (!mapStore.replayMode) {
-        mapStore.setTimeReference(newData.smallestTimestamp);
-        mapStore.setTimeReferenceAnimation(Date.now());
-      }
+    this.riders = newData.newData
+    this.currentSmallestTimestamp = newData.smallestTimestamp;
+    if (!mapStore.replayMode) {
+      mapStore.setTimeReference(newData.smallestTimestamp);
+      mapStore.setTimeReferenceAnimation(Date.now());
     }
     mapStore.setBuffering(false);
     mapStore.setUpdating(false);
