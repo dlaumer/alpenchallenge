@@ -37,7 +37,7 @@ export const createSymbol = (icon, size) => (
     ],
     verticalOffset: new Symbol3DVerticalOffset({
       maxWorldLength: 50 + size,
-      minWorldLength: size,
+      minWorldLength: size/2,
       screenLength: 20
     })
   })

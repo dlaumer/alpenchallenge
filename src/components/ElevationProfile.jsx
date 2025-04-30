@@ -7,7 +7,7 @@ const Container = styled.div`
   left: 0;
   bottom: 0;
   width: 100%;
-  height: ${(props) => (props.collapsed ? "30px" : "220px")};
+  height: ${(props) => (props.$collapsed ? "30px" : "220px")};
   background-color: #ffffffee;
   box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
   transition: height 0.3s ease;
@@ -33,7 +33,7 @@ const Content = styled.div`
   flex: 1;
   position: relative;
   overflow: hidden;
-  display: ${(props) => (props.hidden ? "none" : "block")};
+  display: ${(props) => (props.$hidden ? "none" : "block")};
 `;
 
 const WidgetDiv = styled.div`
@@ -48,11 +48,11 @@ const WidgetDiv = styled.div`
 
 const ElevationProfile = observer(({ widgetRef }) => {
     return (
-        <Container collapsed={uiStore.elevationProfileCollapsed}>
+        <Container $collapsed={uiStore.elevationProfileCollapsed}>
             <Header onClick={uiStore.toggleElevationProfile}>
                 Elevation Profile {uiStore.elevationProfileCollapsed ? "▴" : "▾"}
             </Header>
-            <Content hidden={uiStore.elevationProfileCollapsed}>
+            <Content $hidden={uiStore.elevationProfileCollapsed}>
                 <WidgetDiv ref={widgetRef} />
             </Content>
         </Container>

@@ -9,7 +9,7 @@ import uiStore from "../store/uiStore";
 
 const Container = styled.div`
   position: absolute;
-  bottom: ${(props) => (props.shiftedUp ? "240px" : "50px")};
+  bottom: ${(props) => (props.$shiftedUp ? "240px" : "50px")};
   left: 50%;
   transform: translateX(-50%);
   background: #e0e6ed;
@@ -52,7 +52,7 @@ const LiveTag = styled.div`
   display: flex;
   align-items: center;
   margin-right: 10px;
-  color: ${props => (props.replay ? "#666" : "red")};
+  color: ${props => (props.$replay ? "#666" : "red")};
   font-weight: bold;
   cursor: pointer;
 `;
@@ -62,8 +62,8 @@ const LiveDot = styled.div`
   height: 10px;
   border-radius: 50%;
   margin-right: 6px;
-  background-color: ${props => (props.replay ? "#999" : "red")};
-  animation: ${props => (props.replay ? "none" : "pulse 1.2s infinite ease-in-out")};
+  background-color: ${props => (props.$replay ? "#999" : "red")};
+  animation: ${props => (props.$replay ? "none" : "pulse 1.2s infinite ease-in-out")};
 
   @keyframes pulse {
     0% { transform: scale(1); opacity: 1; }
@@ -107,7 +107,7 @@ const SliderProgress = styled.div`
   height: 100%;
   background: darkred;
   border-radius: 4px;
-  width: ${props => props.progress}%;
+  width: ${props => props.$progress}%;
   pointer-events: none;
 `;
 
@@ -120,7 +120,7 @@ const SliderHandle = styled.div`
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  left: ${props => props.progress}%;
+  left: ${props => props.$progress}%;
   pointer-events: none;
 `;
 
@@ -303,11 +303,11 @@ const ReplaySlider = observer(() => {
 
 
   return (
-    <Container shiftedUp={!uiStore.elevationProfileCollapsed}>
+    <Container $shiftedUp={!uiStore.elevationProfileCollapsed}>
       <ControlsRow>
         {mapStore.replayMode ? (
-          <LiveTag onClick={setLive} replay={true}>
-            <LiveDot replay={true} />
+          <LiveTag onClick={setLive} $replay={true}>
+            <LiveDot $replay={true} />
             LIVE
           </LiveTag>
         ) : mapStore.buffering ? (
@@ -316,8 +316,8 @@ const ReplaySlider = observer(() => {
             Buffering
           </BufferingTag>
         ) : (
-          <LiveTag onClick={setLive} replay={false}>
-            <LiveDot replay={false} />
+          <LiveTag onClick={setLive} $replay={false}>
+            <LiveDot $replay={false} />
             LIVE
           </LiveTag>
         )}
@@ -352,8 +352,8 @@ const ReplaySlider = observer(() => {
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
         >
-          <SliderProgress progress={getProgress()} />
-          <SliderHandle progress={getProgress()} />
+          <SliderProgress $progress={getProgress()} />
+          <SliderHandle $progress={getProgress()} />
         </SliderWrapper>
       </SliderRow>
     </Container>

@@ -3,7 +3,7 @@ import styled from "styled-components";
 import mapStore from "../store/mapStore";
 
 const Button = styled.button`
-  background: ${(props) => (props.active ? "green" : "red")};
+  background: ${(props) => (props.$active ? "green" : "red")};
   color: white;
   padding: 10px 15px;
   border: none;
@@ -14,7 +14,7 @@ const Button = styled.button`
 
 const LayerToggle = observer(() => {
   return (
-    <Button active={mapStore.layerVisible} onClick={() => mapStore.toggleLayer()}>
+    <Button $active={mapStore.layerVisible} onClick={() => mapStore.toggleLayer()}>
       {mapStore.layerVisible ? "Hide Layer" : "Show Layer"}
     </Button>
   );

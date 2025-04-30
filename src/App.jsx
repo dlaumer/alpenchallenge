@@ -25,7 +25,7 @@ const MainContent = styled.div`
   display: flex;
   flex: 1;
   transition: margin-left 0.3s ease-in-out;
-  margin-left: ${(props) => (props.panelOpen ? "250px" : "0")};
+  margin-left: ${(props) => (props.$panelOpen ? "250px" : "0")};
 `;
 
 const MapContainer = styled.div`
@@ -48,7 +48,7 @@ const App = observer(() => {
       <FavoritePanel />
       <Popup />
       <Header />
-      <MainContent panelOpen={uiStore.isPanelOpen}>
+      <MainContent $panelOpen={uiStore.isPanelOpen}>
         <MapContainer>
           <MapView elevationWidgetRef={elevationWidgetRef} />
           <ReplaySlider />

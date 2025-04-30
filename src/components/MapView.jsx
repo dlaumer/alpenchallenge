@@ -261,6 +261,8 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
     // Query the layer for the initial points
     latestSimulation.queryFeatures().then((results) => {
       riderStore.setRiders(results);
+    }).catch(err => {
+      console.error("Failed to load latestSimulation features:", err);
     });
 
     view.when(() => {
@@ -312,6 +314,8 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
               });
               profileWidget.input = graphic; // ✅ Correct: must be a Graphic
             }
+          }).catch(err => {
+            console.error(err);
           });
         });
       }
@@ -324,6 +328,8 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
           // Once the layers is refreshed, query features for new data.
           latestSimulation.queryFeatures().then((results) => {
             riderStore.setRiders(results);
+          }).catch(err => {
+            console.error("Failed to load latestSimulation features:", err);
           });
         }
       });
@@ -345,6 +351,8 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
               mapStore.setPopupVisible(true);
             }
           }
+        }).catch(err => {
+          console.error(err);
         });
       });
     });
@@ -490,7 +498,9 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
       const timeDiff = curr.ts - prev.ts;
 
       const t = Math.max(0, Math.min(1, (currentTs - prev.ts) / timeDiff));
-
+      if (t == 1) {
+        mapStore.setBuffering(true);
+      }
       mapStore.setT(t);
 
       if (mapStore.riderFollowed && mapStore.riderFollowedClose) {

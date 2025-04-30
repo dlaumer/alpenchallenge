@@ -89,12 +89,12 @@ const RiderRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: ${(props) => (props.selected ? "#ffffff" : "#d7e3f4")};
+  background: ${(props) => (props.$selected ? "#ffffff" : "#d7e3f4")};
   border-radius: 10px;
   padding: 8px 12px;
   margin-bottom: 8px;
   cursor: pointer;
-  border: ${(props) => (props.selected ? "2px solid darkred" : "none")};
+  border: ${(props) => (props.$selected ? "2px solid darkred" : "none")};
 `;
 
 const LeftGroup = styled.div`
@@ -155,7 +155,7 @@ const StarButton = styled.button`
   background: none;
   border: none;
   padding: 4px;
-  color: ${(props) => (props.active ? "#1e70bf" : "#888")};
+  color: ${(props) => (props.$active ? "#1e70bf" : "#888")};
   cursor: pointer;
   &:hover {
     opacity: 0.8;
@@ -223,7 +223,7 @@ const Popup = observer(() => {
           return (
             <RiderRow
               key={riderId}
-              selected={selected}
+              $selected={selected}
               ref={selected ? selectedRef : null}
               onClick={() => {
                 if (mapStore.riderSelected == riderId) {
@@ -249,7 +249,7 @@ const Popup = observer(() => {
                     e.stopPropagation();
                     riderStore.toggleFavorite(riderId);
                   }}
-                  active={isFav}
+                  $active={isFav}
                 >
                   {isFav ? <Star size={16} /> : <StarOff size={16} />}
                 </StarButton>
