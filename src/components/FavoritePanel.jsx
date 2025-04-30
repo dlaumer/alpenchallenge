@@ -9,7 +9,7 @@ const Panel = styled.div`
   position: absolute;
   left: 10px;
   top: 350px;
-  width: ${(props) => (props.collapsed ? "40px" : "80px")};
+  width: ${(props) => (props.$collapsed ? "40px" : "80px")};
   padding: 10px;
   background: #e4edf8;
   border-radius: 12px;
@@ -22,7 +22,7 @@ const Panel = styled.div`
 const Title = styled.div`
   font-size: 14px;
   font-weight: bold;
-  margin-bottom: ${(props) => (props.collapsed ? "0" : "12px")};
+  margin-bottom: ${(props) => (props.$collapsed ? "0" : "12px")};
   user-select: none;
   display: flex;
   align-items: center;
@@ -39,15 +39,15 @@ const Slot = styled.div`
   width: 100%;
   height: 100%;
   border-radius: 10px;
-  background: ${(props) => (props.filled ? "#fff" : "#d7e3f4")};
+  background: ${(props) => (props.$filled ? "#fff" : "#d7e3f4")};
   overflow: hidden;
   position: relative;
-  cursor: ${(props) => (props.interactive ? "pointer" : "default")};
+  cursor: ${(props) => (props.$interactive ? "pointer" : "default")};
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  border: ${(props) => (props.isSelected && props.filled ? "2px solid darkred" : "none")};
+  border: ${(props) => (props.$isSelected && props.$filled ? "2px solid darkred" : "none")};
 
 `;
 
@@ -112,9 +112,9 @@ const FavoritePanel = observer(() => {
     return (
       <SlotWrapper key={index}>
         <Slot
-          filled={!!riderId}
-          interactive
-          isSelected = {mapStore.riderSelected === riderId}
+          $filled={!!riderId}
+          $interactive
+          $isSelected = {mapStore.riderSelected === riderId}
           onClick={() => {
             if (riderId) {
               if (mapStore.riderSelected == riderId) {

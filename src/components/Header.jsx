@@ -24,7 +24,7 @@ const HeaderContainer = styled.header`
   color: black;
   padding: 0 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-left: ${(props) => (props.panelOpen ? "250px" : "0")};
+  margin-left: ${(props) => (props.$panelOpen ? "250px" : "0")};
   transition: margin-left 0.3s ease-in-out;
 `;
 
@@ -131,7 +131,7 @@ const LiveDot = styled.div`
   background-color: red;
   border-radius: 50%;
   margin-right: 8px;
-  animation: ${({ animate }) => (animate ? expandOnce : "none")} 0.6s ease-in-out;
+  animation: ${({ $animate }) => ($animate ? expandOnce : "none")} 0.6s ease-in-out;
 `;
 
 const LiveText = styled.span`
@@ -163,10 +163,13 @@ const ProgressBarWrapper = styled.div`
   background: transparent;
 `;
 
-const ProgressBar = styled.div`
+const ProgressBar = styled.div.attrs(({ $progress }) => ({
+  style: {
+    width: `${$progress * 100}%`
+  }
+}))`
   height: 100%;
   background: red;
-  width: ${({ progress }) => `${progress * 100}%`};
   transition: width 0.3s ease;
 `;
 
@@ -206,21 +209,21 @@ const Header = observer(() => {
   };
 
   return (
-    <HeaderContainer panelOpen={uiStore.isPanelOpen}>
+    <HeaderContainer $panelOpen={uiStore.isPanelOpen}>
       <LeftSection>
         <MenuButton onClick={uiStore.togglePanel}>
           <Menu size={24} />
         </MenuButton>
         <Logo src={logo} alt="Logo" />
         <LiveTitleWrapper>
-          <LiveDot animate={animateDot} />
+          <LiveDot $animate={animateDot} />
           <LiveTextWrapper>
             <TextRow>
               <LiveText>LIVE</LiveText>
               <StreamText>STREAM</StreamText>
             </TextRow>
             <ProgressBarWrapper>
-              <ProgressBar progress={mapStore.t} />
+              <ProgressBar $progress={mapStore.t} />
             </ProgressBarWrapper>
           </LiveTextWrapper>
         </LiveTitleWrapper>
@@ -234,7 +237,7 @@ const Header = observer(() => {
             {!uiStore.isMobile && langLabels[currentLang]}
           </DropdownButton>
           {open && (
-            <DropdownList>
+            <DropdownList>M
               {Object.entries(flagIcons).map(([code, icon]) => (
                 <DropdownItem key={code} onClick={() => handleSelect(code)}>
                   <FlagIcon src={icon} alt={code} />

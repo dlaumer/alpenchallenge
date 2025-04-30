@@ -314,6 +314,8 @@ const ArcGISMap = observer(() => {
               mapStore.setPopupVisible(true);
             }
           }
+        }).catch(err => {
+          console.error(err);
         });
       });
     });
