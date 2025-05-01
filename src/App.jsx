@@ -3,6 +3,7 @@ import SidePanel from "./components/SidePanel";
 import FavoritePanel from "./components/FavoritePanel";
 import Popup from "./components/Popup";
 import ElevationProfile from "./components/ElevationProfile";
+import RiderCard from "./components/RiderCard"; // adjust path if needed
 
 import MapView from "./components/MapView";
 import styled from "styled-components";
@@ -46,10 +47,10 @@ const App = observer(() => {
       <GlobalStyles />
       <SidePanel />
       <FavoritePanel />
-      <Popup />
       <Header />
       <MainContent $panelOpen={uiStore.isPanelOpen}>
         <MapContainer>
+        <RiderCard />
           <MapView elevationWidgetRef={elevationWidgetRef} />
           <ReplaySlider />
         </MapContainer>

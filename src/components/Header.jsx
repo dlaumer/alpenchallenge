@@ -19,7 +19,7 @@ const HeaderContainer = styled.header`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
+  height: 44px;
   background-color: #d3dbe5;
   color: black;
   padding: 0 20px;
@@ -237,7 +237,7 @@ const Header = observer(() => {
             {!uiStore.isMobile && langLabels[currentLang]}
           </DropdownButton>
           {open && (
-            <DropdownList>M
+            <DropdownList>
               {Object.entries(flagIcons).map(([code, icon]) => (
                 <DropdownItem key={code} onClick={() => handleSelect(code)}>
                   <FlagIcon src={icon} alt={code} />

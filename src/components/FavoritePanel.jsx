@@ -126,7 +126,6 @@ const FavoritePanel = observer(() => {
               mapStore.setPopupVisible(true);
             } else {
               uiStore.setLastFavoriteSlot(index);
-              mapStore.setRiderSelected(null);
               mapStore.setPopupVisible(true);
             }
           }}

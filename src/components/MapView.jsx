@@ -82,7 +82,11 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
       refreshInterval: 1,
       visible: true,
       popupEnabled: false,
-      renderer: latestSimulationRenderer
+      renderer: new UniqueValueRenderer({
+        field: "userId",
+        defaultSymbol: createSymbol(bluePinSymbol, 15),
+        defaultLabel: "Other riders",
+      })
     })
     latestSimulationRef.current = latestSimulation;
 
