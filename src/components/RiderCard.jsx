@@ -129,7 +129,6 @@ const RiderCard = observer(() => {
             </ActionButtons>
             <CloseButton onClick={() => { 
                 mapStore.setRiderSelected(null)
-                mapStore.toggleFollow(riderId)
              }
             }>
                 <X />
