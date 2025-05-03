@@ -5,7 +5,9 @@ class MapStore {
   popupContent = null;
   view = null;
   riderSelected = null;
-  riderFollowed = null; // New variable
+  riderFollowed = ""; // New variable
+  riderFollowedClose = null;
+  isFollowing = false; // New variable to track if a rider is being followed
 
   time = null;
   timeReference = null;
@@ -52,6 +54,14 @@ class MapStore {
     } else {
       this.riderFollowed = riderId;
     }
+  }
+
+  setRiderFollowedClose(riderIds) {
+    this.riderFollowedClose = riderIds;
+  }
+
+  setIsFollowing(isFollowing) {
+    this.isFollowing = isFollowing;
   }
 
   setTime(time) {
