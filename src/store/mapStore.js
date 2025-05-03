@@ -7,6 +7,7 @@ class MapStore {
   riderSelected = null;
   riderFollowed = ""; // New variable
   riderFollowedClose = null;
+  isFollowing = false; // New variable to track if a rider is being followed
 
   time = null;
   timeReference = null;
@@ -58,6 +59,10 @@ class MapStore {
 
   setRiderFollowedClose(riderIds) {
     this.riderFollowedClose = riderIds;
+  }
+
+  setIsFollowing(isFollowing) {
+    this.isFollowing = isFollowing;
   }
 
   setTime(time) {

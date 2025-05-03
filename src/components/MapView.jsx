@@ -381,52 +381,82 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
 
 
   useEffect(() => {
-    if (mapStore.riderFollowed == "") {
-      mapStore.setRiderFollowedClose(null);
-      graphicsMapRef.current = {}
-      layerRef.current.removeAll();
-      layerRef.current.visible = false;
-      latestSimulationRef.current.visible = true;
-    }
-    else {
-      layerRef.current.visible = true;
-      latestSimulationRef.current.visible = false;
+    if (viewRef.current) {
+      if (mapStore.riderFollowed == "") {
+        viewRef.current.goTo({
+          position: [
+            9.75325244,
+            46.20215233,
+            34712.77477
+          ],
+          heading: 358.70,
+          tilt: 50.05
+        })
 
-      const riders = riderStore.riders;
-      const followedId = mapStore.riderFollowed;
-      if (followedId && riders[followedId]) {
+        mapStore.setIsFollowing(false);
 
+        mapStore.setRiderFollowedClose(null);
+        graphicsMapRef.current = {}
+        layerRef.current.removeAll();
+        layerRef.current.visible = false;
+        latestSimulationRef.current.visible = true;
 
-        // Build map: routeIndex → [riderIds]
-        const indexMap = Object.entries(riders).reduce((acc, [id, data]) => {
-          const idx = data.currentPos.routeIndex;
-          if (idx != null) {
-            (acc[idx] = acc[idx] || []).push(id);
+      }
+      else {
+        layerRef.current.visible = true;
+        latestSimulationRef.current.visible = false;
+
+        const riders = riderStore.riders;
+        const followedId = mapStore.riderFollowed;
+        if (followedId && riders[followedId]) {
+
+          const interpolated = riderStore.getInterpolatedLivePosition(followedId, mapStore.timeReference + 1000);
+          // Use goTo without animation to instantly center the view on the followed rider.
+          viewRef.current.goTo(
+            {
+              center: new Point({
+                longitude: interpolated.longitude,
+                latitude: interpolated.latitude,
+                z: interpolated.altitude,
+              }),
+              zoom: viewRef.current.zoom < 16 ? 20 : null,
+              tilt: 70,
+              heading: interpolated.heading,
+            },
+          ).then(() => {
+            mapStore.setIsFollowing(true);
+          });
+
+          // Build map: routeIndex → [riderIds]
+          const indexMap = Object.entries(riders).reduce((acc, [id, data]) => {
+            const idx = data.currentPos.routeIndex;
+            if (idx != null) {
+              (acc[idx] = acc[idx] || []).push(id);
+            }
+            return acc;
+          }, {});
+
+          const followedIdx = riders[followedId].currentPos.routeIndex;
+          const before = [];
+          const after = [];
+          let offset = 1;
+          const maxIdx = Math.max(...Object.keys(indexMap).map(Number));
+
+          // Fan out until we have enough on each side or we run out of indices
+          while ((before.length < 10 || after.length < 10) && offset <= maxIdx) {
+            if (after.length < 10) {
+              const ahead = indexMap[followedIdx + offset] || [];
+              after.push(...ahead);
+            }
+            if (before.length < 10) {
+              const behind = indexMap[followedIdx - offset] || [];
+              before.push(...behind);
+            }
+            offset++;
           }
-          return acc;
-        }, {});
 
-        const followedIdx = riders[followedId].currentPos.routeIndex;
-        const before = [];
-        const after = [];
-        let offset = 1;
-        const maxIdx = Math.max(...Object.keys(indexMap).map(Number));
-
-        // Fan out until we have enough on each side or we run out of indices
-        while ((before.length < 10 || after.length < 10) && offset <= maxIdx) {
-          if (after.length < 10) {
-            const ahead = indexMap[followedIdx + offset] || [];
-            after.push(...ahead);
-          }
-          if (before.length < 10) {
-            const behind = indexMap[followedIdx - offset] || [];
-            before.push(...behind);
-          }
-          offset++;
+          mapStore.setRiderFollowedClose([...before, ...after]);
         }
-
-        mapStore.setRiderFollowedClose([...before, ...after]);
-        console.log(mapStore.riderFollowedClose)
       }
     }
 
@@ -582,7 +612,7 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
           }
 
           // If a rider is followed, update the camera center to that rider's current position.
-          if (mapStore.riderFollowed == riderId && graphicsMap[mapStore.riderFollowed]) {
+          if (mapStore.riderFollowed == riderId && graphicsMap[mapStore.riderFollowed] && mapStore.isFollowing) {
             const followedGraphic = graphicsMap[mapStore.riderFollowed].graphic3D;
             const calculatedHeading = interpolated.heading;
 
