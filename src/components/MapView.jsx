@@ -256,7 +256,7 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
     const animate = () => {
 
       if (mapStore.playing && mapStore.timeReference) {
-        animation(graphicsMap)
+        animation()
       }
 
       // Request the next animation frame for smooth updates
@@ -377,7 +377,7 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
 
   useEffect(() => {
     if (!mapStore.playing) {
-      animation(graphicsMapRef.current);
+      animation();
     }
     mapStore.setJumpTime(false);
 
@@ -414,7 +414,16 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
         const followedId = mapStore.riderFollowed;
         if (followedId && riders[followedId]) {
 
-          const interpolated = riderStore.getInterpolatedLivePosition(followedId, mapStore.timeReference + 1000);
+          let elapsed = Date.now() - mapStore.timeReferenceAnimation;
+
+          if (mapStore.replayMode) {
+            elapsed = elapsed * mapStore.replaySpeed;
+          }
+          const currentTs = mapStore.timeReference + elapsed;
+
+          const interpolated = mapStore.replayMode
+            ? riderStore.getInterpolatedPosition(followedId, currentTs)
+            : riderStore.getInterpolatedLivePosition(followedId, currentTs);
           // Use goTo without animation to instantly center the view on the followed rider.
           viewRef.current.goTo(
             {
@@ -423,7 +432,7 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
                 latitude: interpolated.latitude,
                 z: interpolated.altitude,
               }),
-              zoom: viewRef.current.zoom < 16 ? 22 : null,
+              zoom: viewRef.current.zoom < 16 ? 21 : null,
               tilt: 70,
               heading: interpolated.heading,
             },
@@ -507,7 +516,7 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
     return () => disposer();  // clean up
   }, []);
 
-  const animation = (graphicsMap) => {
+  const animation = () => {
     let elapsed = Date.now() - mapStore.timeReferenceAnimation;
 
     if (mapStore.replayMode) {
@@ -593,10 +602,10 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
 
 
           // Use a plain object to check if the graphic exists
-          if (graphicsMap[riderId]) {
-            graphicsMap[riderId].graphic3D.geometry = point;
-            graphicsMap[riderId].graphic3D.symbol = symbol3D;
-            graphicsMap[riderId].graphic2D.geometry = point;
+          if (graphicsMapRef.current[riderId]) {
+            graphicsMapRef.current[riderId].graphic3D.geometry = point;
+            graphicsMapRef.current[riderId].graphic3D.symbol = symbol3D;
+            graphicsMapRef.current[riderId].graphic2D.geometry = point;
           } else {
 
             const graphic2D = new Graphic({
@@ -609,15 +618,15 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
               attributes: interpolated.prev,
               symbol: symbol3D
             });
-            graphicsMap[riderId] = { graphic3D: graphic3D, graphic2D: graphic2D };
-            layerRef.current.add(graphicsMap[riderId].graphic3D);
-            layerRef.current.add(graphicsMap[riderId].graphic2D);
+            graphicsMapRef.current[riderId] = { graphic3D: graphic3D, graphic2D: graphic2D };
+            layerRef.current.add(graphicsMapRef.current[riderId].graphic3D);
+            layerRef.current.add(graphicsMapRef.current[riderId].graphic2D);
 
           }
 
           // If a rider is followed, update the camera center to that rider's current position.
-          if (mapStore.riderFollowed == riderId && graphicsMap[mapStore.riderFollowed] && mapStore.isFollowing) {
-            const followedGraphic = graphicsMap[mapStore.riderFollowed].graphic3D;
+          if (mapStore.riderFollowed == riderId && graphicsMapRef.current[mapStore.riderFollowed] && mapStore.isFollowing) {
+            const followedGraphic = graphicsMapRef.current[mapStore.riderFollowed].graphic3D;
             const calculatedHeading = interpolated.heading;
 
             // Smooth the heading transition only if the difference is less than 90 degrees.
@@ -645,8 +654,8 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
                   latitude: followedGraphic.geometry.latitude,
                   z: followedGraphic.attributes.altitude,
                 }),
-                zoom: viewRef.current.zoom < 16 ? 22 : null,
-                tilt: 70,
+                zoom: viewRef.current.camera.zoom,
+                tilt: viewRef.current.camera.tilt,
                 heading: smoothedHeading,
               },
               { animate: false }
