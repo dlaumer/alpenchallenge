@@ -8,7 +8,7 @@ import uiStore from "../store/uiStore";
 const Panel = styled.div`
   position: absolute;
   left: 10px;
-  top: 350px;
+  top: 120px;
   width: ${(props) => (props.$collapsed ? "40px" : "80px")};
   padding: 10px;
   background: #e4edf8;
@@ -16,6 +16,8 @@ const Panel = styled.div`
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
   z-index: 100;
   transition: width 0.3s;
+    z-index: 150;
+
 `;
 
 
@@ -88,21 +90,6 @@ background-position: center;
   justify-content: center;
 `;
 
-const FollowBtn = styled.button`
-  width: 100%;
-  border: none;
-  background: #3a9eff;
-  color: white;
-  padding: 6px 0;
-  font-size: 12px;
-  font-weight: bold;
-  cursor: pointer;
-
-  &:hover {
-    background: #187de5;
-  }
-`;
-
 const FavoritePanel = observer(() => {
   const favorites = riderStore.favorites ?? [];
 
@@ -114,7 +101,7 @@ const FavoritePanel = observer(() => {
         <Slot
           $filled={!!riderId}
           $interactive
-          $isSelected = {mapStore.riderSelected === riderId}
+          $isSelected={mapStore.riderSelected === riderId}
           onClick={() => {
             if (riderId) {
               if (mapStore.riderSelected == riderId) {
@@ -146,14 +133,7 @@ const FavoritePanel = observer(() => {
                 </Star>
               </FilledTop>
               <Avatar>👤</Avatar>
-              <FollowBtn
-                onClick={(e) => {
-                  e.stopPropagation();
-                  mapStore.toggleFollow(riderId);
-                }}
-              >
-                {isFollowed ? "Unfollow" : "Follow"}
-              </FollowBtn>
+
             </>
           ) : (
             <>
@@ -169,14 +149,14 @@ const FavoritePanel = observer(() => {
     );
   };
 
-  const slots = [...favorites.slice(0, 4)];
-  while (slots.length < 4) slots.push(null);
+  const slots = [...favorites.slice(0, 8)];
+  while (slots.length < 8) slots.push(null);
 
   return uiStore.favoritePanelCollapsed ? null : (
 
     <Panel>
       <Title      >
-        {uiStore.favoritePanelCollapsed ? "⭐" : <>Favorites <span>▴</span></>}
+        {uiStore.favoritePanelCollapsed ? "⭐" : <>Favorites</>}
       </Title>
 
       {!uiStore.favoritePanelCollapsed &&

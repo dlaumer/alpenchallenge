@@ -299,7 +299,7 @@ class RiderStore {
     } else {
       // only allow max 4
       const clean = this.favorites.filter(Boolean);
-      if (clean.length >= 4) return;
+      if (clean.length >= 8) return;
       this.favorites.push(riderId);
     }
   }

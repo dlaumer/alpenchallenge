@@ -23,6 +23,7 @@ const Container = styled.div`
   box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
   width: 90%;
   max-width: 800px;
+  z-index: 150;
 
   @media (max-width: 768px) {
     flex-direction: column;

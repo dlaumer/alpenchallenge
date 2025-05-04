@@ -2,6 +2,9 @@ import Header from "./components/Header";
 import SidePanel from "./components/SidePanel";
 import FavoritePanel from "./components/FavoritePanel";
 import Popup from "./components/Popup";
+import ElevationProfile from "./components/ElevationProfile";
+import RiderCard from "./components/RiderCard"; // adjust path if needed
+import RiderSearch from "./components/RiderSearch"; // adjust path if needed
 
 import MapView from "./components/MapView";
 import styled from "styled-components";
@@ -42,6 +45,7 @@ const App = observer(() => {
     <Container>
       <GlobalStyles />
       <SidePanel />
+      <RiderSearch />
       <FavoritePanel />
       <Popup />
       <Header />
