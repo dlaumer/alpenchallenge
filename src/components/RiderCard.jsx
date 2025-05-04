@@ -114,43 +114,19 @@ const CloseButton = styled.div`
 const FollowOverlay = styled.div`
   pointer-events: none;
   position: absolute;
-  inset: 0;
+  top: 40px;
+  left: 40px;
+  right: 40px;
+  bottom: 50px;
   z-index: 100;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 40px;
-    left: 40px;
-    right: 40px;
-    bottom: 70px;
-    border-radius: 24px;
-    border: 2px solid #e1003b;
-    box-sizing: border-box;
-    z-index: 1;
-  }
+  border: 2px solid #e1003b;
+  border-radius: 24px;
 
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.4);
-    
-    /* This creates a transparent hole with rounded corners */
-    mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-
-    mask-composite: exclude;
-    -webkit-mask-composite: destination-out;
-
-    padding: 40px 40px 70px 40px;
-    box-sizing: border-box;
-  }
+  /* this creates the dark outer effect */
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4);
 `;
+
 
 
 

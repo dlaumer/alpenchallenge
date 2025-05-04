@@ -280,7 +280,7 @@ const ArcGISMap = observer(() => {
     const animate = () => {
 
       if (mapStore.playing && mapStore.timeReference) {
-        animation(graphicsMap)
+        animation()
       }
 
       // Request the next animation frame for smooth updates
@@ -380,7 +380,7 @@ const ArcGISMap = observer(() => {
 
   useEffect(() => {
     if (!mapStore.playing) {
-      animation(graphicsMapRef.current);
+      animation();
     }
     mapStore.setJumpTime(false);
 
@@ -417,7 +417,16 @@ const ArcGISMap = observer(() => {
         const followedId = mapStore.riderFollowed;
         if (followedId && riders[followedId]) {
 
-          const interpolated = riderStore.getInterpolatedLivePosition(followedId, mapStore.timeReference + 1000);
+          let elapsed = Date.now() - mapStore.timeReferenceAnimation;
+
+          if (mapStore.replayMode) {
+            elapsed = elapsed * mapStore.replaySpeed;
+          }
+          const currentTs = mapStore.timeReference + elapsed;
+
+          const interpolated = mapStore.replayMode
+            ? riderStore.getInterpolatedPosition(followedId, currentTs)
+            : riderStore.getInterpolatedLivePosition(followedId, currentTs);
           // Use goTo without animation to instantly center the view on the followed rider.
           viewRef.current.goTo(
             {
@@ -426,7 +435,7 @@ const ArcGISMap = observer(() => {
                 latitude: interpolated.latitude,
                 z: interpolated.altitude,
               }),
-              zoom: viewRef.current.zoom < 16 ? 22 : null,
+              zoom: viewRef.current.zoom < 16 ? 21 : null,
               tilt: 70,
               heading: interpolated.heading,
             },
