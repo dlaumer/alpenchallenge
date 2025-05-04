@@ -4,6 +4,8 @@ import styled from "styled-components";
 import mapStore from "../store/mapStore";
 import riderStore from "../store/riderStore";
 import { X } from "lucide-react";
+import { riders_info } from "../constants/riders_info_1000";
+import { countryMeta } from "../constants/countryMeta";
 
 const CardWrapper = styled.div`
   position: absolute;
@@ -21,8 +23,20 @@ const CardWrapper = styled.div`
   z-index: 1000;
   font-family: sans-serif;
   max-width: 95%;
-  transition: left 1s ease, right 1s ease, transform 1s ease;
+  
+  /* ⏳ Smoother sliding */
+  transition: left 2s ease, right 2s ease, transform 2s ease;
+
+  /* 🟣 Fade-in on re-render */
+  animation: fadeIn 0.3s ease;
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
 `;
+
+
 
 const Avatar = styled.div`
   font-size: 32px;
@@ -97,20 +111,80 @@ const CloseButton = styled.div`
   justify-content: center;
   cursor: pointer;
 `;
+const FollowOverlay = styled.div`
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    right: 40px;
+    bottom: 70px;
+    border-radius: 24px;
+    border: 2px solid #e1003b;
+    box-sizing: border-box;
+    z-index: 1;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    
+    /* This creates a transparent hole with rounded corners */
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+
+    mask-composite: exclude;
+    -webkit-mask-composite: destination-out;
+
+    padding: 40px 40px 70px 40px;
+    box-sizing: border-box;
+  }
+`;
+
+
 
 const RiderCardInstance = observer(({ riderId, isFollowing }) => {
   const rider = riderStore.riders[riderId];
-  if (!rider) return null;
+  const info = riders_info[riderId];
+  if (!rider || !info) return null;
 
   const isFavorite = riderStore.favorites.includes(riderId);
   const isFollowed = mapStore.riderFollowed === riderId;
 
+  const fullName = `${info.FirstName} ${info.LastName}`;
+  const birthday = info.Birthday;
+  const nationality = info.Nationality;
+  const meta = countryMeta[nationality.toUpperCase()];
   return (
     <CardWrapper $isFollowing={isFollowing}>
       <Avatar>👤</Avatar>
       <InfoBlock>
-        <RiderName>{riderId.replace("rider_", "Rider ")}</RiderName>
-        <CountryInfo>🇨🇭 Switzerland</CountryInfo>
+        <RiderName>{fullName}</RiderName>
+        <CountryInfo>
+          {birthday}
+          {meta && (
+            <>
+              &nbsp;&nbsp;
+              <img
+                src={meta.flag}
+                alt={meta.name}
+                style={{ width: "20px", height: "14px", verticalAlign: "text-bottom", borderRadius: "2px", marginRight: "6px" }}
+              />
+              {meta.name}
+            </>
+          )}
+        </CountryInfo>
         <Speed>{(rider.previousPos.speed || 0).toFixed(1)} km/h</Speed>
       </InfoBlock>
       <ActionButtons>
@@ -142,6 +216,7 @@ const RiderCardInstance = observer(({ riderId, isFollowing }) => {
   );
 });
 
+
 const RiderCard = observer(() => {
   const elements = [];
 
@@ -171,7 +246,13 @@ const RiderCard = observer(() => {
     );
   }
 
-  return <>{elements}</>;
+  const showOverlay = !!mapStore.riderFollowed;
+
+  return <>
+    {showOverlay && <FollowOverlay />}
+
+    {elements}
+  </>;
 });
 
 export default RiderCard;

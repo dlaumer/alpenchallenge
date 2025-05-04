@@ -89,7 +89,7 @@ class RiderStore {
         ts: attributes.ts,
         cumulative: JSON.parse(attributes.cumulative),
         path: JSON.parse(attributes.path),
-        routeIndex: attributes.routeIndex
+        routeIndex: attributes.routeIndex, 
       };
       // Parse previousPos (which may be stored as a JSON string)
       let previousPos = attributes.previousPos;
@@ -304,7 +304,7 @@ class RiderStore {
 
       // only allow max 4
       const clean = this.favorites.filter(Boolean);
-      if (clean.length >= 4) return;
+      if (clean.length >= 8) return;
       this.favorites.push(riderId);
     }
   }

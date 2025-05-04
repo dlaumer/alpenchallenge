@@ -185,7 +185,11 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
         ],
         heading: 358.70,
         tilt: 50.05
-      }
+      },
+      padding: {
+        top: 70,
+        left: 120,
+    }
     });
 
     const basemapGallery = new BasemapGallery({
@@ -419,7 +423,7 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
                 latitude: interpolated.latitude,
                 z: interpolated.altitude,
               }),
-              zoom: viewRef.current.zoom < 16 ? 20 : null,
+              zoom: viewRef.current.zoom < 16 ? 22 : null,
               tilt: 70,
               heading: interpolated.heading,
             },
@@ -641,7 +645,7 @@ const ArcGISMap = observer(({ elevationWidgetRef }) => {
                   latitude: followedGraphic.geometry.latitude,
                   z: followedGraphic.attributes.altitude,
                 }),
-                zoom: viewRef.current.zoom < 16 ? 20 : null,
+                zoom: viewRef.current.zoom < 16 ? 22 : null,
                 tilt: 70,
                 heading: smoothedHeading,
               },

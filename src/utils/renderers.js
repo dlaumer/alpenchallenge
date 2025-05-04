@@ -18,7 +18,7 @@ import Symbol3DVerticalOffset from "@arcgis/core/symbols/support/Symbol3DVertica
 import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
 import SimpleRenderer from "@arcgis/core/renderers/SimpleRenderer";
 
-// factory to build your sphere + cylinder combo with a given color
+
 export const createSymbol = (icon, size) => (
   new PointSymbol3D({
     callout: new LineCallout3D({
@@ -37,8 +37,8 @@ export const createSymbol = (icon, size) => (
     ],
     verticalOffset: new Symbol3DVerticalOffset({
       maxWorldLength: 50 + size,
-      minWorldLength: size/2,
-      screenLength: 20
+      minWorldLength: size/4,
+      screenLength: 10
     })
   })
 );
