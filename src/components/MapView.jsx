@@ -16,8 +16,12 @@ import Point from "@arcgis/core/geometry/Point";
 import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 import Weather from "@arcgis/core/widgets/Weather";
 import Editor from "@arcgis/core/widgets/Editor";
-import { pointTypeRenderer } from "../utils/renderers";
-
+import { pointTypeRenderer, createSymbol, latestSimulationRenderer } from "../utils/renderers";
+import ElevationProfile from "@arcgis/core/widgets/ElevationProfile";
+import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
+import Zoom    from "@arcgis/core/widgets/Zoom";
+import Compass from "@arcgis/core/widgets/Compass";
+import NavigationToggle from "@arcgis/core/widgets/NavigationToggle";
 
 import bluePinSymbol from "../assets/blue-pin-symbol.svg";
 import redPinSymbol from "../assets/red-pin-symbol.svg";
@@ -179,10 +183,11 @@ const ArcGISMap = observer(() => {
         heading: 358.70,
         tilt: 50.05
       },
-      padding: {
-        top: 70,
-        left: 120,
-    }
+
+      ui: {
+        // only keep attribution, drop zoom/compass
+        components: ["attribution"]
+      }
     });
 
     const basemapGallery = new BasemapGallery({
@@ -211,23 +216,6 @@ const ArcGISMap = observer(() => {
       view: view
     });
     view.ui.add(edit, "top-right")
-
-    // Create a toggle button for the Favorite Panel
-    const toggleFavoritePanelBtn = document.createElement("button");
-    toggleFavoritePanelBtn.innerText = "⭐";
-    toggleFavoritePanelBtn.className = "esri-widget esri-widget--button";
-    toggleFavoritePanelBtn.style.marginTop = "10px";
-    toggleFavoritePanelBtn.style.padding = "6px 12px";
-    toggleFavoritePanelBtn.style.cursor = "pointer";
-    toggleFavoritePanelBtn.style.border = "none";
-    toggleFavoritePanelBtn.style.boxShadow = "none";
-    toggleFavoritePanelBtn.style.outline = "none"; // for focus ring
-    toggleFavoritePanelBtn.style.background = "white"; // or whatever you like
-    toggleFavoritePanelBtn.onclick = () => {
-      uiStore.toggleFavoritePanel();
-    };
-
-    view.ui.add(toggleFavoritePanelBtn, "top-left");
 
 
     /**
@@ -314,6 +302,16 @@ const ArcGISMap = observer(() => {
     startLoop();
 
     view.when(() => {
+      const zoomWidget = new Zoom({ view });
+      const compassWidget = new Compass({ view });
+      const navToggle = new NavigationToggle({
+        view
+      });
+      // add into the bottom-right corner
+      view.ui.add([compassWidget, zoomWidget, navToggle], {
+        position: "bottom-right"
+      });
+
       window.view = view;
       viewRef.current = view;
       // Watch the layerView's updating property using reactiveUtils.when.
