@@ -15,8 +15,8 @@ const Container = styled.div`
   transform: translateX(-50%);
   width: 360px;
   padding: 12px 24px;
-  background: rgba(0, 0, 0, 0.75);
-  border-radius: 32px;
+  background: rgba(58, 63, 69, 0.6);
+  backdrop-filter: blur(4px);  border-radius: 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -31,7 +31,7 @@ const LeftGroup = styled.div`
 `;
 
 const NumberBadge = styled.div`
-  background: #3a9eff;
+  background: #4e8cff;
   color: #fff;
   border-radius: 50%;
   width: 40px;
@@ -39,7 +39,7 @@ const NumberBadge = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 600;
   margin-right: 16px;
   flex-shrink: 0;
@@ -118,7 +118,7 @@ const SelectedRider = observer(() => {
           title={isFavorited ? "Unfavorite" : "Favorite"}
           onClick={() => riderStore.toggleFavorite(riderId)}
         >
-          <Star size={20} fill={isFavorited ? "#ffd700" : "none"} />
+          <Star size={20} color="#4e8cff" fill={isFavorited ? "#4e8cff" : "none"} />
         </IconButton>
         <IconButton
           title={isFollowing ? "Unfollow" : "Follow"}

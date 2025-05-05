@@ -44,11 +44,11 @@ const Bubble = styled.div`
   position: relative;
   flex: 1;
   background: rgba(58, 63, 69, 0.6);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(4px);
   border: ${props =>
-        props.$selected
-            ? '3px solid #4e8cff;'
-            : 'none'};  
+    props.$selected
+      ? props.$following ? '3px solid red;' : '3px solid #4e8cff;'
+      : 'none'};  
 border-radius: 0 54px 54px 0;
   padding: 12px 16px 12px 12px; /* space for the circle */
   display: flex;
@@ -60,7 +60,7 @@ border-radius: 0 54px 54px 0;
 const RankCircle = styled.div`
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #4e8cff, #3a9eff);
+  background: ${props => props.$following ? 'red' : '#4e8cff'};
   border-radius: 50%;
   color: #fff;
   font-size: 14px;
@@ -87,7 +87,7 @@ const FollowButton = styled.button`
   display: flex;
   align-items: center;
   gap: 4px;
-  background: linear-gradient(135deg, #4e8cff, #3a9eff);
+  background: ${props => props.$following ? 'red' : '#4e8cff'};
   color: #fff;
   border: none;
   border-radius: 4px;
@@ -107,52 +107,55 @@ const StarButton = styled.button`
   cursor: pointer;
 
   svg {
-    stroke: #4e8cff;
-    fill: #4e8cff;
+    stroke: ${props => props.$following ? 'red' : '#4e8cff'};
+    fill: ${props => props.$following ? 'red' : '#4e8cff'};
   }
 `;
 
 const FavoriteList = observer(() => {
-    const { favorites } = riderStore;
-    if (favorites.length === 0) return null;
+  const { favorites } = riderStore;
+  if (favorites.length === 0) return null;
 
-    return (
-        <Container>
-            <List>
-                {favorites.map((id, idx) => {
-                    const info = riders_info[id] || {};
-                    const first = info.FirstName || '';
-                    const last = info.LastName || '';
-                    const isSelected = mapStore.riderSelected === id;
+  return (
+    <Container>
+      <List>
+        {favorites.map((id, idx) => {
+          const info = riders_info[id] || {};
+          const first = info.FirstName || '';
+          const last = info.LastName || '';
+          const isSelected = mapStore.riderSelected === id;
+          const isFollowing = mapStore.riderFollowed === id;
 
-                    return (
-                        <Item key={id}>
-                            <Bubble $selected={isSelected}
-                            onClick={() =>
-                                mapStore.setRiderSelected(isSelected ? null : id)  // toggle select
-                              }>
-                                <InfoPart>
-                                    <TopPart>
-                                        <RankCircle>{id.substring(6)}</RankCircle>
-                                        <Name>
-                                            <span>{first}</span>
-                                            <span>{last}</span>
-                                        </Name>
-                                    </TopPart>
-                                    <FollowButton onClick={() => mapStore.toggleFollow(id)}>
-                                        <Play size={12} /> Follow
-                                    </FollowButton>
-                                </InfoPart>
-                                <StarButton onClick={() => riderStore.toggleFavorite(id)}>
-                                    <Star size={18} />
-                                </StarButton>
-                            </Bubble>
-                        </Item>
-                    );
-                })}
-            </List>
-        </Container>
-    );
+          return (
+            <Item key={id}>
+              <Bubble $selected={isSelected} $following={isFollowing}
+                onClick={() =>
+                  mapStore.setRiderSelected(isSelected ? null : id)  // toggle select
+                }>
+                <InfoPart>
+                  <TopPart>
+                    <RankCircle $following={isFollowing}>
+                      {id.substring(6)}
+                    </RankCircle>
+                    <Name>
+                      <span>{first}</span>
+                      <span>{last}</span>
+                    </Name>
+                  </TopPart>
+                  <FollowButton  $following={isFollowing} onClick={() => mapStore.toggleFollow(id)}>
+                    <Play size={12} /> {isFollowing? "Unfollow": "Follow"}
+                  </FollowButton>
+                </InfoPart>
+                <StarButton  $following={isFollowing} onClick={() => riderStore.toggleFavorite(id)}>
+                  <Star size={18} />
+                </StarButton>
+              </Bubble>
+            </Item>
+          );
+        })}
+      </List>
+    </Container>
+  );
 });
 
 export default FavoriteList;
