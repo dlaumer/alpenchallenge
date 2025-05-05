@@ -11,124 +11,98 @@ const CardWrapper = styled.div`
   position: absolute;
   top: 20px;
   left: ${(props) => (props.$isFollowing ? "auto" : "50%")};
-  right: ${(props) => (props.$isFollowing ? "70px" : "auto")};
+  right: ${(props) => (props.$isFollowing ? "20px" : "auto")};
   transform: ${(props) => (props.$isFollowing ? "none" : "translateX(-50%)")};
-  background: #eaf2fb;
-  border-radius: 999px;
-  padding: 18px 24px 18px 20px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  gap: 24px;
+  background: white;
+  border-radius: 24px;
+  padding: 18px 24px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  border-left: 6px solid #e1003b;
   z-index: 1000;
   font-family: sans-serif;
+  width: 320px;
   max-width: 95%;
-  
-  /* ⏳ Smoother sliding */
-  transition: left 2s ease, right 2s ease, transform 2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+`;
 
-  /* 🟣 Fade-in on re-render */
-  animation: fadeIn 0.3s ease;
+const TopRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+`;
 
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+const Title = styled.div`
+  font-size: 18px;
+  font-weight: 700;
+  color: #222;
+`;
+
+const Subtitle = styled.div`
+  font-size: 14px;
+  color: #555;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 4px;
+
+  img {
+    width: 20px;
+    height: 14px;
+    border-radius: 2px;
   }
 `;
 
-
-
-const Avatar = styled.div`
-  font-size: 32px;
-  background: #f4f4f4;
+const CloseButton = styled.div`
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: #666;
   border-radius: 50%;
-  width: 52px;
-  height: 52px;
+  padding: 4px;
+
+  &:hover {
+    background: #eee;
+  }
+
+  svg {
+    stroke-width: 3;
+    width: 18px;
+    height: 18px;
+  }
+`;
+
+const BottomRow = styled.div`
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-`;
-
-const InfoBlock = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-width: 0;
-  flex-grow: 1;
-  gap: 2px;
-`;
-
-const RiderName = styled.div`
-  font-weight: 700;
-  font-size: 18px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
-const CountryInfo = styled.div`
-  font-size: 14px;
-  color: #333;
 `;
 
 const Speed = styled.div`
-  font-size: 14px;
+  font-size: 13px;
   color: #666;
 `;
 
-const ActionButtons = styled.div`
+const ButtonGroup = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-left: 8px;
+  gap: 10px;
 `;
 
 const ActionButton = styled.button`
   background: ${(props) => props.bg || "#3a9eff"};
   color: white;
-  padding: 6px 14px;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
+  padding: 6px 12px;
   font-size: 13px;
-  font-weight: bold;
   cursor: pointer;
-  white-space: nowrap;
 
   &:hover {
     opacity: 0.9;
   }
 `;
-
-const CloseButton = styled.div`
-  width: 36px;
-  height: 36px;
-  background: #fff;
-  border-radius: 50%;
-  border: 2px solid black;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-`;
-const FollowOverlay = styled.div`
-  pointer-events: none;
-  position: absolute;
-  top: 40px;
-  left: 40px;
-  right: 40px;
-  bottom: 50px;
-  z-index: 100;
-
-  border: 2px solid #e1003b;
-  border-radius: 24px;
-
-  /* this creates the dark outer effect */
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.4);
-`;
-
-
-
 
 const RiderCardInstance = observer(({ riderId, isFollowing }) => {
   const rider = riderStore.riders[riderId];
@@ -140,66 +114,64 @@ const RiderCardInstance = observer(({ riderId, isFollowing }) => {
 
   const fullName = `${info.FirstName} ${info.LastName}`;
   const birthday = info.Birthday;
+  const gender = info.Gender;
   const nationality = info.Nationality;
-  const meta = countryMeta[nationality.toUpperCase()];
+  const meta = countryMeta[nationality?.toUpperCase()];
+
   return (
     <CardWrapper $isFollowing={isFollowing}>
-      <Avatar>👤</Avatar>
-      <InfoBlock>
-        <RiderName>{fullName}</RiderName>
-        <CountryInfo>
-          {birthday}
-          {meta && (
-            <>
-              &nbsp;&nbsp;
-              <img
-                src={meta.flag}
-                alt={meta.name}
-                style={{ width: "20px", height: "14px", verticalAlign: "text-bottom", borderRadius: "2px", marginRight: "6px" }}
-              />
-              {meta.name}
-            </>
-          )}
-        </CountryInfo>
-        <Speed>{(rider.previousPos.speed || 0).toFixed(1)} km/h</Speed>
-      </InfoBlock>
-      <ActionButtons>
-        <ActionButton
-          bg={isFavorite ? "#ccc" : "#ffd700"}
-          onClick={() => riderStore.toggleFavorite(riderId)}
-        >
-          {isFavorite ? "★" : "☆"}
-        </ActionButton>
-        <ActionButton
-          bg={isFollowed ? "#888" : "#3a9eff"}
-          onClick={() => mapStore.toggleFollow(riderId)}
-        >
-          {isFollowed ? "Unfollow" : "Follow"}
-        </ActionButton>
-      </ActionButtons>
-      <CloseButton
-        onClick={() => {
-          if (isFollowing) {
-            mapStore.toggleFollow(riderId);
-          } else {
-            mapStore.setRiderSelected(null);
+      <TopRow>
+        <div>
+          <Title>{fullName}</Title>
+          <Subtitle>
+            {gender}, {birthday}
+            {meta && (
+              <>
+                <img src={meta.flag} alt={meta.name} />
+                {meta.name}
+              </>
+            )}
+          </Subtitle>
+        </div>
+        <CloseButton
+          onClick={() =>
+            isFollowing
+              ? mapStore.toggleFollow(riderId)
+              : mapStore.setRiderSelected(null)
           }
-        }}
-      >
-        <X />
-      </CloseButton>
+        >
+          <X />
+        </CloseButton>
+      </TopRow>
+
+      <BottomRow>
+        <Speed>{(rider.previousPos.speed || 0).toFixed(1)} km/h</Speed>
+        <ButtonGroup>
+          <ActionButton
+            bg={isFavorite ? "#ccc" : "#ffd700"}
+            onClick={() => riderStore.toggleFavorite(riderId)}
+          >
+            {isFavorite ? "★" : "☆"}
+          </ActionButton>
+          <ActionButton
+            bg={isFollowed ? "#888" : "#3a9eff"}
+            onClick={() => mapStore.toggleFollow(riderId)}
+          >
+            {isFollowed ? "Unfollow" : "Follow"}
+          </ActionButton>
+        </ButtonGroup>
+      </BottomRow>
     </CardWrapper>
   );
 });
 
-
 const RiderCard = observer(() => {
-  const elements = [];
+  const cards = [];
 
   const { riderSelected, riderFollowed } = mapStore;
 
   if (riderFollowed && riderStore.riders[riderFollowed]) {
-    elements.push(
+    cards.push(
       <RiderCardInstance
         key={`followed-${riderFollowed}`}
         riderId={riderFollowed}
@@ -213,7 +185,7 @@ const RiderCard = observer(() => {
     riderSelected !== riderFollowed &&
     riderStore.riders[riderSelected]
   ) {
-    elements.push(
+    cards.push(
       <RiderCardInstance
         key={`selected-${riderSelected}`}
         riderId={riderSelected}
@@ -222,13 +194,7 @@ const RiderCard = observer(() => {
     );
   }
 
-  const showOverlay = !!mapStore.riderFollowed;
-
-  return <>
-    {showOverlay && <FollowOverlay />}
-
-    {elements}
-  </>;
+  return <>{cards}</>;
 });
 
 export default RiderCard;

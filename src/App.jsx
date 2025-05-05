@@ -1,9 +1,9 @@
 import Header from "./components/Header";
 import SidePanel from "./components/SidePanel";
-import FavoritePanel from "./components/FavoritePanel";
+import FavoriteList from "./components/FavoriteList";
 import Popup from "./components/Popup";
 import ElevationProfile from "./components/ElevationProfile";
-import RiderCard from "./components/RiderCard"; // adjust path if needed
+import SelectedRider from "./components/SelectedRider"; // adjust path if needed
 import RiderSearch from "./components/RiderSearch"; // adjust path if needed
 
 import MapView from "./components/MapView";
@@ -48,11 +48,11 @@ const App = observer(() => {
       <GlobalStyles />
       <SidePanel />
       <RiderSearch />
-      <FavoritePanel />
+      <FavoriteList />
       <Header />
       <MainContent $panelOpen={uiStore.isPanelOpen}>
         <MapContainer>
-        <RiderCard />
+        <SelectedRider />
           <MapView elevationWidgetRef={elevationWidgetRef} />
           <ReplaySlider />
         </MapContainer>
