@@ -29,7 +29,6 @@ Build and preview the production bundle:
     ```bash
     npm run build
     npm run serve
-    ```
 
 ## Project Structure
 
