@@ -25,26 +25,25 @@ The used tech features are ArcGIS, React, mobx, styled components and Vite.
 
 ## Production Build
 Build and preview the production bundle:
-
-    ```bash
+    ```
     npm run build
     npm run serve
-
+    ```
 ## Project Structure
 
-├── public/          Static assets
-├── src/             Source code
-│   ├── main.jsx     Entry point
-│   ├── App.jsx      Root component
-│   ├── components/  UI and map components
-│   ├── store/       MobX stores
-│   ├── utils/       Helper functions
-│   └── assets/      Images and models
-├── vite.config.js   Vite configuration
-└── package.json     Dependencies and scripts
+- **public/**: Static assets  
+- **src/**: Source code  
+  - **main.jsx**: Entry point  
+  - **App.jsx**: Root component  
+  - **components/**: UI and map components  
+  - **store/**: MobX stores  
+  - **utils/**: Helper functions  
+  - **assets/**: Images and models  
+- **vite.config.js**: Vite configuration  
+- **package.json**: Dependencies and scripts  
 
 
-Copyright © 2025 Dnaiel Laumer
+Copyright © 2025 Daniel Laumer
 
 All rights reserved. This software and associated documentation files are proprietary and confidential.  
 No part of the Software may be reproduced, distributed, or transmitted in any form or by any means, without the prior written permission of the copyright holder.
