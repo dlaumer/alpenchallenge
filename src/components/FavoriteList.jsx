@@ -16,7 +16,7 @@ const Container = styled.div`
   max-height: calc(100% - 100px);
   overflow-y: auto;
   padding: 4px 0;
-  z-index: 1000;
+  z-index: 200;
 `;
 
 const List = styled.div`
@@ -35,7 +35,7 @@ const TopPart = styled.div`
 `;
 
 const InfoPart = styled.div`
-
+width: 100%;
 
 `;
 
@@ -45,16 +45,27 @@ const Bubble = styled.div`
   flex: 1;
   background: rgba(58, 63, 69, 0.6);
   backdrop-filter: blur(4px);
-  border: ${props =>
+  /* draw a 3px “border” outside on top, right and bottom when selected */
+  ${props =>
     props.$selected
-      ? props.$following ? '3px solid red;' : '3px solid #4e8cff;'
-      : 'none'};  
-border-radius: 0 54px 54px 0;
+    ? `
+    box-shadow:
+    /* top */
+    0 -3px 0 0 ${props.$following ? 'red' : '#4e8cff'},
+    /* right */
+    3px 0 0 0 ${props.$following ? 'red' : '#4e8cff'},
+    /* bottom */
+    0 3px 0 0 ${props.$following ? 'red' : '#4e8cff'};
+    `
+  : ''}
+  border-radius: 0 54px 54px 0;
   padding: 12px 16px 12px 12px; /* space for the circle */
   display: flex;
   flex-direction: row;
-    justify-content: space-between;
+  justify-content: space-between;
   overflow: hidden;
+  cursor: pointer;
+  align-items: center;
 `;
 
 const RankCircle = styled.div`
@@ -94,7 +105,7 @@ const FollowButton = styled.button`
   padding: 6px 12px;
   font-size: 12px;
   cursor: pointer;
-  width: 100%;
+  width: 80%;
   margin-top: 8px;
 `;
 
@@ -105,6 +116,7 @@ const StarButton = styled.button`
   border: none;
   color: #fff;
   cursor: pointer;
+  height: fit-content;
 
   svg {
     stroke: ${props => props.$following ? 'red' : '#4e8cff'};
@@ -142,11 +154,11 @@ const FavoriteList = observer(() => {
                       <span>{last}</span>
                     </Name>
                   </TopPart>
-                  <FollowButton  $following={isFollowing} onClick={() => mapStore.toggleFollow(id)}>
-                    <Play size={12} /> {isFollowing? "Unfollow": "Follow"}
+                  <FollowButton $following={isFollowing} onClick={() => mapStore.toggleFollow(id)}>
+                    <Play size={12} /> {isFollowing ? "Unfollow" : "Follow"}
                   </FollowButton>
                 </InfoPart>
-                <StarButton  $following={isFollowing} onClick={() => riderStore.toggleFavorite(id)}>
+                <StarButton $following={isFollowing} onClick={() => riderStore.toggleFavorite(id)}>
                   <Star size={18} />
                 </StarButton>
               </Bubble>

@@ -6,14 +6,12 @@ import mapStore from "../store/mapStore";
 import riderStore from "../store/riderStore";
 import { riders_info } from "../constants/riders_info_1000";
 import { countryMeta } from "../constants/countryMeta";
-import { Star, Play, Share2 } from "lucide-react";
+import { Star, Play, Share } from "lucide-react";
+import { X } from "lucide-react";
 
 const Container = styled.div`
-  position: absolute;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 360px;
+
+  width: 460px;
   padding: 12px 24px;
   background: rgba(58, 63, 69, 0.6);
   backdrop-filter: blur(4px);  border-radius: 32px;
@@ -28,6 +26,8 @@ const Container = styled.div`
 const LeftGroup = styled.div`
   display: flex;
   align-items: center;
+    width: 50%;
+
 `;
 
 const NumberBadge = styled.div`
@@ -83,12 +83,34 @@ const IconButton = styled.button`
   }
 `;
 
+/* Updated: circular close button */
+const CloseButton = styled.button`
+  background: rgba(0, 0, 0, 0);
+  border: 1px solid #fff;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    background: rgba(58, 63, 69, 0.6);;
+  }
+`;
+
 const SelectedRider = observer(() => {
   const riderId = mapStore.riderSelected;
   if (!riderId) return null;
 
   const riderData = riderStore.riders[riderId];
   if (!riderData) return null;
+
+  if (riderId === mapStore.riderFollowed)
+    return null; // Don't show the selected rider if it's the same as the followed one
 
   const info = riders_info[riderId];
   const number = riderId.split("_")[1]?.padStart(2, "0") || "";
@@ -118,7 +140,7 @@ const SelectedRider = observer(() => {
           title={isFavorited ? "Unfavorite" : "Favorite"}
           onClick={() => riderStore.toggleFavorite(riderId)}
         >
-          <Star size={20} color="#4e8cff" fill={isFavorited ? "#4e8cff" : "none"} />
+          <Star size={20} color={isFavorited ? "#4e8cff" : "#ffffff" } fill={isFavorited ? "#4e8cff" : "none"} />
         </IconButton>
         <IconButton
           title={isFollowing ? "Unfollow" : "Follow"}
@@ -127,9 +149,12 @@ const SelectedRider = observer(() => {
           <Play size={20} style={{ transform: isFollowing ? "rotate(90deg)" : "none" }} />
         </IconButton>
         <IconButton title="Share">
-          <Share2 size={20} />
+          <Share size={20} />
         </IconButton>
       </div>
+      <CloseButton onClick={() => mapStore.setRiderSelected(null)}>
+        <X size={20} color="#ffffff" />
+      </CloseButton>
     </Container>
   );
 });
