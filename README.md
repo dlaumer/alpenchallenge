@@ -25,6 +25,7 @@ The used tech features are ArcGIS, React, mobx, styled components and Vite.
 
 ## Production Build
 Build and preview the production bundle:
+
     ```
     npm run build
     npm run serve
@@ -41,6 +42,8 @@ Build and preview the production bundle:
   - **assets/**: Images and models  
 - **vite.config.js**: Vite configuration  
 - **package.json**: Dependencies and scripts  
+
+## Copyright
 
 
 Copyright © 2025 Daniel Laumer
