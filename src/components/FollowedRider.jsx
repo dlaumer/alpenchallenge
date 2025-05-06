@@ -1,60 +1,73 @@
 // src/components/FollowedRider.jsx
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import { X } from 'lucide-react';
+import React from "react";
+import { observer } from "mobx-react-lite";
+import styled from "styled-components";
+import mapStore from "../store/mapStore";
+import riderStore from "../store/riderStore";
+import { riders_info } from "../constants/riders_info_1000";
+import { countryMeta } from "../constants/countryMeta";
+import { X, Share } from "lucide-react";
 
 const Container = styled.div`
-  position: absolute;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: white;
-  border-radius: 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+
+  width: 460px;
+  padding: 12px 24px;
+  background: #fff;
+  border-radius: 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   display: flex;
   align-items: center;
-  padding: 8px 16px;
-  z-index: 200;
+  justify-content: space-between;
+  z-index: 1000;
 `;
 
-const Badge = styled.div`
+const LeftGroup = styled.div`
+  display: flex;
+  align-items: center;
+  width: 50%;
+`;
+
+const NumberBadge = styled.div`
   background: #e74c3c;
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
-  width: 24px;
-  height: 24px;
+  color: #fff;
   border-radius: 50%;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  margin-right: 16px;
+  flex-shrink: 0;
 `;
 
 const Info = styled.div`
   display: flex;
   flex-direction: column;
-  margin-right: 24px;
+  overflow: hidden;
 `;
 
-const Label = styled.span`
+const Label = styled.div`
   font-size: 12px;
   color: #555;
 `;
 
-const Name = styled.span`
-  font-size: 14px;
+const NameRow = styled.div`
+  font-size: 18px;
   font-weight: 600;
-  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
-const ModeWrapper = styled.div`
+const ModeGroup = styled.div`
   display: flex;
   flex-direction: column;
-  margin-right: 24px;
+  margin-right: 16px;
 `;
 
-const ModeLabel = styled.span`
+const ModeLabel = styled.div`
   font-size: 12px;
   color: #555;
   margin-bottom: 4px;
@@ -69,69 +82,91 @@ const ModeButtons = styled.div`
 
 const ModeButton = styled.button`
   flex: 1;
-  background: ${({ active }) => active ? '#e74c3c' : 'transparent'};
-  color: ${({ active }) => active ? 'white' : '#e74c3c'};
-  border: none;
   padding: 6px 12px;
   font-size: 12px;
+  border: none;
+  background: ${(props) => props.$active ? "#e74c3c" : "transparent"};
+  color: ${(props) => props.$active ? "#fff" : "e74c3c"};
   cursor: pointer;
-  &:first-child { border-right: 1px solid #ddd; }
+
+  &:first-child {
+    border-right: 1px solid #ddd;
+  }
 `;
 
-const CloseButton = styled.button`
-  background: transparent;
+const IconButton = styled.button`
+  background: none;
   border: none;
-  padding: 4px;
+  padding: 6px;
+  margin-left: 12px;
   cursor: pointer;
   display: flex;
   align-items: center;
+  color: #000;
+
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+/* Updated: circular close button */
+const CloseButton = styled.button`
+  background: #fff;
+  border: 1px solid #000;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
   justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    background: #f5f5f5;
+  }
 `;
 
-const FollowedRider = ({
-  riderName,
-  riderIndex = 1,
-  initialMode = 'fly',
-  onModeChange,
-  onClose
-}) => {
-  const [mode, setMode] = useState(initialMode);
-  const formattedIndex = String(riderIndex).padStart(2, '0');
+const FollowedRider = observer(() => {
+  const riderId = mapStore.riderFollowed;
+  if (!riderId) return null;
 
-  const handleModeClick = (newMode) => {
-    setMode(newMode);
-    if (onModeChange) onModeChange(newMode);
-  };
+  // same info lookup as SelectedRider
+  const info = riders_info[riderId];
+  const number = riderId.split("_")[1]?.padStart(2, "0") || "";
+  const name = info ? `${info.FirstName} ${info.LastName}` : riderId;
 
   return (
     <Container>
-      <Badge>{formattedIndex}</Badge>
-      <Info>
-        <Label>You follow</Label>
-        <Name>{riderName}</Name>
-      </Info>
-      <ModeWrapper>
+      <LeftGroup>
+        <NumberBadge>{number}</NumberBadge>
+        <Info>
+          <Label>You follow</Label>
+          <NameRow>{name}</NameRow>
+        </Info>
+      </LeftGroup>
+
+      <ModeGroup>
         <ModeLabel>Follow mode</ModeLabel>
         <ModeButtons>
-          <ModeButton
-            active={mode === 'fly'}
-            onClick={() => handleModeClick('fly')}
-          >
+          <ModeButton $active={mapStore.followMode === "fly"} onClick={() => mapStore.setFollowMode("fly")}>
             Fly
           </ModeButton>
-          <ModeButton
-            active={mode === 'ride'}
-            onClick={() => handleModeClick('ride')}
-          >
+          <ModeButton $active={mapStore.followMode === "ride"} onClick={() => mapStore.setFollowMode("ride")}>
             Ride
           </ModeButton>
         </ModeButtons>
-      </ModeWrapper>
-      <CloseButton onClick={onClose} aria-label="Stop following">
-        <X size={16} color="#333" />
+      </ModeGroup>
+
+      <IconButton title="Share">
+          <Share size={20} />
+        </IconButton>
+
+      <CloseButton onClick={() => mapStore.toggleFollow(riderId)}>
+        <X size={20} />
       </CloseButton>
     </Container>
   );
-};
+});
 
 export default FollowedRider;

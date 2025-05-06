@@ -7,10 +7,10 @@ import { riders_info } from "../constants/riders_info_1000";
 
 const Container = styled.div`
   position: absolute;
-  top: 50px;
+  top: 60px;
   left: 10px;
   width: 280px;
-  z-index: 200;
+  z-index: 300;
 `;
 
 const Input = styled.input`

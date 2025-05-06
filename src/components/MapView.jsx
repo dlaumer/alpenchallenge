@@ -19,7 +19,7 @@ import Editor from "@arcgis/core/widgets/Editor";
 import { pointTypeRenderer, createSymbol, latestSimulationRenderer } from "../utils/renderers";
 import ElevationProfile from "@arcgis/core/widgets/ElevationProfile";
 import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
-import Zoom    from "@arcgis/core/widgets/Zoom";
+import Zoom from "@arcgis/core/widgets/Zoom";
 import Compass from "@arcgis/core/widgets/Compass";
 import NavigationToggle from "@arcgis/core/widgets/NavigationToggle";
 
@@ -476,6 +476,63 @@ const ArcGISMap = observer(() => {
 
   }, [mapStore.riderFollowed]);
 
+
+  useEffect(() => {
+    if (viewRef.current) {
+
+      const followedId = mapStore.riderFollowed;
+
+      mapStore.setIsFollowing(false);
+      let elapsed = Date.now() - mapStore.timeReferenceAnimation;
+
+      if (mapStore.replayMode) {
+        elapsed = elapsed * mapStore.replaySpeed;
+      }
+      const currentTs = mapStore.timeReference + elapsed;
+
+      const interpolated = mapStore.replayMode
+        ? riderStore.getInterpolatedPosition(followedId, currentTs)
+        : riderStore.getInterpolatedLivePosition(followedId, currentTs);
+
+
+      if (mapStore.followMode == "fly") {
+
+        // Use goTo without animation to instantly center the view on the followed rider.
+        viewRef.current.goTo(
+          {
+            center: new Point({
+              longitude: interpolated.longitude,
+              latitude: interpolated.latitude,
+              z: interpolated.altitude,
+            }),
+            zoom: viewRef.current.zoom < 16 ? 21 : null,
+            tilt: 70,
+            heading: interpolated.heading,
+          },
+        ).then(() => {
+          mapStore.setIsFollowing(true);
+        });
+      }
+      else if (mapStore.followMode == "ride") {
+        const cam = viewRef.current.camera.clone();
+        // the position is autocast as new Point()
+        cam.position = {
+          latitude: interpolated.latitude,
+          longitude: interpolated.longitude,
+          z: interpolated.altitude  // altitude in meters
+        }
+        cam.heading = interpolated.heading;
+        cam.tilt = 90; // tilt in degrees
+        // go to the new camera
+        viewRef.current.goTo(cam)
+        .then(() => {
+          mapStore.setIsFollowing(true);
+        })
+      }
+    }
+
+  }, [mapStore.followMode]);
+
   useEffect(() => {
     const disposer = reaction(
       () => [riderStore.favorites.slice(), mapStore.riderSelected],               // data function
@@ -595,6 +652,7 @@ const ArcGISMap = observer(() => {
           
 
 
+<<<<<<< HEAD
           // Create the symbol
           const symbol2D = {
             type: "point-3d",
@@ -607,6 +665,54 @@ const ArcGISMap = observer(() => {
                 size: 45, // adjust size if needed
                 anchor: "relative",
                 anchorPosition: { x: 0, y: 0.25 },
+=======
+            // Smooth the heading transition only if the difference is less than 90 degrees.
+            let currentHeading = viewRef.current.camera.heading;
+            let delta = calculatedHeading - currentHeading;
+
+            // Normalize delta to the range [-180, 180]
+            if (delta > 180) delta -= 360;
+            if (delta < -180) delta += 360;
+
+            let smoothedHeading;
+            if (Math.abs(delta) < 90) {
+              let smoothingFactor = 0.005; // Adjust this for smoothness
+              if (mapStore.replayMode) { smoothingFactor = smoothingFactor * mapStore.replaySpeed }
+              smoothedHeading = currentHeading + delta * smoothingFactor;
+              smoothedHeading = (smoothedHeading + 360) % 360;
+            } else {
+              smoothedHeading = calculatedHeading;
+            }
+            if (mapStore.followMode == "fly") {
+              // Use goTo without animation to instantly center the view on the followed rider.
+              viewRef.current.goTo(
+                {
+                  center: new Point({
+                    longitude: followedGraphic.geometry.longitude,
+                    latitude: followedGraphic.geometry.latitude,
+                    z: followedGraphic.attributes.altitude,
+                  }),
+                  zoom: viewRef.current.camera.zoom,
+                  tilt: viewRef.current.camera.tilt,
+                  heading: smoothedHeading,
+                },
+                { animate: false }
+              );
+            }
+            else if (mapStore.followMode == "ride") {
+              viewRef.current.camera = {
+                position: [
+                  followedGraphic.geometry.longitude,
+                  followedGraphic.geometry.latitude,
+                  followedGraphic.geometry.altitude + 5
+                ],
+                heading: smoothedHeading,
+                tilt: 90
+              }
+
+
+            }
+>>>>>>> 655aa17e (Design 2.0 mostly done)
 
               },
             ],
