@@ -6,7 +6,6 @@ import adSymbol from "../assets/symbols/ads.svg";
 import weatherSymbol from "../assets/symbols/weather.svg";
 
 
-import bluePinSymbol from "../assets/blue-pin-symbol.svg";
 import redPinSymbol from "../assets/red-pin-symbol.svg";
 import yellowPinSymbol from "../assets/yellow-pin-symbol.svg";
 

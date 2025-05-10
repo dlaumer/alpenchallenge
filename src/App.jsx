@@ -3,7 +3,6 @@ import Header from "./components/Header";
 import SidePanel from "./components/SidePanel";
 import FavoriteList from "./components/FavoriteList";
 import Popup from "./components/Popup";
-import ElevationProfile from "./components/ElevationProfile";
 import SelectedRider from "./components/SelectedRider"; // adjust path if needed
 import RiderSearch from "./components/RiderSearch";     // adjust path if needed
 

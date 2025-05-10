@@ -44,7 +44,7 @@ const ArcGISMap = observer(() => {
   const layerRef = useRef(null);
   const animationFrameRef = useRef(null);
   const graphicsMapRef = useRef(null);
-
+  const latestSimulationRef = useRef(null);
   const popupExpand = useRef(null);
   const basemapGalleryExpand = useRef(null);
 
@@ -84,6 +84,8 @@ const ArcGISMap = observer(() => {
       visible: false,
       popupEnabled: false
     })
+
+    latestSimulationRef.current = latestSimulation;
 
 
     const posHistory = new FeatureLayer({
@@ -400,16 +402,10 @@ const ArcGISMap = observer(() => {
 
         mapStore.setIsFollowing(false);
 
-        mapStore.setRiderFollowedClose(null);
-        graphicsMapRef.current = {}
-        layerRef.current.removeAll();
-        layerRef.current.visible = false;
-        latestSimulationRef.current.visible = true;
 
       }
       else {
-        layerRef.current.visible = true;
-        latestSimulationRef.current.visible = false;
+
 
         const riders = riderStore.riders;
         const followedId = mapStore.riderFollowed;
@@ -441,41 +437,12 @@ const ArcGISMap = observer(() => {
             mapStore.setIsFollowing(true);
           });
 
-          // Build map: routeIndex → [riderIds]
-          const indexMap = Object.entries(riders).reduce((acc, [id, data]) => {
-            const idx = data.currentPos.routeIndex;
-            if (idx != null) {
-              (acc[idx] = acc[idx] || []).push(id);
-            }
-            return acc;
-          }, {});
 
-          const followedIdx = riders[followedId].currentPos.routeIndex;
-          const before = [];
-          const after = [];
-          let offset = 1;
-          const maxIdx = Math.max(...Object.keys(indexMap).map(Number));
-
-          // Fan out until we have enough on each side or we run out of indices
-          while ((before.length < 10 || after.length < 10) && offset <= maxIdx) {
-            if (after.length < 10) {
-              const ahead = indexMap[followedIdx + offset] || [];
-              after.push(...ahead);
-            }
-            if (before.length < 10) {
-              const behind = indexMap[followedIdx - offset] || [];
-              before.push(...behind);
-            }
-            offset++;
-          }
-
-          mapStore.setRiderFollowedClose([...before, ...after]);
         }
       }
     }
 
   }, [mapStore.riderFollowed]);
-
 
   useEffect(() => {
     if (viewRef.current) {
@@ -525,9 +492,9 @@ const ArcGISMap = observer(() => {
         cam.tilt = 90; // tilt in degrees
         // go to the new camera
         viewRef.current.goTo(cam)
-        .then(() => {
-          mapStore.setIsFollowing(true);
-        })
+          .then(() => {
+            mapStore.setIsFollowing(true);
+          })
       }
     }
 
@@ -580,7 +547,7 @@ const ArcGISMap = observer(() => {
   }, [riderStore.downloadProgress]);
 
 
-  const animation = (graphicsMap) => {
+  const animation = () => {
     let elapsed = Date.now() - mapStore.timeReferenceAnimation;
 
     if (mapStore.replayMode) {
@@ -609,50 +576,49 @@ const ArcGISMap = observer(() => {
 
 
         // Create the symbol
-          const symbol3D = {
-            type: "point-3d",
-            symbolLayers: [
+        const symbol3D = {
+          type: "point-3d",
+          symbolLayers: [
 
-              {
-                type: "object",
-                anchor: "bottom",
-                anchorPosition: {
-                  x: 0,
-                  y: 0,
-                  z: 0
-                },
-                castShadows: false,
-                depth: 3,
-                heading: interpolated.heading,
-                height: 3,
-                resource: {
-                  href: roadBike,
-                },
-                roll: 0,
-                tilt: 0,
-                width: 3
+            {
+              type: "object",
+              anchor: "bottom",
+              anchorPosition: {
+                x: 0,
+                y: 0,
+                z: 0
               },
-            ],
-          };
+              castShadows: false,
+              depth: 3,
+              heading: interpolated.heading,
+              height: 3,
+              resource: {
+                href: roadBike,
+              },
+              roll: 0,
+              tilt: 0,
+              width: 3
+            },
+          ],
+        };
 
         // Use a plain object to check if the graphic exists
-        if (graphicsMap[riderId]) {
-          graphicsMap[riderId].graphic3D.symbol = symbol3D;
-          const geom = graphicsMap[riderId].graphic2D.geometry.clone();
+        if (graphicsMapRef.current[riderId]) {
+          graphicsMapRef.current[riderId].graphic3D.symbol = symbol3D;
+          const geom = graphicsMapRef.current[riderId].graphic2D.geometry.clone();
           // for 2D use geom.x / geom.y; in a SceneView you can use geom.longitude / geom.latitude
           geom.longitude = interpolated.longitude;
           geom.latitude = interpolated.latitude;
           geom.z = 0;
-          graphicsMap[riderId].graphic2D.geometry = geom;
-          graphicsMap[riderId].graphic3D.geometry = geom;
+          graphicsMapRef.current[riderId].graphic2D.geometry = geom;
+          graphicsMapRef.current[riderId].graphic3D.geometry = geom;
 
         } else {
 
 
-          
 
 
-<<<<<<< HEAD
+
           // Create the symbol
           const symbol2D = {
             type: "point-3d",
@@ -665,54 +631,6 @@ const ArcGISMap = observer(() => {
                 size: 45, // adjust size if needed
                 anchor: "relative",
                 anchorPosition: { x: 0, y: 0.25 },
-=======
-            // Smooth the heading transition only if the difference is less than 90 degrees.
-            let currentHeading = viewRef.current.camera.heading;
-            let delta = calculatedHeading - currentHeading;
-
-            // Normalize delta to the range [-180, 180]
-            if (delta > 180) delta -= 360;
-            if (delta < -180) delta += 360;
-
-            let smoothedHeading;
-            if (Math.abs(delta) < 90) {
-              let smoothingFactor = 0.005; // Adjust this for smoothness
-              if (mapStore.replayMode) { smoothingFactor = smoothingFactor * mapStore.replaySpeed }
-              smoothedHeading = currentHeading + delta * smoothingFactor;
-              smoothedHeading = (smoothedHeading + 360) % 360;
-            } else {
-              smoothedHeading = calculatedHeading;
-            }
-            if (mapStore.followMode == "fly") {
-              // Use goTo without animation to instantly center the view on the followed rider.
-              viewRef.current.goTo(
-                {
-                  center: new Point({
-                    longitude: followedGraphic.geometry.longitude,
-                    latitude: followedGraphic.geometry.latitude,
-                    z: followedGraphic.attributes.altitude,
-                  }),
-                  zoom: viewRef.current.camera.zoom,
-                  tilt: viewRef.current.camera.tilt,
-                  heading: smoothedHeading,
-                },
-                { animate: false }
-              );
-            }
-            else if (mapStore.followMode == "ride") {
-              viewRef.current.camera = {
-                position: [
-                  followedGraphic.geometry.longitude,
-                  followedGraphic.geometry.latitude,
-                  followedGraphic.geometry.altitude + 5
-                ],
-                heading: smoothedHeading,
-                tilt: 90
-              }
-
-
-            }
->>>>>>> 655aa17e (Design 2.0 mostly done)
 
               },
             ],
@@ -750,15 +668,15 @@ const ArcGISMap = observer(() => {
             symbol: symbol3D
           });
 
-          graphicsMap[riderId] = { graphic3D: graphic3D, graphic2D: graphic2D };
-          layerRef.current.add(graphicsMap[riderId].graphic3D);
-          layerRef.current.add(graphicsMap[riderId].graphic2D);
+          graphicsMapRef.current[riderId] = { graphic3D: graphic3D, graphic2D: graphic2D };
+          layerRef.current.add(graphicsMapRef.current[riderId].graphic3D);
+          layerRef.current.add(graphicsMapRef.current[riderId].graphic2D);
 
         }
 
         // If a rider is followed, update the camera center to that rider's current position.
-        if (mapStore.riderFollowed == riderId && graphicsMap[mapStore.riderFollowed]) {
-          const followedGraphic = graphicsMap[mapStore.riderFollowed].graphic2D;
+        if (mapStore.riderFollowed == riderId && graphicsMapRef.current[mapStore.riderFollowed] && mapStore.isFollowing) {
+          const followedGraphic = graphicsMapRef.current[mapStore.riderFollowed].graphic2D;
           const calculatedHeading = interpolated.heading;
 
           // Smooth the heading transition only if the difference is less than 90 degrees.
@@ -778,20 +696,37 @@ const ArcGISMap = observer(() => {
           } else {
             smoothedHeading = calculatedHeading;
           }
-          // Use goTo without animation to instantly center the view on the followed rider.
-          viewRef.current.goTo(
-            {
-              center: new Point({
-                longitude: followedGraphic.geometry.longitude,
-                latitude: followedGraphic.geometry.latitude,
-                z: followedGraphic.attributes.altitude,
-              }),
-              zoom: viewRef.current.zoom < 16 ? 20 : null,
-              tilt: 70,
+          if (mapStore.followMode == "fly") {
+            // Use goTo without animation to instantly center the view on the followed rider.
+            viewRef.current.goTo(
+              {
+                center: new Point({
+                  longitude: followedGraphic.geometry.longitude,
+                  latitude: followedGraphic.geometry.latitude,
+                  z: followedGraphic.attributes.altitude,
+                }),
+                zoom: viewRef.current.camera.zoom,
+                tilt: viewRef.current.camera.tilt,
+                heading: smoothedHeading,
+              },
+              { animate: false }
+            );
+          }
+          else if (mapStore.followMode == "ride") {
+            viewRef.current.camera = {
+              position: [
+                followedGraphic.geometry.longitude,
+                followedGraphic.geometry.latitude,
+                followedGraphic.geometry.altitude + 5
+              ],
               heading: smoothedHeading,
-            },
-            { animate: false }
-          );
+              tilt: 90
+            }
+
+
+          }
+
+
 
         }
       });
