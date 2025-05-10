@@ -193,9 +193,9 @@ const ReplaySlider = observer(() => {
     mapStore.togglePlaying();
     mapStore.setReplayMode(true);
     if (mapStore.playing) {
-      mapStore.setTimeReferenceAnimation(Date.now() - elapsedPlaying);
+      mapStore.setTimeReferenceAnimation(Date.now()/getTime() / 1000 - elapsedPlaying);
     } else {
-      setElapsedPlaying(Date.now() - mapStore.timeReferenceAnimation);
+      setElapsedPlaying(Date.now()/getTime() / 1000 - mapStore.timeReferenceAnimation);
     }
   };
 

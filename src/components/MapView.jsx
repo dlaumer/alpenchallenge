@@ -70,13 +70,14 @@ const ArcGISMap = observer(() => {
 
     const latestSimulation = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "5c85573c6f3541b79dfc9b97978a9afa"
+        id: "827c3c8ca6f74538bae7ce9cc5287b2b"
       },
       elevationInfo: {
         mode: "on-the-ground"
       },
+      definitionExpression: "OBJECTID IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)",
       refreshInterval: 1,
-      visible: false,
+      visible: true,
       popupEnabled: false
     })
 
@@ -116,7 +117,7 @@ const ArcGISMap = observer(() => {
 
     const route = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "496d79bd13fe4cbb9b97608a44dc3b12"
+        id: "e861c9af6e194769b8492a37a89c3984"
       },
       elevationInfo: {
         mode: "on-the-ground"
@@ -200,7 +201,8 @@ const ArcGISMap = observer(() => {
 
     const edit = new Expand({
       content: new Editor({
-        view: view}),
+        view: view
+      }),
       view: view
     });
     view.ui.add(edit, "top-right")
@@ -226,13 +228,6 @@ const ArcGISMap = observer(() => {
 
 
 
-    posHistory.queryFeatures({
-      where: "1=1", // or use a smarter where clause
-      outFields: ["*"],
-      returnGeometry: true
-    }).then((results) => {
-      riderStore.setReplayData(results); // create a setter in your store
-    });
 
 
     // Animation: Use requestAnimationFrame for smoother updates.
@@ -249,12 +244,32 @@ const ArcGISMap = observer(() => {
       animationFrameRef.current = requestAnimationFrame(animate);
     };
 
-    // Query the layer for the initial points
-    latestSimulation.queryFeatures().then((results) => {
-      riderStore.setRiders(results);
-    });
-    // Start the animation loop
-    animationFrameRef.current = requestAnimationFrame(animate);
+    latestSimulation.queryFeatures()
+      .then(results => {
+        console.log("Query results:", results);
+        riderStore.setRiders(results);
+      })
+      .catch(error => {
+        console.error("Error querying features:", error);
+      });
+
+
+
+    const startLoop = () => {
+      if (!animationFrameRef.current) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    const stopLoop = () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
+
+    // start the loop once
+    startLoop();
 
     view.when(() => {
       window.view = view;
@@ -266,7 +281,11 @@ const ArcGISMap = observer(() => {
           // Once the layers is refreshed, query features for new data.
           latestSimulation.queryFeatures().then((results) => {
             riderStore.setRiders(results);
-          });
+            results = null
+          })
+            .catch(error => {
+              console.error("Error querying features:", error);
+            });
         }
       });
 
@@ -294,9 +313,8 @@ const ArcGISMap = observer(() => {
 
     // Clean up on component unmount.
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+      // cleanup loop & listeners
+      stopLoop();
       view.destroy();
     };
   }, []);
@@ -312,8 +330,8 @@ const ArcGISMap = observer(() => {
   useEffect(() => {
     const disposer = reaction(
       () => [riderStore.favorites.slice(), mapStore.riderSelected],               // data function
-      ([newFavorites,newRiderSelected], [oldFavorites,oldRiderSelected]) => {
-        [...newFavorites,...oldFavorites, newRiderSelected, oldRiderSelected].forEach((riderId) => {
+      ([newFavorites, newRiderSelected], [oldFavorites, oldRiderSelected]) => {
+        [...newFavorites, ...oldFavorites, newRiderSelected, oldRiderSelected].forEach((riderId) => {
           if (graphicsMapRef.current[riderId]) {
             const graphic2D = graphicsMapRef.current[riderId].graphic2D;
             const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
@@ -359,14 +377,8 @@ const ArcGISMap = observer(() => {
     const currentTs = mapStore.timeReference + elapsed;
 
     if (mapStore.t != 1) {
-      if (mapStore.replayMode) {
-        mapStore.setTime(currentTs)
+      mapStore.setTime(currentTs)
 
-      }
-      else {
-        mapStore.setTime(currentTs - 60 * 60 * 1000)
-
-      }
     }
     if (!currentTs) return;
 
@@ -380,88 +392,100 @@ const ArcGISMap = observer(() => {
 
         if (!interpolated) return;
 
-
-        const point = new Point({
-          longitude: interpolated.longitude,
-          latitude: interpolated.latitude,
-        });
-
         // Check if the current rider is selected and update its symbol accordingly.
         const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
 
-        // Create the symbol
-        const symbol2D = {
-          type: "point-3d",
-          symbolLayers: [
-            {
-              type: "icon",
-              resource: {
-                href: isSelected ? redPinSymbol : riderStore.favorites.includes(riderId) ? yellowPinSymbol : bluePinSymbol, // adjust path if needed
-              },
-              size: 45, // adjust size if needed
-              anchor: "relative",
-              anchorPosition: { x: 0, y: 0.25 },
-
-            },
-          ],
-          verticalOffset: {
-            screenLength: 20,
-            maxWorldLength: 50,
-            minWorldLength: 15
-          },
-
-          callout: {
-            type: "line", // autocasts as new LineCallout3D()
-            color: "white",
-            size: 1,
-          }
-        };
-
-
-        // Create the symbol
-        const symbol3D = {
-          type: "point-3d",
-          symbolLayers: [
-
-            {
-              type: "object",
-              anchor: "bottom",
-              anchorPosition: {
-                x: 0,
-                y: 0,
-                z: 0
-              },
-              castShadows: false,
-              depth: 3,
-              heading: interpolated.heading,
-              height: 3,
-              resource: {
-                href: roadBike,
-              },
-              roll: 0,
-              tilt: 0,
-              width: 3
-            },
-          ],
-        };
 
         // Use a plain object to check if the graphic exists
         if (graphicsMap[riderId]) {
-          graphicsMap[riderId].graphic3D.geometry = point;
-          graphicsMap[riderId].graphic3D.symbol = symbol3D;
-          graphicsMap[riderId].graphic2D.geometry = point;
+          //graphicsMap[riderId].graphic3D.symbol = symbol3D;
+          const geom = graphicsMap[riderId].graphic2D.geometry.clone();
+          // for 2D use geom.x / geom.y; in a SceneView you can use geom.longitude / geom.latitude
+          geom.longitude = interpolated.longitude;
+          geom.latitude = interpolated.latitude;
+          geom.z = 0
+          graphicsMap[riderId].graphic2D.geometry = geom;
+          graphicsMap[riderId].graphic3D.geometry = geom;
+
         } else {
 
+
+          // Create the symbol
+          const symbol3D = {
+            type: "point-3d",
+            symbolLayers: [
+
+              {
+                type: "object",
+                anchor: "bottom",
+                anchorPosition: {
+                  x: 0,
+                  y: 0,
+                  z: 0
+                },
+                castShadows: false,
+                depth: 3,
+                heading: interpolated.heading,
+                height: 3,
+                resource: {
+                  href: roadBike,
+                },
+                roll: 0,
+                tilt: 0,
+                width: 3
+              },
+            ],
+          };
+
+
+          // Create the symbol
+          const symbol2D = {
+            type: "point-3d",
+            symbolLayers: [
+              {
+                type: "icon",
+                resource: {
+                  href: isSelected ? redPinSymbol : riderStore.favorites.includes(riderId) ? yellowPinSymbol : bluePinSymbol, // adjust path if needed
+                },
+                size: 45, // adjust size if needed
+                anchor: "relative",
+                anchorPosition: { x: 0, y: 0.25 },
+
+              },
+            ],
+            verticalOffset: {
+              screenLength: 20,
+              maxWorldLength: 50,
+              minWorldLength: 15
+            },
+
+            callout: {
+              type: "line", // autocasts as new LineCallout3D()
+              color: "white",
+              size: 1,
+            }
+          };
+
           const graphic2D = new Graphic({
-            geometry: point,
-            attributes: interpolated.prev,
+            geometry: new Point({
+              longitude: interpolated.longitude,
+              latitude: interpolated.latitude,
+              z: 0,
+            }),
+            attributes: {},
             symbol: symbol2D
           });
+
           const graphic3D = new Graphic({
-            geometry: point,
-            attributes: interpolated.prev,
+            geometry: new Point({
+              longitude: interpolated.longitude,
+              latitude: interpolated.latitude,
+              z: 0,
+            }),
+            attributes: {},
             symbol: symbol3D
           });
+
           graphicsMap[riderId] = { graphic3D: graphic3D, graphic2D: graphic2D };
           layerRef.current.add(graphicsMap[riderId].graphic3D);
           layerRef.current.add(graphicsMap[riderId].graphic2D);
@@ -470,7 +494,7 @@ const ArcGISMap = observer(() => {
 
         // If a rider is followed, update the camera center to that rider's current position.
         if (mapStore.riderFollowed == riderId && graphicsMap[mapStore.riderFollowed]) {
-          const followedGraphic = graphicsMap[mapStore.riderFollowed].graphic3D;
+          const followedGraphic = graphicsMap[mapStore.riderFollowed].graphic2D;
           const calculatedHeading = interpolated.heading;
 
           // Smooth the heading transition only if the difference is less than 90 degrees.
