@@ -77,14 +77,14 @@ const ArcGISMap = observer(() => {
       },
       definitionExpression: "OBJECTID IN (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)",
       refreshInterval: 1,
-      visible: true,
+      visible: false,
       popupEnabled: false
     })
 
 
     const posHistory = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "3be23c44c1ae48f3a565ceefb0f22d53"
+        id: "dab72e3b5d8c40f1bdcd1052d9afcf6e"
       },
       popupEnabled: false
     })
@@ -148,7 +148,7 @@ const ArcGISMap = observer(() => {
     // Create a GraphicsLayer that will display the animated points
     const animatedLayer = new GraphicsLayer({
       elevationInfo: {
-        mode: "relative-to-ground",
+        mode: "absolute-height",
         offset: 0
       },
       screenSizePerspectiveEnabled: false,
@@ -228,6 +228,15 @@ const ArcGISMap = observer(() => {
 
 
 
+    posHistory.queryFeatures({
+      where: "1=1", // or use a smarter where clause
+      outFields: ["*"],
+      returnGeometry: true
+    }).then((results) => {
+      //riderStore.setReplayData(results); // create a setter in your store
+    });
+
+
 
 
     // Animation: Use requestAnimationFrame for smoother updates.
@@ -246,7 +255,6 @@ const ArcGISMap = observer(() => {
 
     latestSimulation.queryFeatures()
       .then(results => {
-        console.log("Query results:", results);
         riderStore.setRiders(results);
       })
       .catch(error => {
@@ -403,7 +411,7 @@ const ArcGISMap = observer(() => {
           // for 2D use geom.x / geom.y; in a SceneView you can use geom.longitude / geom.latitude
           geom.longitude = interpolated.longitude;
           geom.latitude = interpolated.latitude;
-          geom.z = 0
+          geom.z = interpolated.altitude + 5;
           graphicsMap[riderId].graphic2D.geometry = geom;
           graphicsMap[riderId].graphic3D.geometry = geom;
 
@@ -470,19 +478,20 @@ const ArcGISMap = observer(() => {
             geometry: new Point({
               longitude: interpolated.longitude,
               latitude: interpolated.latitude,
-              z: 0,
+              z: interpolated.altitude + 5,
             }),
-            attributes: {},
+            attributes: {userId: riderId},
             symbol: symbol2D
           });
 
+          
           const graphic3D = new Graphic({
             geometry: new Point({
               longitude: interpolated.longitude,
               latitude: interpolated.latitude,
-              z: 0,
+              z: interpolated.altitude + 5  ,
             }),
-            attributes: {},
+            attributes: {userId: riderId},
             symbol: symbol3D
           });
 
@@ -520,7 +529,7 @@ const ArcGISMap = observer(() => {
               center: new Point({
                 longitude: followedGraphic.geometry.longitude,
                 latitude: followedGraphic.geometry.latitude,
-                z: followedGraphic.attributes.altitude,
+                z: followedGraphic.geometry.z,
               }),
               zoom: viewRef.current.zoom < 16 ? 20 : null,
               tilt: 70,

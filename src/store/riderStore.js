@@ -20,7 +20,7 @@ class RiderStore {
     routeStore.initialize()
       .then(() => {
         console.log(
-          `✅ routeStore loaded ${routeStore.routeCount} vertices`
+          `✅ routeStore loaded ${routeStore.count} vertices`
         );
       })
       .catch((err) => {
