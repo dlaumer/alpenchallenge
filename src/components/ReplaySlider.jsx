@@ -135,7 +135,7 @@ const SliderProgress = styled.div`
   background: darkred;
   border-radius: 4px;
   width: ${props => props.$progress}%;
-  transition: width 0.3s ease;
+  transition: ${props => props.$isDownloading? "width 0.3s ease": "" };
 `;
 
 const SliderHandle = styled.div`
@@ -178,7 +178,7 @@ const ReplaySlider = observer(() => {
 
   const formatTime = ms => {
     const d = new Date(ms);
-    return d.toLocaleTimeString("en-GB");
+    return d.toLocaleTimeString("de-CH");
   };
 
   const togglePlay = () => {
@@ -207,11 +207,8 @@ const ReplaySlider = observer(() => {
     if (!mapStore.time) return 0;
     if (mapStore.replayMode) {
       let pct =
-        ((mapStore.time - startTs) /
-          (riderStore.currentSmallestTimestamp -
-            60 * 60 * 1000 -
-            startTs)) *
-        100;
+        ((mapStore.time - startTs ) /
+          (riderStore.currentSmallestTimestamp  - startTs )) * 100;
       if (pct > 100 && mapStore.playing) {
         pct = 100;
         setLive();
@@ -230,8 +227,8 @@ const ReplaySlider = observer(() => {
     if (!isDownloading) {
       mapStore.setReplayMode(true);
       const newTime = Math.max(
-        startTs,
-        Math.min(endTs, mapStore.time + deltaMs)
+        startTs ,
+        Math.min(endTs , mapStore.time + deltaMs)
       );
       mapStore.setTimeReference(newTime);
       mapStore.setTimeReferenceAnimation(Date.now());
@@ -250,9 +247,7 @@ const ReplaySlider = observer(() => {
       const ts =
         startTs +
         pct *
-          (riderStore.currentSmallestTimestamp -
-            60 * 60 * 1000 -
-            startTs);
+          (riderStore.currentSmallestTimestamp - startTs);
       if (pct === 1 && mapStore.playing) {
         setLive();
       } else {
@@ -388,7 +383,7 @@ const ReplaySlider = observer(() => {
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
         >
-          <SliderProgress $progress={barProgress} />
+          <SliderProgress $progress={barProgress} $isDownloading={isDownloading} />
           <SliderHandle $progress={handlePos} />
         </SliderWrapper>
       </SliderRow>

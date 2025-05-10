@@ -38,7 +38,7 @@ class RiderStore {
     this.riders = processed.data
     this.currentSmallestTimestamp = processed.smallestTimestamp;
     if (!mapStore.replayMode) {
-      mapStore.setTimeReference(processed.smallestTimestamp * 1000);
+      mapStore.setTimeReference(processed.smallestTimestamp);
       mapStore.setTimeReferenceAnimation(Date.now());
     }
 
@@ -49,13 +49,13 @@ class RiderStore {
   setReplayData(results) {
 
     this.replayData = {};
-    results.features.forEach((feature) => {
+    results.forEach((feature) => {
       const attr = feature.attributes;
       const riderId = attr.userId;
-      const timestamp = new Date(attr.ts_string).getTime(); // or use new Date(attr.ts).toISOString().slice(0, 19)
+      const timestamp = attr.ts * 1000;
 
       if (!this.replayData[riderId]) this.replayData[riderId] = {};
-      if (attr.previousPos != "") {
+      if (attr.previousDistance != "" && attr.previousDistance != null) {
         this.replayData[riderId][timestamp] = this.parseAttributes(attr)
       }
     });
@@ -76,20 +76,20 @@ class RiderStore {
 
   // Process the feature layer's query results into the data format expected by your store.
   // For each feature, we assume the attributes include a userId, current coordinates and a previousPos JSON string.
-  parseAttributes(attr) {
+  parseAttributes(attributes) {
 
     return {
-      ts: attr.ts_string,
-      latitude: attr.latitude,
-      longitude: attr.longitude,
-      altitude: attr.altitude,
-      speed: attr.speed,
-      heading: attr.heading,
-      cumulative: JSON.parse(attr.cumulative),
-      path: JSON.parse(attr.path),
-      index: attr.routeIndex,
-      previousPos: JSON.parse(attr.previousPos)
-      // optionally store more
+      riderId: attributes.userId,
+      distance: attributes.distance,
+      ts: attributes.ts * 1000,
+      routeIndex: attributes.routeIndex,
+
+      previousDistance: attributes.previousDistance,
+      previousTs: attributes.previousTs * 1000,
+      previousRouteIndex: attributes.previousRouteIndex,
+
+      heading: attributes.heading,
+      speed: attributes.speed,
     };
   };
   // Process the feature layer's query results into the data format expected by your store.
@@ -100,53 +100,40 @@ class RiderStore {
     results.features.forEach((feature) => {
       const attributes = feature.attributes;
       const riderId = attributes.userId;
-      const currentPos = {
-        distance: attributes.distance,
-        ts: attributes.ts,
-        routeIndex: attributes.routeIndex,
-
-
-        previousDistance: attributes.previousDistance,
-        previousTs: attributes.previousTs,
-        previousRouteIndex: attributes.previousRouteIndex,
-
-        heading: attributes.heading,
-        speed: attributes.speed,
-      };
-
-      data[riderId] = currentPos;
+      const currentPos = this.parseAttributes(attributes);
       if (this.replayData[riderId] && !attributes.ts in Object.keys(this.replayData[riderId])) {
-        this.replayData[riderId][attributes.ts] = currentPos
-        this.replayTimestamps[riderId].push(attributes.ts);
+        this.replayData[riderId][attributes.ts * 1000] = currentPos
+        this.replayTimestamps[riderId].push(attributes.ts * 1000);
       }
       if (attributes.previousTs < smallestTimestamp) {
         smallestTimestamp = attributes.previousTs
       }
+      currentPos.currentRouteIndex = attributes.previousRouteIndex;
+      data[riderId] = currentPos;
+
     });
     results = null; // free up memory
 
-    return { data: data, smallestTimestamp: smallestTimestamp };
+    return { data: data, smallestTimestamp: smallestTimestamp * 1000 };
   };
 
   getInterpolatedLivePosition(riderId, currentTs) {
     const rider = this.riders[riderId];
     if (!rider || !rider.previousTs) return null;
 
-    const timeDiff = (rider.ts - rider.previousTs) * 1000;
+    const timeDiff = (rider.ts - rider.previousTs);
     if (timeDiff <= 0) return rider;
 
-    const t = Math.max(0, Math.min(1, (currentTs - rider.previousTs*1000) / timeDiff));
+    const t = Math.max(0, Math.min(1, (currentTs - rider.previousTs) / timeDiff));
 
     if (t == 1) {
       mapStore.setBuffering(true);
     }
     mapStore.setT(t);
 
-    if (!mapStore.replayMode) {
-      //mapStore.setTime(new Date(prev.ts + t * timeDiff - 60 * 60 * 1000).getTime())
-    }
+    riderStore.riders[riderId].currentRouteIndex = rider.previousRouteIndex;
     return {
-      ...this.interpolateAlongPath(t, riderId),
+      ...this.interpolateAlongPath(t, rider),
       ts: rider.previousTs + t * timeDiff,
     };
   }
@@ -160,37 +147,35 @@ class RiderStore {
     let interpolateData = null;
     if (
       cache &&
-      currentTs >= cache.before &&
-      currentTs <= cache.after
+      currentTs >= cache.previousTs &&
+      currentTs <= cache.ts
     ) {
       interpolateData = cache;
 
     }
     else {
-      const [before, after] = this.findNearestTimestamps(riderTimestamps, currentTs);
-      const dataBefore = riderData[before];
-      const dataAfter = riderData[after];
+      const after = this.findNearestTimestamps(riderTimestamps, currentTs);
+      const data = riderData[after];
       interpolateData = {
         lastTs: currentTs,
-        before,
-        after,
-        dataBefore,
-        dataAfter,
+        data: data
       };
+      riderStore.riders[riderId].currentRouteIndex = data.previousRouteIndex
+      this.replayCache[riderId] = interpolateData
+
     }
-    this.replayCache[riderId] = interpolateData
 
-    const timeDiff = interpolateData.after - interpolateData.before;
-    if (timeDiff <= 0) return interpolateData.after;
+    const timeDiff = interpolateData.data.ts - interpolateData.data.previousTs;
+    if (timeDiff <= 0) return interpolateData.data;
 
-    const t = Math.max(0, Math.min(1, (currentTs - interpolateData.before) / timeDiff));
+    const t = Math.max(0, Math.min(1, (currentTs - interpolateData.data.previousTs) / timeDiff));
 
     mapStore.setT(t);
 
     return {
-      ...this.interpolateAlongPath(t, interpolateData.dataAfter.path?.geometry?.coordinates, interpolateData.dataAfter.cumulative, interpolateData.dataBefore.altitude, interpolateData.dataAfter.altitude, interpolateData.dataBefore.speed, interpolateData.dataAfter.speed),
-      ts: new Date(interpolateData.before) + t * timeDiff,
-      prev: interpolateData.dataBefore
+      ...this.interpolateAlongPath(t, interpolateData.data),
+      ts: new Date(interpolateData.data.previousTs) + t * timeDiff,
+      prev: interpolateData.data
     }
   }
 
@@ -212,6 +197,7 @@ class RiderStore {
 
 
   findNearestTimestamps(timestamps, target) {
+    target = target;
     let left = 0;
     let right = timestamps.length - 1;
 
@@ -224,9 +210,8 @@ class RiderStore {
       }
     }
 
-    const before = timestamps[Math.max(0, left - 1)];
     const after = timestamps[Math.min(timestamps.length - 1, left)];
-    return [before, after];
+    return after;
   }
 
   toRadians(deg) {
@@ -250,19 +235,17 @@ class RiderStore {
     return (this.toDegrees(brng) + 360) % 360;
   }
 
-  interpolateAlongPath(t, riderId) {
-    const rider = riderStore.riders[riderId];
+  interpolateAlongPath(t, rider) {
+    const riderId = rider.riderId;
     const distDiff = rider.distance - rider.previousDistance;
     const newDistance = rider.previousDistance + t * distDiff;
 
-    while (newDistance > routeStore.getDistance(rider.previousRouteIndex + 1)) {
-      const newIdx = rider.previousRouteIndex + 1;
-      riderStore.riders[riderId].previousRouteIndex = newIdx
-      riderStore.riders[riderId].heading = routeStore.getHeading(newIdx);
+    while (newDistance > routeStore.getDistance(riderStore.riders[riderId].currentRouteIndex + 1)) {
+      riderStore.riders[riderId].currentRouteIndex = riderStore.riders[riderId].currentRouteIndex + 1;
     }
 
-    const i0 = rider.previousRouteIndex
-    const i1 = rider.previousRouteIndex < routeStore.dists.length ? rider.previousRouteIndex + 1 : rider.previousRouteIndex
+    const i0 = riderStore.riders[riderId].currentRouteIndex;
+    const i1 = riderStore.riders[riderId].currentRouteIndex + 1 < routeStore.dists.length ? riderStore.riders[riderId].currentRouteIndex + 1 : riderStore.riders[riderId].currentRouteIndex;
     const d0 = routeStore.getDistance(i0);
     const d1 = routeStore.getDistance(i1);
     const tSegment = d1 - d0 === 0 ? 0 : (newDistance - d0) / (d1 - d0);

@@ -358,7 +358,7 @@ const ArcGISMap = observer(() => {
         fetchAllFeatures(posHistory, count).then((results) => {
           riderStore.clearDownloadProgress()
           console.log("Fetched features:", results.length);
-          //riderStore.setReplayData(results); // create a setter in your store
+          riderStore.setReplayData(results); // create a setter in your store
         });
       })
       .catch(err => console.error(err));
@@ -381,6 +381,48 @@ const ArcGISMap = observer(() => {
     mapStore.setJumpTime(false);
 
   }, [mapStore.jumpTime]);
+
+
+  useEffect(() => {
+    const disposer = reaction(
+      () => [riderStore.favorites.slice(), mapStore.riderSelected],               // data function
+      ([newFavorites, newRiderSelected], [oldFavorites, oldRiderSelected]) => {
+        [...newFavorites, ...oldFavorites, newRiderSelected, oldRiderSelected].forEach((riderId) => {
+          if (graphicsMapRef.current[riderId]) {
+            const graphic2D = graphicsMapRef.current[riderId].graphic2D;
+            const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
+            graphic2D.symbol = {
+              type: "point-3d",
+              symbolLayers: [
+                {
+                  type: "icon",
+                  resource: {
+                    href: isSelected ? redPinSymbol : riderStore.favorites.includes(riderId) ? yellowPinSymbol : bluePinSymbol, // adjust path if needed
+                  },
+                  size: 45, // adjust size if needed
+                  anchor: "relative",
+                  anchorPosition: { x: 0, y: 0.25 },
+
+                },
+              ],
+              verticalOffset: {
+                screenLength: 20,
+                maxWorldLength: 50,
+                minWorldLength: 15
+              },
+
+              callout: {
+                type: "line", // autocasts as new LineCallout3D()
+                color: "white",
+                size: 1,
+              }
+            };
+          }
+        });
+      }
+    );
+    return () => disposer();  // clean up
+  }, []);
 
   useEffect(() => {
     console.log("Download progress:", riderStore.downloadProgress);
@@ -416,21 +458,7 @@ const ArcGISMap = observer(() => {
         const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
 
 
-        // Use a plain object to check if the graphic exists
-        if (graphicsMap[riderId]) {
-          //graphicsMap[riderId].graphic3D.symbol = symbol3D;
-          const geom = graphicsMap[riderId].graphic2D.geometry.clone();
-          // for 2D use geom.x / geom.y; in a SceneView you can use geom.longitude / geom.latitude
-          geom.longitude = interpolated.longitude;
-          geom.latitude = interpolated.latitude;
-          geom.z = 0;
-          graphicsMap[riderId].graphic2D.geometry = geom;
-          graphicsMap[riderId].graphic3D.geometry = geom;
-
-        } else {
-
-
-          // Create the symbol
+        // Create the symbol
           const symbol3D = {
             type: "point-3d",
             symbolLayers: [
@@ -456,6 +484,22 @@ const ArcGISMap = observer(() => {
               },
             ],
           };
+
+        // Use a plain object to check if the graphic exists
+        if (graphicsMap[riderId]) {
+          graphicsMap[riderId].graphic3D.symbol = symbol3D;
+          const geom = graphicsMap[riderId].graphic2D.geometry.clone();
+          // for 2D use geom.x / geom.y; in a SceneView you can use geom.longitude / geom.latitude
+          geom.longitude = interpolated.longitude;
+          geom.latitude = interpolated.latitude;
+          geom.z = 0;
+          graphicsMap[riderId].graphic2D.geometry = geom;
+          graphicsMap[riderId].graphic3D.geometry = geom;
+
+        } else {
+
+
+          
 
 
           // Create the symbol
@@ -492,18 +536,18 @@ const ArcGISMap = observer(() => {
               latitude: interpolated.latitude,
               z: 0,
             }),
-            attributes: {userId: riderId, altitude: interpolated.altitude},
+            attributes: { userId: riderId, altitude: interpolated.altitude },
             symbol: symbol2D
           });
 
-          
+
           const graphic3D = new Graphic({
             geometry: new Point({
               longitude: interpolated.longitude,
               latitude: interpolated.latitude,
               z: 0,
             }),
-            attributes: {userId: riderId, altitude: interpolated.altitude},
+            attributes: { userId: riderId, altitude: interpolated.altitude },
             symbol: symbol3D
           });
 
