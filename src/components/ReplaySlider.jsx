@@ -193,7 +193,7 @@ const ReplaySlider = observer(() => {
     mapStore.togglePlaying();
     mapStore.setReplayMode(true);
     if (mapStore.playing) {
-      mapStore.setTimeReferenceAnimation(Date.now()/getTime() / 1000 - elapsedPlaying);
+      mapStore.setTimeReferenceAnimation(Date.now() - elapsedPlaying);
     } else {
       setElapsedPlaying(Date.now()/getTime() / 1000 - mapStore.timeReferenceAnimation);
     }
@@ -201,7 +201,7 @@ const ReplaySlider = observer(() => {
 
   const setLive = () => {
     mapStore.setReplayMode(false);
-    mapStore.setTimeReference(riderStore.currentSmallestTimestamp);
+    mapStore.setTimeReference(riderStore.currentSmallestTimestamp * 1000);
     mapStore.setTimeReferenceAnimation(Date.now());
     mapStore.replaySpeed = 1;
   };
