@@ -35,31 +35,31 @@ jobs:
       - name: Build main version (root deploy)
         run: VITE_BASE_PATH=/alpenchallenge/ npm run build
 
-      # --- Build simulation1000 Branch Version ---
-      - name: Checkout simulation1000 branch
+      # --- Build streamlayer Branch Version ---
+      - name: Checkout streamlayer branch
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
-          ref: simulation1000
-          path: simulation1000
+          ref: streamlayer
+          path: streamlayer
 
-      - name: Setup Node.js (simulation1000)
+      - name: Setup Node.js (streamlayer)
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      - name: Install dependencies (simulation1000)
-        working-directory: simulation1000
+      - name: Install dependencies (streamlayer)
+        working-directory: streamlayer
         run: npm ci
 
-      - name: Build simulation1000 branch version
-        working-directory: simulation1000
-        run: VITE_BASE_PATH=/alpenchallenge/simulation1000/ npm run build
+      - name: Build streamlayer branch version
+        working-directory: streamlayer
+        run: VITE_BASE_PATH=/alpenchallenge/streamlayer/ npm run build
 
-      - name: Copy simulation1000 build into main dist
+      - name: Copy streamlayer build into main dist
         run: |
-          mkdir -p dist/simulation1000
-          cp -r simulation1000/dist/* dist/simulation1000/
+          mkdir -p dist/streamlayer
+          cp -r streamlayer/dist/* dist/streamlayer/
 
       # --- Build static Branch Version ---
       - name: Checkout static branch
