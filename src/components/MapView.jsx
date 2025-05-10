@@ -148,7 +148,7 @@ const ArcGISMap = observer(() => {
     // Create a GraphicsLayer that will display the animated points
     const animatedLayer = new GraphicsLayer({
       elevationInfo: {
-        mode: "absolute-height",
+        mode: "relative-to-ground",
         offset: 0
       },
       screenSizePerspectiveEnabled: false,
@@ -413,7 +413,7 @@ const ArcGISMap = observer(() => {
           // for 2D use geom.x / geom.y; in a SceneView you can use geom.longitude / geom.latitude
           geom.longitude = interpolated.longitude;
           geom.latitude = interpolated.latitude;
-          geom.z = interpolated.altitude + 5;
+          geom.z = 0;
           graphicsMap[riderId].graphic2D.geometry = geom;
           graphicsMap[riderId].graphic3D.geometry = geom;
 
@@ -480,9 +480,9 @@ const ArcGISMap = observer(() => {
             geometry: new Point({
               longitude: interpolated.longitude,
               latitude: interpolated.latitude,
-              z: interpolated.altitude + 5,
+              z: 0,
             }),
-            attributes: {userId: riderId},
+            attributes: {userId: riderId, altitude: interpolated.altitude},
             symbol: symbol2D
           });
 
@@ -491,9 +491,9 @@ const ArcGISMap = observer(() => {
             geometry: new Point({
               longitude: interpolated.longitude,
               latitude: interpolated.latitude,
-              z: interpolated.altitude + 5  ,
+              z: 0,
             }),
-            attributes: {userId: riderId},
+            attributes: {userId: riderId, altitude: interpolated.altitude},
             symbol: symbol3D
           });
 
@@ -531,7 +531,7 @@ const ArcGISMap = observer(() => {
               center: new Point({
                 longitude: followedGraphic.geometry.longitude,
                 latitude: followedGraphic.geometry.latitude,
-                z: followedGraphic.geometry.z,
+                z: followedGraphic.attributes.altitude,
               }),
               zoom: viewRef.current.zoom < 16 ? 20 : null,
               tilt: 70,

@@ -298,16 +298,8 @@ const ReplaySlider = observer(() => {
     };
   }, [isDragging]);
 
-  if (!startTs || !endTs || isNaN(startTs) || isNaN(endTs)) {
-    return null;
-  }
-
   return (
-<<<<<<< HEAD
     <Container>
-=======
-    <Container $shiftedUp={!uiStore.elevationProfileCollapsed}>
->>>>>>> e859b676 (Cleaning up all console errors)
       <ControlsRow>
         {mapStore.replayMode ? (
           <LiveTag onClick={setLive} $replay={true}>
