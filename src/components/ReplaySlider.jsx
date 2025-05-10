@@ -195,7 +195,7 @@ const ReplaySlider = observer(() => {
     mapStore.setReplayMode(false);
     mapStore.setTimeReference(riderStore.currentSmallestTimestamp);
     mapStore.setTimeReferenceAnimation(Date.now());
-    mapStore.replaySpeed = 1;
+    mapStore.setReplaySpeed(1);
   };
 
   const isDownloading = riderStore.downloadProgress != null;

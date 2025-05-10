@@ -77,7 +77,7 @@ const ArcGISMap = observer(() => {
       elevationInfo: {
         mode: "on-the-ground"
       },
-      definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10')",
+      //definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10')",
       refreshInterval: 1,
       visible: false,
       popupEnabled: false
@@ -88,7 +88,7 @@ const ArcGISMap = observer(() => {
       portalItem: {  // autocasts as esri/portal/PortalItem
         id: "dab72e3b5d8c40f1bdcd1052d9afcf6e"
       },
-      definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10')",
+      //definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10')",
       popupEnabled: false
     })
 
@@ -188,7 +188,7 @@ const ArcGISMap = observer(() => {
     const map = new Map({                // Create a Map object
       basemap: "satellite",
       ground: "world-elevation",
-      layers: [animatedLayer, latestSimulation, route, specialPoints, buildings]
+      layers: [animatedLayer, latestSimulation, route, specialPoints]
     });
 
     const view = new SceneView({
