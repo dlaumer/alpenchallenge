@@ -297,7 +297,7 @@ const ArcGISMap = observer(() => {
     // Use a plain object to store graphics keyed by rider ID.
     const graphicsMap = {};
     graphicsMapRef.current = graphicsMap;
-    
+
     const animate = () => {
 
       if (mapStore.playing && mapStore.timeReference) {
