@@ -273,8 +273,8 @@ class RiderStore {
     const allTimestamps = Object.values(this.replayTimestamps).flat();
     if (allTimestamps.length === 0) return [null, null];
 
-    const minTs = Math.min(...allTimestamps);
-    const maxTs = Math.max(...allTimestamps);
+    const minTs = allTimestamps[0];
+    const maxTs = allTimestamps[allTimestamps.length - 1];
     return [minTs, maxTs];
   }
 

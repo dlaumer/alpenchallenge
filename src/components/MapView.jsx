@@ -268,7 +268,9 @@ const ArcGISMap = observer(() => {
       while (true) {
         // build a fresh Query each time
         const query = layer.createQuery();
-        query.outFields = ["*"];
+        //query.outFields = ["*"];
+        query.outFields = ["userId", "distance", "ts", "routeIndex", "previousDistance", "previousTs", "previousRouteIndex", "heading", "speed"];
+
         query.returnGeometry = false;
         query.start = start;                // zero-based offset :contentReference[oaicite:0]{index=0}
         query.num = max;                    // page size
@@ -375,11 +377,16 @@ const ArcGISMap = observer(() => {
     });
 
 
+    const start = performance.now();
+
+
     posHistory
       .queryFeatureCount()
       .then(count => {
         console.log("Total features:", count);
         fetchAllFeatures(posHistory, count).then((results) => {
+          const duration = performance.now() - start;
+          console.log("Time taken to fetch features:", duration/1000, "s");
           riderStore.clearDownloadProgress()
           console.log("Fetched features:", results.length);
           riderStore.setReplayData(results); // create a setter in your store
@@ -413,12 +420,12 @@ const ArcGISMap = observer(() => {
   }, [riderStore.downloadProgress]);
 
 
-  
+
   useEffect(() => {
     const disposer = reaction(
       () => [riderStore.favorites.slice(), mapStore.riderSelected],               // data function
-      ([newFavorites,newRiderSelected], [oldFavorites,oldRiderSelected]) => {
-        [...newFavorites,...oldFavorites, newRiderSelected, oldRiderSelected].forEach((riderId) => {
+      ([newFavorites, newRiderSelected], [oldFavorites, oldRiderSelected]) => {
+        [...newFavorites, ...oldFavorites, newRiderSelected, oldRiderSelected].forEach((riderId) => {
           if (graphicsMapRef.current[riderId]) {
             const graphic2D = graphicsMapRef.current[riderId].graphic2D;
             const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
