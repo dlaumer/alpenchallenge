@@ -258,7 +258,7 @@ class RiderStore {
       p0.alt + (p1.alt - p0.alt) * tSegment
 
     ];
-    const heading = routeStore.getHeading(i0);
+    const heading = routeStore.getHeading(i1);
 
     return {
       longitude: interpolatedPoint[0],

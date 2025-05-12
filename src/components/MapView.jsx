@@ -18,7 +18,7 @@ import Weather from "@arcgis/core/widgets/Weather";
 import Editor from "@arcgis/core/widgets/Editor";
 import { pointTypeRenderer } from "../utils/renderers";
 import PointSymbol3D from "@arcgis/core/symbols/PointSymbol3D";
-
+import RotationVariable from "@arcgis/core/renderers/visualVariables/RotationVariable";
 import ObjectSymbol3DLayer from "@arcgis/core/symbols/ObjectSymbol3DLayer";
 
 import bluePinSymbol from "../assets/blue-pin-symbol.svg";
@@ -41,7 +41,6 @@ const ArcGISMap = observer(() => {
   const mapRef = useRef(null);
   const layerRef = useRef(null);
   const animationFrameRef = useRef(null);
-  const graphicsMapRef = useRef(null);
 
   const popupExpand = useRef(null);
   const basemapGalleryExpand = useRef(null);
@@ -77,7 +76,7 @@ const ArcGISMap = observer(() => {
       elevationInfo: {
         mode: "on-the-ground"
       },
-      //definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10')",
+      definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10')",
       refreshInterval: 1,
       visible: false,
       popupEnabled: false
@@ -88,7 +87,7 @@ const ArcGISMap = observer(() => {
       portalItem: {  // autocasts as esri/portal/PortalItem
         id: "dab72e3b5d8c40f1bdcd1052d9afcf6e"
       },
-      //definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10')",
+      definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10')",
       popupEnabled: false
     })
 
@@ -157,7 +156,7 @@ const ArcGISMap = observer(() => {
       fields: [
         { name: "OBJECTID", alias: "ObjectID", type: "oid" },
         { name: "TRACKID", alias: "Rider ID", type: "string" },
-        { name: "SPEED", alias: "Speed", type: "double" }
+        { name: "Heading", alias: "Heading", type: "double" }
       ],
       timeInfo: {
         trackIdField: "TRACKID"
@@ -172,13 +171,19 @@ const ArcGISMap = observer(() => {
         type: "simple",                    // simple-marker renderer
         symbol: new PointSymbol3D({
           symbolLayers: [new ObjectSymbol3DLayer({
-            width: 15,  // diameter of the object from east to west in meters
-            height: 100,  // height of the object in meters
-            depth: 15,  // diameter of the object from north to south in meters
-            resource: { primitive: "cylinder" },
-            material: { color: "red" }
+            width: 3,  // diameter of the object from east to west in meters
+            height: 3,  // height of the object in meters
+            depth: 3,  // diameter of the object from north to south in meters
+            resource: { href: roadBike },
+            anchor: "bottom",
+            castShadows: false
           })]
+        }),
+        visualVariables: [new RotationVariable({
+          field: "heading",            // must match an attribute in the streamed features
+          rotationType: "geographic"
         })
+        ]
       }
     });
 
@@ -297,12 +302,10 @@ const ArcGISMap = observer(() => {
 
     // Animation: Use requestAnimationFrame for smoother updates.
     // Use a plain object to store graphics keyed by rider ID.
-    const graphicsMap = {};
-    graphicsMapRef.current = graphicsMap;
     const animate = () => {
 
       if (mapStore.playing && mapStore.timeReference) {
-        animation(graphicsMap)
+        animation()
       }
 
       // Request the next animation frame for smooth updates
@@ -386,7 +389,7 @@ const ArcGISMap = observer(() => {
         console.log("Total features:", count);
         fetchAllFeatures(posHistory, count).then((results) => {
           const duration = performance.now() - start;
-          console.log("Time taken to fetch features:", duration/1000, "s");
+          console.log("Time taken to fetch features:", duration / 1000, "s");
           riderStore.clearDownloadProgress()
           console.log("Fetched features:", results.length);
           riderStore.setReplayData(results); // create a setter in your store
@@ -407,7 +410,7 @@ const ArcGISMap = observer(() => {
 
   useEffect(() => {
     if (!mapStore.playing) {
-      animation(graphicsMapRef.current);
+      animation();
     }
     mapStore.setJumpTime(false);
 
@@ -421,50 +424,11 @@ const ArcGISMap = observer(() => {
 
 
 
-  useEffect(() => {
-    const disposer = reaction(
-      () => [riderStore.favorites.slice(), mapStore.riderSelected],               // data function
-      ([newFavorites, newRiderSelected], [oldFavorites, oldRiderSelected]) => {
-        [...newFavorites, ...oldFavorites, newRiderSelected, oldRiderSelected].forEach((riderId) => {
-          if (graphicsMapRef.current[riderId]) {
-            const graphic2D = graphicsMapRef.current[riderId].graphic2D;
-            const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
-            graphic2D.symbol = {
-              type: "point-3d",
-              symbolLayers: [
-                {
-                  type: "icon",
-                  resource: {
-                    href: isSelected ? redPinSymbol : riderStore.favorites.includes(riderId) ? yellowPinSymbol : bluePinSymbol, // adjust path if needed
-                  },
-                  size: 45, // adjust size if needed
-                  anchor: "relative",
-                  anchorPosition: { x: 0, y: 0.25 },
-
-                },
-              ],
-              verticalOffset: {
-                screenLength: 20,
-                maxWorldLength: 50,
-                minWorldLength: 15
-              },
-
-              callout: {
-                type: "line", // autocasts as new LineCallout3D()
-                color: "white",
-                size: 1,
-              }
-            };
-          }
-        });
-      }
-    );
-    return () => disposer();  // clean up
-  }, []);
+  
 
   let objectIdCounter = 1;
 
-  const animation = (graphicsMap) => {
+  const animation = () => {
 
     const features = [];
 
@@ -495,7 +459,7 @@ const ArcGISMap = observer(() => {
           attributes: {
             OBJECTID: objectIdCounter++,
             TRACKID: riderId,
-            SPEED: interpolated.speed
+            Heading: interpolated.heading, 
           },
           geometry: {
             x: interpolated.longitude,
@@ -505,8 +469,7 @@ const ArcGISMap = observer(() => {
         });
 
         // If a rider is followed, update the camera center to that rider's current position.
-        if (mapStore.riderFollowed == riderId && graphicsMap[mapStore.riderFollowed]) {
-          const followedGraphic = graphicsMap[mapStore.riderFollowed].graphic2D;
+        if (mapStore.riderFollowed == riderId) {
           const calculatedHeading = interpolated.heading;
 
           // Smooth the heading transition only if the difference is less than 90 degrees.
@@ -530,9 +493,9 @@ const ArcGISMap = observer(() => {
           viewRef.current.goTo(
             {
               center: new Point({
-                longitude: followedGraphic.geometry.longitude,
-                latitude: followedGraphic.geometry.latitude,
-                z: followedGraphic.attributes.altitude,
+                longitude: interpolated.longitude,
+                latitude: interpolated.latitude,
+                z: interpolated.altitude,
               }),
               zoom: viewRef.current.zoom < 16 ? 20 : null,
               tilt: 70,
