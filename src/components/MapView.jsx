@@ -15,7 +15,7 @@ import Point from "@arcgis/core/geometry/Point";
 import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 import Weather from "@arcgis/core/widgets/Weather";
 import Editor from "@arcgis/core/widgets/Editor";
-import { pointTypeRenderer, createSymbol, latestSimulationRenderer } from "../utils/renderers";
+import { pointTypeRenderer, favoriteLayerRenderer } from "../utils/renderers";
 import ElevationProfile from "@arcgis/core/widgets/ElevationProfile";
 import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
 import Zoom from "@arcgis/core/widgets/Zoom";
@@ -44,7 +44,9 @@ const MapContainer = styled.div`
 const ArcGISMap = observer(() => {
   const viewRef = useRef(null);
   const mapRef = useRef(null);
-  const layerRef = useRef(null);
+  const animatedLayerRef = useRef(null);
+  const favoriteLayerRef = useRef(null);
+
   const animationFrameRef = useRef(null);
   const latestSimulationRef = useRef(null);
   const popupExpand = useRef(null);
@@ -194,12 +196,38 @@ const ArcGISMap = observer(() => {
       }
     });
 
-    layerRef.current = animatedLayer;
+    animatedLayerRef.current = animatedLayer;
+
+
+    // new: client‑side StreamLayer
+    const favoriteLayer = new StreamLayer({
+      elevationInfo: {
+        mode: "relative-to-ground"
+      },
+      // define schema: must include an OID (objectIdField) and a trackId
+      fields: [
+        { name: "OBJECTID", alias: "ObjectID", type: "oid" },
+        { name: "TRACKID", alias: "Rider ID", type: "string" },
+        { name: "symbolisation", alias: "symbolisation", type: "double" }
+      ],
+      timeInfo: {
+        trackIdField: "TRACKID"
+      },
+      geometryType: "point",               // required
+      spatialReference: { wkid: 4326 },    // match your data
+      updateInterval: 0,                   // we'll push every frame
+      purgeOptions: {
+        type: "manual"                     // so we can clear old features each tick
+      },
+      renderer: favoriteLayerRenderer
+    });
+
+    favoriteLayerRef.current = favoriteLayer;
 
     const map = new Map({                // Create a Map object
       basemap: "satellite",
       ground: "world-elevation",
-      layers: [animatedLayer, latestSimulation, route, specialPoints, buildings]
+      layers: [favoriteLayer, animatedLayer, latestSimulation, route, specialPoints, buildings]
     });
 
     const view = new SceneView({
@@ -537,7 +565,8 @@ const ArcGISMap = observer(() => {
 
   const animation = () => {
 
-    const features = [];
+    let features = [];
+    const featuresFavorite = [];
 
     let elapsed = Date.now() - mapStore.timeReferenceAnimation;
 
@@ -574,6 +603,21 @@ const ArcGISMap = observer(() => {
             spatialReference: { wkid: 4326 }
           }
         });
+
+        if (mapStore.riderSelected == riderId || riderStore.favorites.includes(riderId)) {
+          featuresFavorite.push({
+            attributes: {
+              OBJECTID: objectIdCounter++,
+              TRACKID: riderId,
+              symbolisation: mapStore.riderSelected == riderId ? "selected" : "favorite",
+            },
+            geometry: {
+              x: interpolated.longitude,
+              y: interpolated.latitude,
+              spatialReference: { wkid: 4326 }
+            }
+          });
+        }
 
         // If a rider is followed, update the camera center to that rider's current position.
         if (mapStore.riderFollowed == riderId && mapStore.isFollowing) {
@@ -630,8 +674,14 @@ const ArcGISMap = observer(() => {
 
         }
       });
-      layerRef.current.sendMessageToClient({ type: "clear" });
-      layerRef.current.sendMessageToClient({ type: "features", features });
+      animatedLayerRef.current.sendMessageToClient({ type: "clear" });
+      animatedLayerRef.current.sendMessageToClient({ type: "features", features });
+
+      features = featuresFavorite
+      if (featuresFavorite.length > 0) {
+        favoriteLayerRef.current.sendMessageToClient({ type: "clear" });
+        favoriteLayerRef.current.sendMessageToClient({ type: "features", features });
+      }
     }
   }
 
