@@ -14,7 +14,7 @@ class RiderStore {
 
   currentSmallestTimestamp = null;
 
-  favorites = ["rider_1", "rider_2", "rider_3", "rider_4"];
+  favorites = ["rider_16", "rider_244", "rider_367", "rider_450"];
 
   constructor() {
     makeAutoObservable(this);

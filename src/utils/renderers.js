@@ -1,4 +1,4 @@
-import bluePinSymbol from "../assets/symbols/webcam.svg";
+import webcamSymbol from "../assets/symbols/webcam.svg";
 import emergencySymbol from "../assets/symbols/emergency.svg";
 import realTimeSymbol from "../assets/symbols/realTimeResults.svg";
 import poiSymbol from "../assets/symbols/poi.svg";
@@ -7,7 +7,7 @@ import weatherSymbol from "../assets/symbols/weather.svg";
 
 
 import redPinSymbol from "../assets/red-pin-symbol.svg";
-import yellowPinSymbol from "../assets/yellow-pin-symbol.svg";
+import bluePinSymbol from "../assets/blue-pin-symbol.svg";
 
 import PointSymbol3D from "@arcgis/core/symbols/PointSymbol3D";
 import IconSymbol3DLayer from "@arcgis/core/symbols/IconSymbol3DLayer";
@@ -53,7 +53,7 @@ export const favoriteLayerRenderer = new UniqueValueRenderer({
     },
     {
       value: "favorite",
-      symbol: createSymbol(yellowPinSymbol, 45)       // yellow
+      symbol: createSymbol(bluePinSymbol, 45)       // yellow
     },
     {
       value: "selected",
@@ -100,7 +100,7 @@ export const pointTypeRenderer = {
     {
       value: "webcam",
       label: "Webcams",
-      symbol: makeSymbol(bluePinSymbol)
+      symbol: makeSymbol(webcamSymbol)
     },
     {
       value: "emergency",
