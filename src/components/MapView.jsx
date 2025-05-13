@@ -10,8 +10,7 @@ import Map from "@arcgis/core/Map";
 import Expand from "@arcgis/core/widgets/Expand";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import SceneLayer from "@arcgis/core/layers/SceneLayer";
-import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
-import Graphic from "@arcgis/core/Graphic";
+import StreamLayer from "@arcgis/core/layers/StreamLayer";
 import Point from "@arcgis/core/geometry/Point";
 import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 import Weather from "@arcgis/core/widgets/Weather";
@@ -22,6 +21,10 @@ import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
 import Zoom from "@arcgis/core/widgets/Zoom";
 import Compass from "@arcgis/core/widgets/Compass";
 import NavigationToggle from "@arcgis/core/widgets/NavigationToggle";
+
+import PointSymbol3D from "@arcgis/core/symbols/PointSymbol3D";
+import RotationVariable from "@arcgis/core/renderers/visualVariables/RotationVariable";
+import ObjectSymbol3DLayer from "@arcgis/core/symbols/ObjectSymbol3DLayer";
 
 import bluePinSymbol from "../assets/blue-pin-symbol.svg";
 import redPinSymbol from "../assets/red-pin-symbol.svg";
@@ -43,7 +46,6 @@ const ArcGISMap = observer(() => {
   const mapRef = useRef(null);
   const layerRef = useRef(null);
   const animationFrameRef = useRef(null);
-  const graphicsMapRef = useRef(null);
   const latestSimulationRef = useRef(null);
   const popupExpand = useRef(null);
   const basemapGalleryExpand = useRef(null);
@@ -152,17 +154,44 @@ const ArcGISMap = observer(() => {
     })
 
 
-    // Create a GraphicsLayer that will display the animated points
-    const animatedLayer = new GraphicsLayer({
+    // new: client‑side StreamLayer
+    const animatedLayer = new StreamLayer({
       elevationInfo: {
-        mode: "relative-to-ground",
-        offset: 0
+        mode: "on-the-ground"
       },
-      screenSizePerspectiveEnabled: false,
-      featureReduction: {
-        type: "selection"
+      // define schema: must include an OID (objectIdField) and a trackId
+      fields: [
+        { name: "OBJECTID", alias: "ObjectID", type: "oid" },
+        { name: "TRACKID", alias: "Rider ID", type: "string" },
+        { name: "Heading", alias: "Heading", type: "double" }
+      ],
+      timeInfo: {
+        trackIdField: "TRACKID"
       },
-      popupEnabled: false
+      geometryType: "point",               // required
+      spatialReference: { wkid: 4326 },    // match your data
+      updateInterval: 0,                   // we'll push every frame
+      purgeOptions: {
+        type: "manual"                     // so we can clear old features each tick
+      },
+      renderer: {
+        type: "simple",                    // simple-marker renderer
+        symbol: new PointSymbol3D({
+          symbolLayers: [new ObjectSymbol3DLayer({
+            width: 3,  // diameter of the object from east to west in meters
+            height: 3,  // height of the object in meters
+            depth: 3,  // diameter of the object from north to south in meters
+            resource: { href: roadBike },
+            anchor: "bottom",
+            castShadows: false
+          })]
+        }),
+        visualVariables: [new RotationVariable({
+          field: "heading",            // must match an attribute in the streamed features
+          rotationType: "geographic"
+        })
+        ]
+      }
     });
 
     layerRef.current = animatedLayer;
@@ -238,7 +267,7 @@ const ArcGISMap = observer(() => {
       while (true) {
         // build a fresh Query each time
         const query = layer.createQuery();
-        query.outFields = ["*"];
+        query.outFields = ["userId", "distance", "ts", "routeIndex", "previousDistance", "previousTs", "previousRouteIndex", "heading", "speed"];
         query.returnGeometry = false;
         query.start = start;                // zero-based offset :contentReference[oaicite:0]{index=0}
         query.num = max;                    // page size
@@ -265,8 +294,6 @@ const ArcGISMap = observer(() => {
 
     // Animation: Use requestAnimationFrame for smoother updates.
     // Use a plain object to store graphics keyed by rider ID.
-    const graphicsMap = {};
-    graphicsMapRef.current = graphicsMap;
     const animate = () => {
 
       if (mapStore.playing && mapStore.timeReference) {
@@ -340,11 +367,11 @@ const ArcGISMap = observer(() => {
             const result = response.results.find((result) =>
               result.graphic &&
               result.graphic.attributes &&
-              result.graphic.attributes.userId
+              result.graphic.attributes.TRACKID
             );
 
             if (result) {
-              mapStore.setRiderSelected(result.graphic.attributes.userId);
+              mapStore.setRiderSelected(result.graphic.attributes.TRACKID);
               mapStore.setPopupVisible(true);
             }
           }
@@ -500,54 +527,18 @@ const ArcGISMap = observer(() => {
 
   }, [mapStore.followMode]);
 
-  useEffect(() => {
-    const disposer = reaction(
-      () => [riderStore.favorites.slice(), mapStore.riderSelected],               // data function
-      ([newFavorites, newRiderSelected], [oldFavorites, oldRiderSelected]) => {
-        [...newFavorites, ...oldFavorites, newRiderSelected, oldRiderSelected].forEach((riderId) => {
-          if (graphicsMapRef.current[riderId]) {
-            const graphic2D = graphicsMapRef.current[riderId].graphic2D;
-            const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
-            graphic2D.symbol = {
-              type: "point-3d",
-              symbolLayers: [
-                {
-                  type: "icon",
-                  resource: {
-                    href: isSelected ? redPinSymbol : riderStore.favorites.includes(riderId) ? yellowPinSymbol : bluePinSymbol, // adjust path if needed
-                  },
-                  size: 45, // adjust size if needed
-                  anchor: "relative",
-                  anchorPosition: { x: 0, y: 0.25 },
-
-                },
-              ],
-              verticalOffset: {
-                screenLength: 20,
-                maxWorldLength: 50,
-                minWorldLength: 15
-              },
-
-              callout: {
-                type: "line", // autocasts as new LineCallout3D()
-                color: "white",
-                size: 1,
-              }
-            };
-          }
-        });
-      }
-    );
-    return () => disposer();  // clean up
-  }, []);
 
   useEffect(() => {
     console.log("Download progress:", riderStore.downloadProgress);
 
   }, [riderStore.downloadProgress]);
 
+  let objectIdCounter = 1;
 
   const animation = () => {
+
+    const features = [];
+
     let elapsed = Date.now() - mapStore.timeReferenceAnimation;
 
     if (mapStore.replayMode) {
@@ -571,112 +562,21 @@ const ArcGISMap = observer(() => {
 
         if (!interpolated) return;
 
-        // Check if the current rider is selected and update its symbol accordingly.
-        const isSelected = mapStore.riderSelected != null && riderId === mapStore.riderSelected;
-
-
-        // Create the symbol
-        const symbol3D = {
-          type: "point-3d",
-          symbolLayers: [
-
-            {
-              type: "object",
-              anchor: "bottom",
-              anchorPosition: {
-                x: 0,
-                y: 0,
-                z: 0
-              },
-              castShadows: false,
-              depth: 3,
-              heading: interpolated.heading,
-              height: 3,
-              resource: {
-                href: roadBike,
-              },
-              roll: 0,
-              tilt: 0,
-              width: 3
-            },
-          ],
-        };
-
-        // Use a plain object to check if the graphic exists
-        if (graphicsMapRef.current[riderId]) {
-          graphicsMapRef.current[riderId].graphic3D.symbol = symbol3D;
-          const geom = graphicsMapRef.current[riderId].graphic2D.geometry.clone();
-          // for 2D use geom.x / geom.y; in a SceneView you can use geom.longitude / geom.latitude
-          geom.longitude = interpolated.longitude;
-          geom.latitude = interpolated.latitude;
-          geom.z = 0;
-          graphicsMapRef.current[riderId].graphic2D.geometry = geom;
-          graphicsMapRef.current[riderId].graphic3D.geometry = geom;
-
-        } else {
-
-
-
-
-
-          // Create the symbol
-          const symbol2D = {
-            type: "point-3d",
-            symbolLayers: [
-              {
-                type: "icon",
-                resource: {
-                  href: isSelected ? redPinSymbol : riderStore.favorites.includes(riderId) ? yellowPinSymbol : bluePinSymbol, // adjust path if needed
-                },
-                size: 45, // adjust size if needed
-                anchor: "relative",
-                anchorPosition: { x: 0, y: 0.25 },
-
-              },
-            ],
-            verticalOffset: {
-              screenLength: 20,
-              maxWorldLength: 50,
-              minWorldLength: 15
-            },
-
-            callout: {
-              type: "line", // autocasts as new LineCallout3D()
-              color: "white",
-              size: 1,
-            }
-          };
-
-          const graphic2D = new Graphic({
-            geometry: new Point({
-              longitude: interpolated.longitude,
-              latitude: interpolated.latitude,
-              z: 0,
-            }),
-            attributes: { userId: riderId, altitude: interpolated.altitude },
-            symbol: symbol2D
-          });
-
-
-          const graphic3D = new Graphic({
-            geometry: new Point({
-              longitude: interpolated.longitude,
-              latitude: interpolated.latitude,
-              z: 0,
-            }),
-            attributes: { userId: riderId, altitude: interpolated.altitude },
-            symbol: symbol3D
-          });
-
-          graphicsMapRef.current[riderId] = { graphic3D: graphic3D, graphic2D: graphic2D };
-          layerRef.current.add(graphicsMapRef.current[riderId].graphic3D);
-          layerRef.current.add(graphicsMapRef.current[riderId].graphic2D);
-
-        }
+        features.push({
+          attributes: {
+            OBJECTID: objectIdCounter++,
+            TRACKID: riderId,
+            Heading: interpolated.heading,
+          },
+          geometry: {
+            x: interpolated.longitude,
+            y: interpolated.latitude,
+            spatialReference: { wkid: 4326 }
+          }
+        });
 
         // If a rider is followed, update the camera center to that rider's current position.
-        if (mapStore.riderFollowed == riderId && graphicsMapRef.current[mapStore.riderFollowed] && mapStore.isFollowing) {
-          const followedGraphic = graphicsMapRef.current[mapStore.riderFollowed].graphic2D;
+        if (mapStore.riderFollowed == riderId && mapStore.isFollowing) {
           const calculatedHeading = interpolated.heading;
 
           // Smooth the heading transition only if the difference is less than 90 degrees.
@@ -701,9 +601,9 @@ const ArcGISMap = observer(() => {
             viewRef.current.goTo(
               {
                 center: new Point({
-                  longitude: followedGraphic.geometry.longitude,
-                  latitude: followedGraphic.geometry.latitude,
-                  z: followedGraphic.attributes.altitude,
+                  longitude: interpolated.longitude,
+                  latitude: interpolated.latitude,
+                  z: interpolated.altitude,
                 }),
                 zoom: viewRef.current.camera.zoom,
                 tilt: viewRef.current.camera.tilt,
@@ -715,9 +615,9 @@ const ArcGISMap = observer(() => {
           else if (mapStore.followMode == "ride") {
             viewRef.current.camera = {
               position: [
-                followedGraphic.geometry.longitude,
-                followedGraphic.geometry.latitude,
-                followedGraphic.geometry.altitude + 5
+                interpolated.longitude,
+                interpolated.latitude,
+                interpolated.altitude + 5
               ],
               heading: smoothedHeading,
               tilt: 90
@@ -730,6 +630,8 @@ const ArcGISMap = observer(() => {
 
         }
       });
+      layerRef.current.sendMessageToClient({ type: "clear" });
+      layerRef.current.sendMessageToClient({ type: "features", features });
     }
   }
 
