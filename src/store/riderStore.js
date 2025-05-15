@@ -14,7 +14,7 @@ class RiderStore {
 
   currentSmallestTimestamp = null;
 
-  favorites = ["rider_16", "rider_244", "rider_367", "rider_450"];
+  favorites = ["8c620131-a7f5-44e0-9e0b-2f471071abf6",];
 
   constructor() {
     makeAutoObservable(this);
@@ -55,7 +55,7 @@ class RiderStore {
       const timestamp = attr.ts * 1000;
 
       if (!this.replayData[riderId]) this.replayData[riderId] = {};
-      if (attr.previousDistance != "" && attr.previousDistance != null) {
+      if (!(attr.previousDistance == null && attr.previousLongitude == null)) {
         this.replayData[riderId][timestamp] = this.parseAttributes(attr)
       }
     });
@@ -83,20 +83,28 @@ class RiderStore {
       distance: attributes.distance,
       ts: attributes.ts * 1000,
       routeIndex: attributes.routeIndex,
+      latitude: attributes.latitude,
+      longitude: attributes.longitude,
+      altitude: attributes.altitude,
 
       previousDistance: attributes.previousDistance,
       previousTs: attributes.previousTs * 1000,
       previousRouteIndex: attributes.previousRouteIndex,
+      previousLatitude: attributes.previousLatitude,
+      previousLongitude: attributes.previousLongitude,
+      previousAltitude: attributes.previousAltitude,
 
       heading: attributes.heading,
       speed: attributes.speed,
+
+      snapped: attributes.snapped,
     };
   };
   // Process the feature layer's query results into the data format expected by your store.
   // For each feature, we assume the attributes include a userId, current coordinates and a previousPos JSON string.
   processLiveResults(results) {
     const data = {};
-    let smallestTimestamp = new Date(Date.now() + 100000);
+    let smallestTimestamp = 0;
     results.features.forEach((feature) => {
       const attributes = feature.attributes;
       const riderId = attributes.userId;
@@ -105,7 +113,7 @@ class RiderStore {
         this.replayData[riderId][attributes.ts * 1000] = currentPos
         this.replayTimestamps[riderId].push(attributes.ts * 1000);
       }
-      if (attributes.previousTs < smallestTimestamp) {
+      if (attributes.previousTs != null && attributes.previousTs > smallestTimestamp) {
         smallestTimestamp = attributes.previousTs
       }
       currentPos.currentRouteIndex = attributes.previousRouteIndex;
@@ -131,9 +139,17 @@ class RiderStore {
     }
     mapStore.setT(t);
 
-    riderStore.riders[riderId].currentRouteIndex = rider.previousRouteIndex;
+    let result = {}
+    if (rider.snapped == 1) {
+      riderStore.riders[riderId].currentRouteIndex = rider.previousRouteIndex;
+      result = this.interpolateAlongPath(t, rider);
+    }
+    else if (rider.snapped == 0) {
+      riderStore.riders[riderId].currentRouteIndex = null;
+      result = this.interpolateBetweenPoints(t, rider);
+    }
     return {
-      ...this.interpolateAlongPath(t, rider),
+      ...result,
       ts: rider.previousTs + t * timeDiff,
     };
   }
@@ -160,7 +176,6 @@ class RiderStore {
         lastTs: currentTs,
         data: data
       };
-      riderStore.riders[riderId].currentRouteIndex = data.previousRouteIndex
       this.replayCache[riderId] = interpolateData
 
     }
@@ -172,8 +187,18 @@ class RiderStore {
 
     mapStore.setT(t);
 
+    let result = {}
+    if (interpolateData.data.snapped == 1) {
+      riderStore.riders[riderId].currentRouteIndex = interpolateData.data.previousRouteIndex;
+      result = this.interpolateAlongPath(t, interpolateData.data);
+    }
+    else if (interpolateData.data.snapped == 0) {
+      riderStore.riders[riderId].currentRouteIndex = null;
+      result = this.interpolateBetweenPoints(t, interpolateData.data);
+    }
+
     return {
-      ...this.interpolateAlongPath(t, interpolateData.data),
+      ...result,
       ts: new Date(interpolateData.data.previousTs) + t * timeDiff,
       prev: interpolateData.data
     }
@@ -269,8 +294,33 @@ class RiderStore {
     };
   }
 
+  interpolateBetweenPoints(t, rider) {
+    const oldPoint = [rider.previousLongitude, rider.previousLatitude, rider.previousAltitude];
+    const newPoint = [rider.longitude, rider.latitude, rider.altitude];
+
+    const interpolatedPoint = [
+      oldPoint[0] + (newPoint[0] - oldPoint[0]) * t,
+      oldPoint[1] + (newPoint[1] - oldPoint[1]) * t,
+      oldPoint[2] + (newPoint[2] - oldPoint[2]) * t
+    ];
+    const heading = this.calculateHeading(oldPoint, newPoint);
+
+    return {
+      longitude: interpolatedPoint[0],
+      latitude: interpolatedPoint[1],
+      altitude: interpolatedPoint[2],
+      heading: heading,
+      speed: rider.speed
+    };
+  }
+
   getReplayTimeRange() {
-    const allTimestamps = Object.values(this.replayTimestamps).flat();
+    const allTimestamps = Object.values(this.replayTimestamps)
+      // only keep real arrays (skip undefined, null, non-arrays)
+      .filter(arr => Array.isArray(arr))
+      // flatten, but skip any empty arrays automatically
+      .flat();
+
     if (allTimestamps.length === 0) return [null, null];
 
     const minTs = allTimestamps[0];

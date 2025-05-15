@@ -113,7 +113,7 @@ const SelectedRider = observer(() => {
     return null; // Don't show the selected rider if it's the same as the followed one
 
   const info = riders_info[riderId];
-  const number = riderId.split("_")[1]?.padStart(2, "0") || "";
+  const number = riderId.substring(0, 3) || "";
   const name = info ? `${info.FirstName} ${info.LastName}` : riderId;
   const meta = info ? countryMeta[info.Nationality.toUpperCase()] : null;
   const country = meta ? meta.name : info?.Nationality || "";

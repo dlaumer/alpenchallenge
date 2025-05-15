@@ -16,7 +16,7 @@ const Container = styled.div`
   max-height: calc(100% - 100px);
   overflow-y: auto;
   padding: 4px 0;
-  z-index: 200;
+  z-index: 101;
 `;
 
 const List = styled.div`
@@ -32,10 +32,11 @@ const Item = styled.div`
 
 const TopPart = styled.div`
   display: flex;
+  width: 100%;
 `;
 
 const InfoPart = styled.div`
-width: 100%;
+width: 80%;
 
 `;
 
@@ -48,7 +49,7 @@ const Bubble = styled.div`
   /* draw a 3px “border” outside on top, right and bottom when selected */
   ${props =>
     props.$selected
-    ? `
+      ? `
     box-shadow:
     /* top */
     0 -3px 0 0 ${props.$following ? 'red' : '#4e8cff'},
@@ -57,7 +58,7 @@ const Bubble = styled.div`
     /* bottom */
     0 3px 0 0 ${props.$following ? 'red' : '#4e8cff'};
     `
-  : ''}
+      : ''}
   border-radius: 0 54px 54px 0;
   padding: 12px 16px 12px 12px; /* space for the circle */
   display: flex;
@@ -84,6 +85,7 @@ const RankCircle = styled.div`
 `;
 
 const Name = styled.div`
+width: 70%;
   color: #fff;
   font-size: 16px; /* increased size */
   font-weight: bold;
@@ -91,6 +93,9 @@ const Name = styled.div`
   display: flex;
   flex-direction: column;
   margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const FollowButton = styled.button`
@@ -132,7 +137,7 @@ const FavoriteList = observer(() => {
     <Container>
       <List>
         {favorites.map((id, idx) => {
-          const info = riders_info[id] || {};
+          const info = riders_info[id] || { FirstName: id, LastName: "" };
           const first = info.FirstName || '';
           const last = info.LastName || '';
           const isSelected = mapStore.riderSelected === id;
@@ -147,7 +152,7 @@ const FavoriteList = observer(() => {
                 <InfoPart>
                   <TopPart>
                     <RankCircle $following={isFollowing}>
-                      {id.substring(6)}
+                      {id.substring(0, 3)}
                     </RankCircle>
                     <Name>
                       <span>{first}</span>

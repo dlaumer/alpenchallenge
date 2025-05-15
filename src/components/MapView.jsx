@@ -78,7 +78,7 @@ const ArcGISMap = observer(() => {
 
     const latestSimulation = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "827c3c8ca6f74538bae7ce9cc5287b2b"
+        id: "6540a6f1e06f4cf89b1da799a25947e3"
       },
       elevationInfo: {
         mode: "on-the-ground"
@@ -94,41 +94,17 @@ const ArcGISMap = observer(() => {
 
     const posHistory = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "dab72e3b5d8c40f1bdcd1052d9afcf6e"
+        id: "816fc3098f5945c3823dbba38824bd4b"
       },
       //definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10')",
       popupEnabled: false
     })
 
 
-    const specialPoints = new FeatureLayer({
-      portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "398629a847f84793a978adb7d71efa6f"
-      },
-      elevationInfo: {
-        mode: "relative-to-ground",
-      },
-      renderer: pointTypeRenderer,
-      popupTemplate: {
-        title: "{Label}", // replace with actual attribute name
-        content: [
-          {
-            type: "fields",
-            title: "{title}",
-            fieldInfos: [
-              { fieldName: "pointType", label: "Type" },
-              { fieldName: "description", label: "Description" }, // optional
-              { fieldName: "urlLink", label: "URL Link" } // optional
-
-            ]
-          }
-        ]
-      }
-    })
 
     const route = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "e861c9af6e194769b8492a37a89c3984"
+        id: "ce3b143124d74aa094ec6ba0da5237fb"
       },
       elevationInfo: {
         mode: "on-the-ground"
@@ -143,18 +119,6 @@ const ArcGISMap = observer(() => {
       },
       popupEnabled: false
     })
-
-
-    const buildings = new SceneLayer({
-      portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "a714a2ca145446b79d97aaa7b895ff95"
-      },
-      elevationInfo: {
-        mode: "on-the-ground"
-      },
-      popupEnabled: false
-    })
-
 
     // new: client‑side StreamLayer
     const animatedLayer = new StreamLayer({
@@ -227,7 +191,7 @@ const ArcGISMap = observer(() => {
     const map = new Map({                // Create a Map object
       basemap: "satellite",
       ground: "world-elevation",
-      layers: [favoriteLayer, animatedLayer, latestSimulation, route, specialPoints, buildings]
+      layers: [favoriteLayer, animatedLayer, latestSimulation, route]
     });
 
     const view = new SceneView({
@@ -235,12 +199,12 @@ const ArcGISMap = observer(() => {
       map: map,
       camera: {
         position: [
-          9.75325244,
-          46.20215233,
-          34712.77477
+          12.06985173,
+          45.58639628,
+          23860.02486
         ],
-        heading: 358.70,
-        tilt: 50.05
+        heading: 0.44,
+        tilt: 60.93
       },
 
       ui: {
@@ -295,7 +259,7 @@ const ArcGISMap = observer(() => {
       while (true) {
         // build a fresh Query each time
         const query = layer.createQuery();
-        query.outFields = ["userId", "distance", "ts", "routeIndex", "previousDistance", "previousTs", "previousRouteIndex", "heading", "speed"];
+        query.outFields = ["userId", "distance", "ts", "routeIndex", "previousDistance", "previousTs", "previousRouteIndex", "heading", "speed", "latitude", "longitude", "altitude", "previousLatitude", "previousLongitude", "previousAltitude", "snapped"];
         query.returnGeometry = false;
         query.start = start;                // zero-based offset :contentReference[oaicite:0]{index=0}
         query.num = max;                    // page size
@@ -447,12 +411,12 @@ const ArcGISMap = observer(() => {
       if (mapStore.riderFollowed == "") {
         viewRef.current.goTo({
           position: [
-            9.75325244,
-            46.20215233,
-            34712.77477
+            12.06985173,
+            45.58639628,
+            23860.02486
           ],
-          heading: 358.70,
-          tilt: 50.05
+          heading: 0.44,
+          tilt: 60.93
         })
 
         mapStore.setIsFollowing(false);
@@ -460,7 +424,6 @@ const ArcGISMap = observer(() => {
 
       }
       else {
-
 
         const riders = riderStore.riders;
         const followedId = mapStore.riderFollowed;
@@ -585,6 +548,7 @@ const ArcGISMap = observer(() => {
       Object.keys(mapStore.replayMode ? riderStore.replayData : riderStore.riders).forEach((riderId) => {
 
 
+        if (riderStore.riders[riderId] == null && riderStore[riderId].previousTs != null && riderStore[riderId].previousTs != 0) return;
         const interpolated = mapStore.replayMode
           ? riderStore.getInterpolatedPosition(riderId, currentTs)
           : riderStore.getInterpolatedLivePosition(riderId, currentTs);
@@ -633,7 +597,7 @@ const ArcGISMap = observer(() => {
 
           let smoothedHeading;
           if (Math.abs(delta) < 90) {
-            let smoothingFactor = mapStore.followMode == "ride"? 0.005: 0.005; // Adjust this for smoothness
+            let smoothingFactor = mapStore.followMode == "ride" ? 0.005 : 0.005; // Adjust this for smoothness
             if (mapStore.replayMode) { smoothingFactor = smoothingFactor * mapStore.replaySpeed }
             smoothedHeading = currentHeading + delta * smoothingFactor;
             smoothedHeading = (smoothedHeading + 360) % 360;

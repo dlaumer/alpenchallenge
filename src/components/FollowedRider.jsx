@@ -132,8 +132,8 @@ const FollowedRider = observer(() => {
   if (!riderId) return null;
 
   // same info lookup as SelectedRider
-  const info = riders_info[riderId];
-  const number = riderId.split("_")[1]?.padStart(2, "0") || "";
+  const info = riders_info[riderId] || {FirstName: riderId, LastName: ""};
+  const number = riderId.substring(0,3) || "";
   const name = info ? `${info.FirstName} ${info.LastName}` : riderId;
 
   return (
