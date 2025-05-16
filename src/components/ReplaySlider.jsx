@@ -194,7 +194,7 @@ const ReplaySlider = observer(() => {
 
   const setLive = () => {
     mapStore.setReplayMode(false);
-    mapStore.setTimeReference(riderStore.currentSmallestTimestamp);
+    mapStore.setTimeReference(Date.now() - 120000);
     mapStore.setTimeReferenceAnimation(Date.now());
     mapStore.setReplaySpeed(1);
   };

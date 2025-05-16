@@ -436,9 +436,8 @@ const ArcGISMap = observer(() => {
           }
           const currentTs = mapStore.timeReference + elapsed;
 
-          const interpolated = mapStore.replayMode
-            ? riderStore.getInterpolatedPosition(followedId, currentTs)
-            : riderStore.getInterpolatedLivePosition(followedId, currentTs);
+          const interpolated = riderStore.getInterpolatedPosition(followedId, currentTs)
+          if (!interpolated) return;
           // Use goTo without animation to instantly center the view on the followed rider.
           viewRef.current.goTo(
             {
@@ -475,10 +474,8 @@ const ArcGISMap = observer(() => {
       }
       const currentTs = mapStore.timeReference + elapsed;
 
-      const interpolated = mapStore.replayMode
-        ? riderStore.getInterpolatedPosition(followedId, currentTs)
-        : riderStore.getInterpolatedLivePosition(followedId, currentTs);
-
+      const interpolated = riderStore.getInterpolatedPosition(followedId, currentTs)
+      if (!interpolated) return;
 
       if (mapStore.followMode == "fly") {
 
@@ -540,18 +537,15 @@ const ArcGISMap = observer(() => {
 
     if (mapStore.t != 1) {
       mapStore.setTime(currentTs)
-
     }
     if (!currentTs) return;
 
-    if (riderStore.riders) {
-      Object.keys(mapStore.replayMode ? riderStore.replayData : riderStore.riders).forEach((riderId) => {
+    if (riderStore.replayData) {
+      Object.keys(riderStore.replayData).forEach((riderId) => {
 
 
         if (riderStore.riders[riderId] == null && riderStore[riderId].previousTs != null && riderStore[riderId].previousTs != 0) return;
-        const interpolated = mapStore.replayMode
-          ? riderStore.getInterpolatedPosition(riderId, currentTs)
-          : riderStore.getInterpolatedLivePosition(riderId, currentTs);
+        const interpolated = riderStore.getInterpolatedPosition(riderId, currentTs)
 
         if (!interpolated) return;
 

@@ -12,8 +12,6 @@ class RiderStore {
 
   downloadProgress = 0;
 
-  currentSmallestTimestamp = null;
-
   favorites = ["8c620131-a7f5-44e0-9e0b-2f471071abf6",];
 
   constructor() {
@@ -36,9 +34,8 @@ class RiderStore {
     const processed = this.processLiveResults(liveData);
     liveData = null; // free up memory
     this.riders = processed.data
-    this.currentSmallestTimestamp = processed.smallestTimestamp;
     if (!mapStore.replayMode) {
-      mapStore.setTimeReference(processed.smallestTimestamp);
+      mapStore.setTimeReference(Date.now() - mapStore.lag);
       mapStore.setTimeReferenceAnimation(Date.now());
     }
 
@@ -108,17 +105,19 @@ class RiderStore {
     results.features.forEach((feature) => {
       const attributes = feature.attributes;
       const riderId = attributes.userId;
-      const currentPos = this.parseAttributes(attributes);
-      if (this.replayData[riderId] && !attributes.ts in Object.keys(this.replayData[riderId])) {
-        this.replayData[riderId][attributes.ts * 1000] = currentPos
-        this.replayTimestamps[riderId].push(attributes.ts * 1000);
+      if (attributes.previousTs != null) {
+        const currentPos = this.parseAttributes(attributes);
+        if (!this.replayData[riderId]) {
+          this.replayData[riderId] = {};
+          this.replayTimestamps[riderId] = [];
+        }
+        if (!(attributes.ts in Object.keys(this.replayData[riderId]))) {
+          this.replayData[riderId][currentPos.ts] = currentPos
+          this.replayTimestamps[riderId].push(currentPos.ts);
+        }
+        currentPos.currentRouteIndex = attributes.previousRouteIndex;
+        data[riderId] = currentPos;
       }
-      if (attributes.previousTs != null && attributes.previousTs > smallestTimestamp) {
-        smallestTimestamp = attributes.previousTs
-      }
-      currentPos.currentRouteIndex = attributes.previousRouteIndex;
-      data[riderId] = currentPos;
-
     });
     results = null; // free up memory
 
@@ -160,48 +159,38 @@ class RiderStore {
     if (!riderTimestamps || riderTimestamps.length === 0) return null;
 
     const cache = this.replayCache[riderId];
-    let interpolateData = null;
+    let data = null;
     if (
       cache &&
       currentTs >= cache.previousTs &&
       currentTs <= cache.ts
     ) {
-      interpolateData = cache;
+      data = cache;
 
     }
     else {
-      const after = this.findNearestTimestamps(riderTimestamps, currentTs);
-      const data = riderData[after];
-      interpolateData = {
-        lastTs: currentTs,
-        data: data
-      };
-      this.replayCache[riderId] = interpolateData
+      const nearestTimestamp = this.findNearestTimestamps(riderTimestamps, currentTs);
+      data = riderData[nearestTimestamp];
+      // Only use the data if the timestamp is within 2 minutes of the current timestamp
+      if (nearestTimestamp - currentTs > 120000 || currentTs - data.previousTs > 120000) return null
 
+      this.replayCache[riderId] = data;
     }
 
-    const timeDiff = interpolateData.data.ts - interpolateData.data.previousTs;
-    if (timeDiff <= 0) return interpolateData.data;
+    const timeDiff = data.ts - data.previousTs;
+    if (timeDiff <= 0) return null;
 
-    const t = Math.max(0, Math.min(1, (currentTs - interpolateData.data.previousTs) / timeDiff));
-
-    mapStore.setT(t);
+    const t = Math.max(0, Math.min(1, (currentTs - data.previousTs) / timeDiff));
 
     let result = {}
-    if (interpolateData.data.snapped == 1) {
-      riderStore.riders[riderId].currentRouteIndex = interpolateData.data.previousRouteIndex;
-      result = this.interpolateAlongPath(t, interpolateData.data);
+    if (data.snapped == 1) {
+      result = this.interpolateAlongPath(t, data);
     }
-    else if (interpolateData.data.snapped == 0) {
-      riderStore.riders[riderId].currentRouteIndex = null;
-      result = this.interpolateBetweenPoints(t, interpolateData.data);
+    else if (data.snapped == 0) {
+      result = this.interpolateBetweenPoints(t, data);
     }
 
-    return {
-      ...result,
-      ts: new Date(interpolateData.data.previousTs) + t * timeDiff,
-      prev: interpolateData.data
-    }
+    return result
   }
 
 
