@@ -34,11 +34,6 @@ class RiderStore {
     const processed = this.processLiveResults(liveData);
     liveData = null; // free up memory
     this.riders = processed.data
-    if (!mapStore.replayMode) {
-      mapStore.setTimeReference(Date.now() - mapStore.lag);
-      mapStore.setTimeReferenceAnimation(Date.now());
-    }
-
     mapStore.setBuffering(false);
     mapStore.setUpdating(false);
   }
@@ -153,34 +148,37 @@ class RiderStore {
     };
   }
 
-  getInterpolatedPosition(riderId, currentTs) {
+  getInterpolatedPosition(riderId) {
     const riderTimestamps = this.replayTimestamps[riderId];
     const riderData = this.replayData[riderId];
     if (!riderTimestamps || riderTimestamps.length === 0) return null;
 
     const cache = this.replayCache[riderId];
+
     let data = null;
     if (
       cache &&
-      currentTs >= cache.previousTs &&
-      currentTs <= cache.ts
+      mapStore.time >= cache.previousTs &&
+      mapStore.time <= cache.ts
     ) {
       data = cache;
 
     }
     else {
-      const nearestTimestamp = this.findNearestTimestamps(riderTimestamps, currentTs);
+      const nearestTimestamp = this.findNearestTimestamps(riderTimestamps, mapStore.time);
       data = riderData[nearestTimestamp];
-      // Only use the data if the timestamp is within 2 minutes of the current timestamp
-      if (nearestTimestamp - currentTs > 120000 || currentTs - data.previousTs > 120000) return null
 
       this.replayCache[riderId] = data;
     }
 
     const timeDiff = data.ts - data.previousTs;
     if (timeDiff <= 0) return null;
+    if (mapStore.time - data.previousTs > 150000 &&  data.ts - mapStore.time > 150000) return null
+    const t = Math.max(0, Math.min(1, (mapStore.time - data.previousTs) / timeDiff));
 
-    const t = Math.max(0, Math.min(1, (currentTs - data.previousTs) / timeDiff));
+    if (timeDiff > 300000) {
+      t = Math.round(t)
+    }
 
     let result = {}
     if (data.snapped == 1) {
@@ -189,7 +187,6 @@ class RiderStore {
     else if (data.snapped == 0) {
       result = this.interpolateBetweenPoints(t, data);
     }
-
     return result
   }
 

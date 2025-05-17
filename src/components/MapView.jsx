@@ -288,10 +288,9 @@ const ArcGISMap = observer(() => {
     // Use a plain object to store graphics keyed by rider ID.
     const animate = () => {
 
-      if (mapStore.playing && mapStore.timeReference) {
+      if (mapStore.playing) {
         animation()
       }
-
       // Request the next animation frame for smooth updates
       animationFrameRef.current = requestAnimationFrame(animate);
     };
@@ -425,18 +424,9 @@ const ArcGISMap = observer(() => {
       }
       else {
 
-        const riders = riderStore.riders;
-        const followedId = mapStore.riderFollowed;
-        if (followedId && riders[followedId]) {
+        if (mapStore.riderFollowed && riderStore.replayData[mapStore.riderFollowed]) {
 
-          let elapsed = Date.now() - mapStore.timeReferenceAnimation;
-
-          if (mapStore.replayMode) {
-            elapsed = elapsed * mapStore.replaySpeed;
-          }
-          const currentTs = mapStore.timeReference + elapsed;
-
-          const interpolated = riderStore.getInterpolatedPosition(followedId, currentTs)
+          const interpolated = riderStore.getInterpolatedPosition(mapStore.riderFollowed)
           if (!interpolated) return;
           // Use goTo without animation to instantly center the view on the followed rider.
           viewRef.current.goTo(
@@ -453,8 +443,6 @@ const ArcGISMap = observer(() => {
           ).then(() => {
             mapStore.setIsFollowing(true);
           });
-
-
         }
       }
     }
@@ -463,18 +451,9 @@ const ArcGISMap = observer(() => {
 
   useEffect(() => {
     if (viewRef.current) {
-
-      const followedId = mapStore.riderFollowed;
-
       mapStore.setIsFollowing(false);
-      let elapsed = Date.now() - mapStore.timeReferenceAnimation;
 
-      if (mapStore.replayMode) {
-        elapsed = elapsed * mapStore.replaySpeed;
-      }
-      const currentTs = mapStore.timeReference + elapsed;
-
-      const interpolated = riderStore.getInterpolatedPosition(followedId, currentTs)
+      const interpolated = riderStore.getInterpolatedPosition(mapStore.riderFollowed)
       if (!interpolated) return;
 
       if (mapStore.followMode == "fly") {
@@ -525,28 +504,24 @@ const ArcGISMap = observer(() => {
 
   const animation = () => {
 
+    if (!mapStore.replayMode) {
+      mapStore.setTime(Date.now() - mapStore.lag);
+    }
+    else {
+      let elapsed = Date.now() - mapStore.timeReferenceAnimation;
+      elapsed = elapsed * mapStore.replaySpeed;
+      mapStore.setTime(mapStore.timeReference + elapsed);
+    }
+
     let features = [];
     const featuresFavorite = [];
-
-    let elapsed = Date.now() - mapStore.timeReferenceAnimation;
-
-    if (mapStore.replayMode) {
-      elapsed = elapsed * mapStore.replaySpeed;
-    }
-    const currentTs = mapStore.timeReference + elapsed;
-
-    if (mapStore.t != 1) {
-      mapStore.setTime(currentTs)
-    }
-    if (!currentTs) return;
 
     if (riderStore.replayData) {
       Object.keys(riderStore.replayData).forEach((riderId) => {
 
-
-        if (riderStore.riders[riderId] == null && riderStore[riderId].previousTs != null && riderStore[riderId].previousTs != 0) return;
-        const interpolated = riderStore.getInterpolatedPosition(riderId, currentTs)
-
+        if (!riderStore.replayData[riderId] || riderStore.replayTimestamps[riderId].length == 0) return;
+        
+        const interpolated = riderStore.getInterpolatedPosition(riderId)
         if (!interpolated) return;
 
         features.push({
@@ -624,12 +599,7 @@ const ArcGISMap = observer(() => {
               heading: smoothedHeading,
               tilt: 90
             }
-
-
           }
-
-
-
         }
       });
       animatedLayerRef.current.sendMessageToClient({ type: "clear" });

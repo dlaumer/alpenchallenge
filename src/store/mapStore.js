@@ -10,6 +10,7 @@ class MapStore {
   followMode = "fly"; // Default follow mode
 
   time = null;
+  timeRefresh = null;
   timeReference = null;
   timeReferenceAnimation = Date.now();
   replayMode = false;
@@ -67,6 +68,10 @@ class MapStore {
 
   setTime(time) {
     this.time = time;
+  }
+  
+  setTimeRefresh(time) {
+    this.timeRefresh = time;
   }
 
   setTimeReference(time) {
