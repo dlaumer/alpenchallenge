@@ -16,7 +16,7 @@ class MapStore {
   replayMode = false;
   playing = true;
 
-  lag = 120000;
+  lag = 300000;
 
   buffering = false;
   updating = false;

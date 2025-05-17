@@ -78,7 +78,7 @@ const ArcGISMap = observer(() => {
 
     const latestSimulation = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "6540a6f1e06f4cf89b1da799a25947e3"
+        id: "827c3c8ca6f74538bae7ce9cc5287b2b"
       },
       elevationInfo: {
         mode: "on-the-ground"
@@ -94,7 +94,7 @@ const ArcGISMap = observer(() => {
 
     const posHistory = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "816fc3098f5945c3823dbba38824bd4b"
+        id: "dab72e3b5d8c40f1bdcd1052d9afcf6e"
       },
       //definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10')",
       popupEnabled: false
@@ -104,7 +104,7 @@ const ArcGISMap = observer(() => {
 
     const route = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "ce3b143124d74aa094ec6ba0da5237fb"
+        id: "e861c9af6e194769b8492a37a89c3984"
       },
       elevationInfo: {
         mode: "on-the-ground"
@@ -199,12 +199,12 @@ const ArcGISMap = observer(() => {
       map: map,
       camera: {
         position: [
-          12.06985173,
-          45.58639628,
-          23860.02486
+          9.75325244,
+          46.20215233,
+          34712.77477
         ],
-        heading: 0.44,
-        tilt: 60.93
+        heading: 358.70,
+        tilt: 50.05
       },
 
       ui: {
@@ -409,14 +409,14 @@ const ArcGISMap = observer(() => {
     if (viewRef.current) {
       if (mapStore.riderFollowed == "") {
         viewRef.current.goTo({
-          position: [
-            12.06985173,
-            45.58639628,
-            23860.02486
-          ],
-          heading: 0.44,
-          tilt: 60.93
-        })
+        position: [
+          9.75325244,
+          46.20215233,
+          34712.77477
+        ],
+        heading: 358.70,
+        tilt: 50.05
+      })
 
         mapStore.setIsFollowing(false);
 

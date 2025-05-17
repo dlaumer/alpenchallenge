@@ -181,7 +181,7 @@ class RiderStore {
     }
 
     let result = {}
-    if (data.snapped == 1) {
+    if (data.snapped == null || data.snapped == 1) {
       result = this.interpolateAlongPath(t, data);
     }
     else if (data.snapped == 0) {
