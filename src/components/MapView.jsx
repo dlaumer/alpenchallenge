@@ -15,16 +15,18 @@ import Point from "@arcgis/core/geometry/Point";
 import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 import Weather from "@arcgis/core/widgets/Weather";
 import Editor from "@arcgis/core/widgets/Editor";
-import { pointTypeRenderer, favoriteLayerRenderer } from "../utils/renderers";
+import { pointTypeRenderer, favoriteLayerRenderer, streamLayerRenderer } from "../utils/renderers";
 import ElevationProfile from "@arcgis/core/widgets/ElevationProfile";
 import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
 import Zoom from "@arcgis/core/widgets/Zoom";
 import Compass from "@arcgis/core/widgets/Compass";
 import NavigationToggle from "@arcgis/core/widgets/NavigationToggle";
 
-import PointSymbol3D from "@arcgis/core/symbols/PointSymbol3D";
-import RotationVariable from "@arcgis/core/renderers/visualVariables/RotationVariable";
-import ObjectSymbol3DLayer from "@arcgis/core/symbols/ObjectSymbol3DLayer";
+import Color from "@arcgis/core/Color.js";
+import ObjectSymbol3DLayer from "@arcgis/core/symbols/ObjectSymbol3DLayer.js";
+import PointSymbol3D from "@arcgis/core/symbols/PointSymbol3D.js";
+import LineCallout3D from "@arcgis/core/symbols/callouts/LineCallout3D.js";
+import Symbol3DVerticalOffset from "@arcgis/core/symbols/support/Symbol3DVerticalOffset.js";
 
 import bluePinSymbol from "../assets/blue-pin-symbol.svg";
 import redPinSymbol from "../assets/red-pin-symbol.svg";
@@ -129,7 +131,7 @@ const ArcGISMap = observer(() => {
       fields: [
         { name: "OBJECTID", alias: "ObjectID", type: "oid" },
         { name: "TRACKID", alias: "Rider ID", type: "string" },
-        { name: "Heading", alias: "Heading", type: "double" }
+        { name: "symbolisation", alias: "symbolisation", type: "double" }
       ],
       timeInfo: {
         trackIdField: "TRACKID"
@@ -140,24 +142,7 @@ const ArcGISMap = observer(() => {
       purgeOptions: {
         type: "manual"                     // so we can clear old features each tick
       },
-      renderer: {
-        type: "simple",                    // simple-marker renderer
-        symbol: new PointSymbol3D({
-          symbolLayers: [new ObjectSymbol3DLayer({
-            width: 3,  // diameter of the object from east to west in meters
-            height: 3,  // height of the object in meters
-            depth: 3,  // diameter of the object from north to south in meters
-            resource: { href: roadBike },
-            anchor: "bottom",
-            castShadows: false
-          })]
-        }),
-        visualVariables: [new RotationVariable({
-          field: "heading",            // must match an attribute in the streamed features
-          rotationType: "geographic"
-        })
-        ]
-      }
+      renderer: streamLayerRenderer,
     });
 
     animatedLayerRef.current = animatedLayer;
@@ -528,7 +513,7 @@ const ArcGISMap = observer(() => {
           attributes: {
             OBJECTID: objectIdCounter++,
             TRACKID: riderId,
-            Heading: interpolated.heading,
+              symbolisation: mapStore.riderSelected == riderId ? "selected" : riderStore.favorites.includes(riderId)? "favorite" : "",
           },
           geometry: {
             x: interpolated.longitude,

@@ -17,6 +17,49 @@ import Symbol3DVerticalOffset from "@arcgis/core/symbols/support/Symbol3DVertica
 import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
 import SimpleRenderer from "@arcgis/core/renderers/SimpleRenderer";
 
+import Color from "@arcgis/core/Color.js";
+import ObjectSymbol3DLayer from "@arcgis/core/symbols/ObjectSymbol3DLayer.js";
+
+export const createSymbolSimple = (color) => (
+  new PointSymbol3D({
+    callout: new LineCallout3D({
+      color: new Color([255, 255, 255, 1]),
+      size: 1
+    }),
+    symbolLayers: [
+
+      new ObjectSymbol3DLayer({
+        anchor: "bottom",
+        anchorPosition: {
+          x: 0,
+          y: 0,
+          z: 0
+        },
+        castShadows: false,
+        depth: 2,
+        heading: 0,
+        height: 4,
+        material: {
+          color: color
+        },
+        resource: {
+          primitive: "diamond",
+        },
+        roll: 0,
+        tilt: 0,
+        width: 2
+      }),
+
+    ],
+    verticalOffset: new Symbol3DVerticalOffset({
+      maxWorldLength: 100,
+      minWorldLength: 2,
+      screenLength: 1
+    })
+  })
+);
+
+
 
 export const createSymbol = (icon, size) => (
   new PointSymbol3D({
@@ -36,11 +79,28 @@ export const createSymbol = (icon, size) => (
     ],
     verticalOffset: new Symbol3DVerticalOffset({
       maxWorldLength: 50 + size,
-      minWorldLength: size/4,
+      minWorldLength: size / 4,
       screenLength: 10
     })
   })
 );
+
+
+// build the renderer
+export const streamLayerRenderer = new UniqueValueRenderer({
+  field: "symbolisation",
+  defaultSymbol: createSymbolSimple(new Color([224, 234, 255, 1])),  // fallback if no match
+  uniqueValueInfos: [
+    {
+      value: "favorite",
+      symbol: createSymbolSimple(new Color("#2575b0")),     // 
+    },
+    {
+      value: "selected",
+      symbol: createSymbolSimple(new Color("#8B0000")),      // dark red
+    }
+  ]
+});
 
 // build the renderer
 export const favoriteLayerRenderer = new UniqueValueRenderer({
