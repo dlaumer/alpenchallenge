@@ -12,7 +12,7 @@ class RiderStore {
 
   downloadProgress = 0;
 
-  favorites = ["8c620131-a7f5-44e0-9e0b-2f471071abf6",];
+  favorites = ["rider_154","rider_254","rider_376","rider_406","rider_565",];
 
   constructor() {
     makeAutoObservable(this);
@@ -29,11 +29,28 @@ class RiderStore {
   }
 
   // Action to update the riders data when new data is available
-  setRiders(liveData) {
+  setRiders(results) {
 
-    const processed = this.processLiveResults(liveData);
-    liveData = null; // free up memory
-    this.riders = processed.data
+    const data = {};
+    results.features.forEach((feature) => {
+      const attributes = feature.attributes;
+      const riderId = attributes.userId;
+      if (attributes.previousTs != null) {
+        const currentPos = this.parseAttributes(attributes);
+
+        if (Object.keys(this.replayData).length > 0) {
+          if (!this.replayData[riderId]) {
+            this.replayData[riderId] = {};
+            this.replayTimestamps[riderId] = [];
+          }
+          if (!(attributes.ts in Object.keys(this.replayData[riderId]))) {
+            this.replayData[riderId][currentPos.ts] = currentPos
+            this.replayTimestamps[riderId].push(currentPos.ts);
+          }
+        }
+      }
+    });
+    results = null; // free up memory
     mapStore.setBuffering(false);
     mapStore.setUpdating(false);
   }
@@ -95,58 +112,10 @@ class RiderStore {
   // Process the feature layer's query results into the data format expected by your store.
   // For each feature, we assume the attributes include a userId, current coordinates and a previousPos JSON string.
   processLiveResults(results) {
-    const data = {};
-    let smallestTimestamp = 0;
-    results.features.forEach((feature) => {
-      const attributes = feature.attributes;
-      const riderId = attributes.userId;
-      if (attributes.previousTs != null) {
-        const currentPos = this.parseAttributes(attributes);
-        if (!this.replayData[riderId]) {
-          this.replayData[riderId] = {};
-          this.replayTimestamps[riderId] = [];
-        }
-        if (!(attributes.ts in Object.keys(this.replayData[riderId]))) {
-          this.replayData[riderId][currentPos.ts] = currentPos
-          this.replayTimestamps[riderId].push(currentPos.ts);
-        }
-        currentPos.currentRouteIndex = attributes.previousRouteIndex;
-        data[riderId] = currentPos;
-      }
-    });
-    results = null; // free up memory
 
-    return { data: data, smallestTimestamp: smallestTimestamp * 1000 };
+
   };
 
-  getInterpolatedLivePosition(riderId, currentTs) {
-    const rider = this.riders[riderId];
-    if (!rider || !rider.previousTs) return null;
-
-    const timeDiff = (rider.ts - rider.previousTs);
-    if (timeDiff <= 0) return rider;
-
-    const t = Math.max(0, Math.min(1, (currentTs - rider.previousTs) / timeDiff));
-
-    if (t == 1) {
-      mapStore.setBuffering(true);
-    }
-    mapStore.setT(t);
-
-    let result = {}
-    if (rider.snapped == 1) {
-      riderStore.riders[riderId].currentRouteIndex = rider.previousRouteIndex;
-      result = this.interpolateAlongPath(t, rider);
-    }
-    else if (rider.snapped == 0) {
-      riderStore.riders[riderId].currentRouteIndex = null;
-      result = this.interpolateBetweenPoints(t, rider);
-    }
-    return {
-      ...result,
-      ts: rider.previousTs + t * timeDiff,
-    };
-  }
 
   getInterpolatedPosition(riderId) {
     const riderTimestamps = this.replayTimestamps[riderId];
@@ -173,11 +142,12 @@ class RiderStore {
 
     const timeDiff = data.ts - data.previousTs;
     if (timeDiff <= 0) return null;
-    if (mapStore.time - data.previousTs > 150000 &&  data.ts - mapStore.time > 150000) return null
-    const t = Math.max(0, Math.min(1, (mapStore.time - data.previousTs) / timeDiff));
+    let t = Math.max(0, Math.min(1, (mapStore.time - data.previousTs) / timeDiff));
 
+    let active = true;
     if (timeDiff > 300000) {
-      t = Math.round(t)
+      t = Math.floor(t)
+      active = false;
     }
 
     let result = {}
@@ -187,6 +157,7 @@ class RiderStore {
     else if (data.snapped == 0) {
       result = this.interpolateBetweenPoints(t, data);
     }
+    result.active = active;
     return result
   }
 
@@ -250,13 +221,15 @@ class RiderStore {
     const riderId = rider.riderId;
     const distDiff = rider.distance - rider.previousDistance;
     const newDistance = rider.previousDistance + t * distDiff;
+    let routeIndex = rider.previousRouteIndex;
 
-    while (newDistance > routeStore.getDistance(riderStore.riders[riderId].currentRouteIndex + 1)) {
-      riderStore.riders[riderId].currentRouteIndex = riderStore.riders[riderId].currentRouteIndex + 1;
+    while (newDistance > routeStore.getDistance(routeIndex)) {
+      routeIndex = routeIndex + 1;
     }
+    routeIndex = Math.max(0, routeIndex - 1);
 
-    const i0 = riderStore.riders[riderId].currentRouteIndex;
-    const i1 = riderStore.riders[riderId].currentRouteIndex + 1 < routeStore.dists.length ? riderStore.riders[riderId].currentRouteIndex + 1 : riderStore.riders[riderId].currentRouteIndex;
+    const i0 = routeIndex;
+    const i1 = routeIndex + 1 < routeStore.dists.length ? routeIndex + 1 : routeIndex;
     const d0 = routeStore.getDistance(i0);
     const d1 = routeStore.getDistance(i1);
     const tSegment = d1 - d0 === 0 ? 0 : (newDistance - d0) / (d1 - d0);

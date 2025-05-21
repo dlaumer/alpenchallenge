@@ -54,20 +54,6 @@ const ArcGISMap = observer(() => {
   const popupExpand = useRef(null);
   const basemapGalleryExpand = useRef(null);
 
-  // Define a fixed color palette for riders 1 to 10.
-  const fixedColorPalette = {
-    "rider_1": "red",
-    "rider_2": "blue",
-    "rider_3": "green",
-    "rider_4": "orange",
-    "rider_5": "purple",
-    "rider_6": "yellow",
-    "rider_7": "cyan",
-    "rider_8": "magenta",
-    "rider_9": "brown",
-    "rider_10": "black"
-  };
-
   useEffect(() => {
     const isMobile = window.innerWidth <= 768;
     if (isMobile) {
@@ -401,7 +387,7 @@ const ArcGISMap = observer(() => {
         ],
         heading: 358.70,
         tilt: 50.05
-      })
+      }, {easing: "linear"})
 
         mapStore.setIsFollowing(false);
 
@@ -424,7 +410,7 @@ const ArcGISMap = observer(() => {
               zoom: viewRef.current.zoom < 16 ? 21 : null,
               tilt: 70,
               heading: interpolated.heading,
-            },
+            }, {easing: "linear"}
           ).then(() => {
             mapStore.setIsFollowing(true);
           });
@@ -454,7 +440,7 @@ const ArcGISMap = observer(() => {
             zoom: viewRef.current.zoom < 16 ? 21 : null,
             tilt: 70,
             heading: interpolated.heading,
-          },
+          }, {easing: "linear"}
         ).then(() => {
           mapStore.setIsFollowing(true);
         });
@@ -470,7 +456,7 @@ const ArcGISMap = observer(() => {
         cam.heading = interpolated.heading;
         cam.tilt = 90; // tilt in degrees
         // go to the new camera
-        viewRef.current.goTo(cam)
+        viewRef.current.goTo(cam, {easing: "linear"})
           .then(() => {
             mapStore.setIsFollowing(true);
           })
@@ -513,7 +499,7 @@ const ArcGISMap = observer(() => {
           attributes: {
             OBJECTID: objectIdCounter++,
             TRACKID: riderId,
-              symbolisation: mapStore.riderSelected == riderId ? "selected" : riderStore.favorites.includes(riderId)? "favorite" : "",
+              symbolisation: !interpolated.active? "inactive" : mapStore.riderSelected == riderId ? "selected" : riderStore.favorites.includes(riderId)? "favorite" : "",
           },
           geometry: {
             x: interpolated.longitude,
@@ -579,7 +565,7 @@ const ArcGISMap = observer(() => {
               position: [
                 interpolated.longitude,
                 interpolated.latitude,
-                interpolated.altitude + 5
+                interpolated.altitude
               ],
               heading: smoothedHeading,
               tilt: 90

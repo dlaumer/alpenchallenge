@@ -106,14 +106,14 @@ const SelectedRider = observer(() => {
   const riderId = mapStore.riderSelected;
   if (!riderId) return null;
 
-  const riderData = riderStore.riders[riderId];
+  const riderData = riderStore.replayData[riderId];
   if (!riderData) return null;
 
   if (riderId === mapStore.riderFollowed)
     return null; // Don't show the selected rider if it's the same as the followed one
 
   const info = riders_info[riderId];
-  const number = riderId.substring(0, 3) || "";
+  const number = riderId.substring(6) || "";
   const name = info ? `${info.FirstName} ${info.LastName}` : riderId;
   const meta = info ? countryMeta[info.Nationality.toUpperCase()] : null;
   const country = meta ? meta.name : info?.Nationality || "";

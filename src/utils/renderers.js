@@ -93,11 +93,15 @@ export const streamLayerRenderer = new UniqueValueRenderer({
   uniqueValueInfos: [
     {
       value: "favorite",
-      symbol: createSymbolSimple(new Color("#2575b0")),     // 
+      symbol: createSymbolSimple(new Color("#2575b0")),     // blue
     },
     {
       value: "selected",
       symbol: createSymbolSimple(new Color("#8B0000")),      // dark red
+    },
+    {
+      value: "inactive",
+      symbol: createSymbolSimple(new Color([224, 234, 255, 0.6])),     // transparent
     }
   ]
 });

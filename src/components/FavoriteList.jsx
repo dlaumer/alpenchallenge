@@ -152,7 +152,7 @@ const FavoriteList = observer(() => {
                 <InfoPart>
                   <TopPart>
                     <RankCircle $following={isFollowing}>
-                      {id.substring(0, 3)}
+                      {id.substring(6)}
                     </RankCircle>
                     <Name>
                       <span>{first}</span>

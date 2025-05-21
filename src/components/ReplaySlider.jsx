@@ -207,7 +207,7 @@ const ReplaySlider = observer(() => {
     if (mapStore.replayMode) {
       let pct =
         ((mapStore.time - startTs ) /
-          (riderStore.currentSmallestTimestamp  - startTs )) * 100;
+          (endTs - startTs )) * 100;
       if (pct > 100 && mapStore.playing) {
         pct = 100;
         setLive();
@@ -245,7 +245,7 @@ const ReplaySlider = observer(() => {
       const ts =
         startTs +
         pct *
-          (riderStore.currentSmallestTimestamp - startTs);
+          (endTs - startTs);
       if (pct === 1 && mapStore.playing) {
         setLive();
       } else {

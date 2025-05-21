@@ -63,7 +63,7 @@ const RiderSearch = () => {
 
   // 2) Filter live store by riderId only
   const storeMatches = q.length > 0
-    ? Object.keys(riderStore.riders)
+    ? Object.keys(riderStore.replayData)
         .filter(id => id.toLowerCase().includes(q))
         .map(id => ({ id, isInfo: false }))
     : [];
