@@ -254,6 +254,39 @@ const ArcGISMap = observer(() => {
       return allFeatures;
     }
 
+    /**
+     * Approximate a small offset in meters on a performance‐critical loop,
+     * by treating lat/long as a flat grid.
+     *
+     * @param {{ longitude: number, latitude: number, z: number }} pt
+     * @param {number} headingDeg       // 0 = north, increasing clockwise
+     * @param {number} behindM          // meters behind (default 10)
+     * @param {number} upM              // meters up   (default 10)
+     * @returns {Point}
+     */
+    function getCameraOffsetPointPlanar(pt, headingDeg, behindM = 10, upM = 10) {
+      // Convert heading to radians, and flip by 180° to go "behind"
+      const bearing = (headingDeg + 180) * Math.PI / 180;
+
+      // Compute local displacement in meters
+      const dx = behindM * Math.sin(bearing);   // eastward offset
+      const dy = behindM * Math.cos(bearing);   // northward offset
+
+      // Rough conversion: 1° latitude ≈ 111 320 m; 1° longitude ≈ 111 320 m × cos(lat)
+      const latRad = pt.latitude * Math.PI / 180;
+      const metersPerDegLat = 111320;
+      const metersPerDegLon = 111320 * Math.cos(latRad);
+
+      // Convert meter offsets into degrees
+      const deltaLat = dy / metersPerDegLat;
+      const deltaLon = dx / metersPerDegLon;
+
+      return {
+        latitude: pt.latitude + deltaLat,
+        longitude: pt.longitude + deltaLon,
+        altitude: pt.altitude + upM
+      };
+    }
 
 
     // Animation: Use requestAnimationFrame for smoother updates.
@@ -381,14 +414,14 @@ const ArcGISMap = observer(() => {
     if (viewRef.current) {
       if (mapStore.riderFollowed == "") {
         viewRef.current.goTo({
-        position: [
-          9.75325244,
-          46.20215233,
-          34712.77477
-        ],
-        heading: 358.70,
-        tilt: 50.05
-      }, {easing: "linear"})
+          position: [
+            9.75325244,
+            46.20215233,
+            34712.77477
+          ],
+          heading: 358.70,
+          tilt: 50.05
+        }, { easing: "linear" })
 
         mapStore.setIsFollowing(false);
 
@@ -411,7 +444,7 @@ const ArcGISMap = observer(() => {
               zoom: viewRef.current.zoom < 16 ? 21 : null,
               tilt: 70,
               heading: interpolated.heading,
-            }, {easing: "linear"}
+            }, { easing: "linear" }
           ).then(() => {
             mapStore.setIsFollowing(true);
           });
@@ -430,18 +463,19 @@ const ArcGISMap = observer(() => {
 
       if (mapStore.followMode == "fly") {
 
+        const cameraPosition = getCameraOffsetPointPlanar(interpolated, interpolated.heading, 10, 10);
         // Use goTo without animation to instantly center the view on the followed rider.
         viewRef.current.goTo(
           {
-            center: new Point({
-              longitude: interpolated.longitude,
-              latitude: interpolated.latitude,
-              z: interpolated.altitude,
-            }),
-            zoom: viewRef.current.zoom < 16 ? 21 : null,
-            tilt: 70,
-            heading: interpolated.heading,
-          }, {easing: "linear"}
+              center: new Point({
+                longitude: cameraPosition.longitude,
+                latitude: cameraPosition.latitude,
+                z: cameraPosition.altitude,
+              }),
+              zoom: viewRef.current.camera.zoom,
+              tilt: viewRef.current.camera.tilt,
+              heading: interpolated.heading,
+            }, { easing: "linear" }
         ).then(() => {
           mapStore.setIsFollowing(true);
         });
@@ -457,7 +491,7 @@ const ArcGISMap = observer(() => {
         cam.heading = interpolated.heading;
         cam.tilt = 90; // tilt in degrees
         // go to the new camera
-        viewRef.current.goTo(cam, {easing: "linear"})
+        viewRef.current.goTo(cam, { easing: "linear" })
           .then(() => {
             mapStore.setIsFollowing(true);
           })
@@ -492,7 +526,7 @@ const ArcGISMap = observer(() => {
       Object.keys(riderStore.replayData).forEach((riderId) => {
 
         if (!riderStore.replayData[riderId] || riderStore.replayTimestamps[riderId].length == 0) return;
-        
+
         const interpolated = riderStore.getInterpolatedPosition(riderId)
         if (!interpolated) return;
 
@@ -507,7 +541,7 @@ const ArcGISMap = observer(() => {
           attributes: {
             OBJECTID: objectIdCounter++,
             TRACKID: riderId,
-              symbolisation: !interpolated.active? "inactive" : mapStore.riderSelected == riderId ? "selected" : isStaff? "staff" : riderStore.favorites.includes(riderId)? "favorite" : "",
+            symbolisation: !interpolated.active ? "inactive" : mapStore.riderSelected == riderId ? "selected" : isStaff ? "staff" : riderStore.favorites.includes(riderId) ? "favorite" : "",
           },
           geometry: {
             x: interpolated.longitude,
@@ -516,13 +550,13 @@ const ArcGISMap = observer(() => {
           }
         });
 
-        
+
         if (mapStore.riderSelected == riderId || riderStore.favorites.includes(riderId) || isStaff) {
           featuresFavorite.push({
             attributes: {
               OBJECTID: objectIdCounter++,
               TRACKID: riderId,
-              symbolisation: mapStore.riderSelected == riderId ? "selected" : isStaff? "staff" : "favorite",
+              symbolisation: mapStore.riderSelected == riderId ? "selected" : isStaff ? "staff" : "favorite",
             },
             geometry: {
               x: interpolated.longitude,
@@ -555,19 +589,18 @@ const ArcGISMap = observer(() => {
           }
           if (mapStore.followMode == "fly") {
             // Use goTo without animation to instantly center the view on the followed rider.
-            viewRef.current.goTo(
-              {
-                center: new Point({
-                  longitude: interpolated.longitude,
-                  latitude: interpolated.latitude,
-                  z: interpolated.altitude,
-                }),
-                zoom: viewRef.current.camera.zoom,
-                tilt: viewRef.current.camera.tilt,
-                heading: smoothedHeading,
-              },
-              { animate: false }
-            );
+
+            const cameraPosition = getCameraOffsetPointPlanar(interpolated, calculatedHeading, 10, 10);
+            viewRef.current.camera = {
+              center: new Point({
+                longitude: cameraPosition.longitude,
+                latitude: cameraPosition.latitude,
+                z: cameraPosition.altitude,
+              }),
+              zoom: viewRef.current.camera.zoom,
+              tilt: viewRef.current.camera.tilt,
+              heading: smoothedHeading,
+            };
           }
           else if (mapStore.followMode == "ride") {
             viewRef.current.camera = {
