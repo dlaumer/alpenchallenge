@@ -21,6 +21,7 @@ import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
 import Zoom from "@arcgis/core/widgets/Zoom";
 import Compass from "@arcgis/core/widgets/Compass";
 import NavigationToggle from "@arcgis/core/widgets/NavigationToggle";
+import { riders_info } from '../constants/riders_info_1000';
 
 import Color from "@arcgis/core/Color.js";
 import ObjectSymbol3DLayer from "@arcgis/core/symbols/ObjectSymbol3DLayer.js";
@@ -495,11 +496,18 @@ const ArcGISMap = observer(() => {
         const interpolated = riderStore.getInterpolatedPosition(riderId)
         if (!interpolated) return;
 
+        let isStaff = false;
+        if (riders_info[riderId]) {
+          if (riders_info[riderId].LastName == "Staff") {
+            isStaff = true;
+          }
+        }
+
         features.push({
           attributes: {
             OBJECTID: objectIdCounter++,
             TRACKID: riderId,
-              symbolisation: !interpolated.active? "inactive" : mapStore.riderSelected == riderId ? "selected" : riderStore.favorites.includes(riderId)? "favorite" : "",
+              symbolisation: !interpolated.active? "inactive" : mapStore.riderSelected == riderId ? "selected" : isStaff? "staff" : riderStore.favorites.includes(riderId)? "favorite" : "",
           },
           geometry: {
             x: interpolated.longitude,
@@ -508,12 +516,13 @@ const ArcGISMap = observer(() => {
           }
         });
 
-        if (mapStore.riderSelected == riderId || riderStore.favorites.includes(riderId)) {
+        
+        if (mapStore.riderSelected == riderId || riderStore.favorites.includes(riderId) || isStaff) {
           featuresFavorite.push({
             attributes: {
               OBJECTID: objectIdCounter++,
               TRACKID: riderId,
-              symbolisation: mapStore.riderSelected == riderId ? "selected" : "favorite",
+              symbolisation: mapStore.riderSelected == riderId ? "selected" : isStaff? "staff" : "favorite",
             },
             geometry: {
               x: interpolated.longitude,
