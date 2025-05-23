@@ -66,7 +66,7 @@ const ArcGISMap = observer(() => {
 
     const latestSimulation = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "827c3c8ca6f74538bae7ce9cc5287b2b"
+        id: "be3fae7b018a4582b5e9fedc752b6260"
       },
       elevationInfo: {
         mode: "on-the-ground"
@@ -82,7 +82,7 @@ const ArcGISMap = observer(() => {
 
     const posHistory = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "dab72e3b5d8c40f1bdcd1052d9afcf6e"
+        id: "cca7a7dbfbe8418a9490541c248c1276"
       },
       //definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10')",
       popupEnabled: false
