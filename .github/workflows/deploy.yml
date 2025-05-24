@@ -35,57 +35,57 @@ jobs:
       - name: Build main version (root deploy)
         run: VITE_BASE_PATH=/alpenchallenge/ npm run build
 
-      # --- Build streamlayer Branch Version ---
-      - name: Checkout streamlayer branch
+      # --- Build GranFondo Branch Version ---
+      - name: Checkout GranFondo branch
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
-          ref: streamlayer
-          path: streamlayer
+          ref: GranFondo
+          path: GranFondo
 
-      - name: Setup Node.js (streamlayer)
+      - name: Setup Node.js (GranFondo)
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      - name: Install dependencies (streamlayer)
-        working-directory: streamlayer
+      - name: Install dependencies (GranFondo)
+        working-directory: GranFondo
         run: npm ci
 
-      - name: Build streamlayer branch version
-        working-directory: streamlayer
-        run: VITE_BASE_PATH=/alpenchallenge/streamlayer/ npm run build
+      - name: Build GranFondo branch version
+        working-directory: GranFondo
+        run: VITE_BASE_PATH=/alpenchallenge/GranFondo/ npm run build
 
-      - name: Copy streamlayer build into main dist
+      - name: Copy GranFondo build into main dist
         run: |
-          mkdir -p dist/streamlayer
-          cp -r streamlayer/dist/* dist/streamlayer/
+          mkdir -p dist/GranFondo
+          cp -r GranFondo/dist/* dist/GranFondo/
 
-      # --- Build static Branch Version ---
-      - name: Checkout static branch
+      # --- Build GravelRace Branch Version ---
+      - name: Checkout GravelRace branch
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
-          ref: static
-          path: static
+          ref: GravelRace
+          path: GravelRace
 
-      - name: Setup Node.js (static)
+      - name: Setup Node.js (GravelRace)
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      - name: Install dependencies (static)
-        working-directory: static
+      - name: Install dependencies (GravelRace)
+        working-directory: GravelRace
         run: npm ci
 
-      - name: Build static branch version
-        working-directory: static
-        run: VITE_BASE_PATH=/alpenchallenge/static/ npm run build
+      - name: Build GravelRace branch version
+        working-directory: GravelRace
+        run: VITE_BASE_PATH=/alpenchallenge/GravelRace/ npm run build
 
-      - name: Copy static build into main dist
+      - name: Copy GravelRace build into main dist
         run: |
-          mkdir -p dist/static
-          cp -r static/dist/* dist/static/
+          mkdir -p dist/GravelRace
+          cp -r GravelRace/dist/* dist/GravelRace/
 
       - name: Remove unnecessary files
         run: find dist -type l -delete
