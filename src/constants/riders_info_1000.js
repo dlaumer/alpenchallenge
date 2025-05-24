@@ -15,7 +15,7 @@ export const riders_info = {
   },
   "rider_3": {
     "FirstName": "Daniel",
-    "LastName": "Jones",
+    "LastName": "Staff",
     "Gender": "male",
     "Birthday": "16.04.1965",
     "Nationality": "PT"
@@ -43,7 +43,7 @@ export const riders_info = {
   },
   "rider_7": {
     "FirstName": "Kenneth",
-    "LastName": "Scott",
+    "LastName": "Staff",
     "Gender": "male",
     "Birthday": "09.12.1960",
     "Nationality": "IT"
@@ -120,7 +120,7 @@ export const riders_info = {
   },
   "rider_18": {
     "FirstName": "Arthur",
-    "LastName": "West",
+    "LastName": "Staff",
     "Gender": "male",
     "Birthday": "12.04.1918",
     "Nationality": "DK"
@@ -3347,7 +3347,7 @@ export const riders_info = {
   },
   "rider_479": {
     "FirstName": "Justin",
-    "LastName": "Bautista",
+    "LastName": "Staff",
     "Gender": "male",
     "Birthday": "30.10.1936",
     "Nationality": "BE"
@@ -6140,7 +6140,7 @@ export const riders_info = {
   },
   "rider_878": {
     "FirstName": "David",
-    "LastName": "Boyle",
+    "LastName": "Staff",
     "Gender": "male",
     "Birthday": "10.07.2000",
     "Nationality": "PT"
