@@ -55,7 +55,7 @@ const MapContainer = styled.div`
  * @param {number} upM              // meters up   (default 10)
  * @returns {Point}
  */
-function getCameraOffsetPointPlanar(pt, headingDeg, behindM = 40, upM = 20) {
+function getCameraOffsetPointPlanar(pt, headingDeg, behindM = 40, upM = 30) {
   // Convert heading to radians, and flip by 180° to go "behind"
   const bearing = (headingDeg + 180) * Math.PI / 180;
 

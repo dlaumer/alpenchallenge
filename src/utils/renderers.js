@@ -37,18 +37,18 @@ export const createSymbolSimple = (color) => (
           z: 0
         },
         castShadows: false,
-        depth: 2,
+        depth: 1,
         heading: 0,
-        height: 4,
+        height: 1,
         material: {
           color: color
         },
         resource: {
-          primitive: "diamond",
+          primitive: "sphere",
         },
         roll: 0,
         tilt: 0,
-        width: 2
+        width: 1
       }),
 
     ],
@@ -79,9 +79,9 @@ export const createSymbol = (icon, size) => (
       })
     ],
     verticalOffset: new Symbol3DVerticalOffset({
-      maxWorldLength: 50 + size,
-      minWorldLength: size / 4,
-      screenLength: 10
+      maxWorldLength: 30 + size,
+      minWorldLength: size / 8,
+      screenLength: 5
     })
   })
 );
@@ -90,7 +90,7 @@ export const createSymbol = (icon, size) => (
 // build the renderer
 export const streamLayerRenderer = new UniqueValueRenderer({
   field: "symbolisation",
-  defaultSymbol: createSymbolSimple(new Color([224, 234, 255, 1])),  // fallback if no match
+  defaultSymbol: createSymbolSimple(new Color("#8B0000")),  // fallback if no match
   uniqueValueInfos: [
     {
       value: "favorite",
@@ -98,7 +98,7 @@ export const streamLayerRenderer = new UniqueValueRenderer({
     },
     {
       value: "selected",
-      symbol: createSymbolSimple(new Color("#8B0000")),      // dark red
+      symbol: createSymbolSimple(new Color("#FF0000")),      // dark red
     },
     {
       value: "inactive",
