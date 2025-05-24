@@ -124,6 +124,32 @@ const ArcGISMap = observer(() => {
       popupEnabled: false
     })
 
+    const specialPoints = new FeatureLayer({
+      portalItem: {  // autocasts as esri/portal/PortalItem
+        id: "398629a847f84793a978adb7d71efa6f"
+      },
+      elevationInfo: {
+        mode: "relative-to-ground",
+      },
+      definitionExpression: "event IN ('alpenchallenge')",
+      renderer: pointTypeRenderer,
+      popupTemplate: {
+        title: "{Label}", // replace with actual attribute name
+        content: [
+          {
+            type: "fields",
+            title: "{title}",
+            fieldInfos: [
+              { fieldName: "pointType", label: "Type" },
+              { fieldName: "description", label: "Description" }, // optional
+              { fieldName: "urlLink", label: "URL Link" } // optional
+
+            ]
+          }
+        ]
+      }
+    })
+
 
 
     const route = new FeatureLayer({
@@ -198,7 +224,7 @@ const ArcGISMap = observer(() => {
     const map = new Map({                // Create a Map object
       basemap: "satellite",
       ground: "world-elevation",
-      layers: [favoriteLayer, animatedLayer, latestSimulation, route]
+      layers: [favoriteLayer, animatedLayer, latestSimulation, route, specialPoints]
     });
 
     const view = new SceneView({
