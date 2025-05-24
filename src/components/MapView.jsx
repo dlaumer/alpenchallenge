@@ -44,6 +44,41 @@ const MapContainer = styled.div`
   position: absolute;
 `;
 
+
+/**
+ * Approximate a small offset in meters on a performance‐critical loop,
+ * by treating lat/long as a flat grid.
+ *
+ * @param {{ longitude: number, latitude: number, z: number }} pt
+ * @param {number} headingDeg       // 0 = north, increasing clockwise
+ * @param {number} behindM          // meters behind (default 10)
+ * @param {number} upM              // meters up   (default 10)
+ * @returns {Point}
+ */
+function getCameraOffsetPointPlanar(pt, headingDeg, behindM = 40, upM = 20) {
+  // Convert heading to radians, and flip by 180° to go "behind"
+  const bearing = (headingDeg + 180) * Math.PI / 180;
+
+  // Compute local displacement in meters
+  const dx = behindM * Math.sin(bearing);   // eastward offset
+  const dy = behindM * Math.cos(bearing);   // northward offset
+
+  // Rough conversion: 1° latitude ≈ 111 320 m; 1° longitude ≈ 111 320 m × cos(lat)
+  const latRad = pt.latitude * Math.PI / 180;
+  const metersPerDegLat = 111320;
+  const metersPerDegLon = 111320 * Math.cos(latRad);
+
+  // Convert meter offsets into degrees
+  const deltaLat = dy / metersPerDegLat;
+  const deltaLon = dx / metersPerDegLon;
+
+  return {
+    latitude: pt.latitude + deltaLat,
+    longitude: pt.longitude + deltaLon,
+    altitude: pt.altitude + upM
+  };
+}
+
 const ArcGISMap = observer(() => {
   const viewRef = useRef(null);
   const mapRef = useRef(null);
@@ -254,40 +289,6 @@ const ArcGISMap = observer(() => {
       return allFeatures;
     }
 
-    /**
-     * Approximate a small offset in meters on a performance‐critical loop,
-     * by treating lat/long as a flat grid.
-     *
-     * @param {{ longitude: number, latitude: number, z: number }} pt
-     * @param {number} headingDeg       // 0 = north, increasing clockwise
-     * @param {number} behindM          // meters behind (default 10)
-     * @param {number} upM              // meters up   (default 10)
-     * @returns {Point}
-     */
-    function getCameraOffsetPointPlanar(pt, headingDeg, behindM = 10, upM = 10) {
-      // Convert heading to radians, and flip by 180° to go "behind"
-      const bearing = (headingDeg + 180) * Math.PI / 180;
-
-      // Compute local displacement in meters
-      const dx = behindM * Math.sin(bearing);   // eastward offset
-      const dy = behindM * Math.cos(bearing);   // northward offset
-
-      // Rough conversion: 1° latitude ≈ 111 320 m; 1° longitude ≈ 111 320 m × cos(lat)
-      const latRad = pt.latitude * Math.PI / 180;
-      const metersPerDegLat = 111320;
-      const metersPerDegLon = 111320 * Math.cos(latRad);
-
-      // Convert meter offsets into degrees
-      const deltaLat = dy / metersPerDegLat;
-      const deltaLon = dx / metersPerDegLon;
-
-      return {
-        latitude: pt.latitude + deltaLat,
-        longitude: pt.longitude + deltaLon,
-        altitude: pt.altitude + upM
-      };
-    }
-
 
     // Animation: Use requestAnimationFrame for smoother updates.
     // Use a plain object to store graphics keyed by rider ID.
@@ -463,19 +464,19 @@ const ArcGISMap = observer(() => {
 
       if (mapStore.followMode == "fly") {
 
-        const cameraPosition = getCameraOffsetPointPlanar(interpolated, interpolated.heading, 10, 10);
+        const cameraPosition = getCameraOffsetPointPlanar(interpolated, interpolated.heading);
         // Use goTo without animation to instantly center the view on the followed rider.
         viewRef.current.goTo(
           {
-              center: new Point({
-                longitude: cameraPosition.longitude,
-                latitude: cameraPosition.latitude,
-                z: cameraPosition.altitude,
-              }),
-              zoom: viewRef.current.camera.zoom,
-              tilt: viewRef.current.camera.tilt,
-              heading: interpolated.heading,
-            }, { easing: "linear" }
+            center: new Point({
+              longitude: cameraPosition.longitude,
+              latitude: cameraPosition.latitude,
+              z: cameraPosition.altitude,
+            }),
+            zoom: viewRef.current.camera.zoom,
+            tilt: 85,
+            heading: interpolated.heading,
+          }, { easing: "linear" }
         ).then(() => {
           mapStore.setIsFollowing(true);
         });
@@ -580,7 +581,7 @@ const ArcGISMap = observer(() => {
 
           let smoothedHeading;
           if (Math.abs(delta) < 90) {
-            let smoothingFactor = mapStore.followMode == "ride" ? 0.005 : 0.005; // Adjust this for smoothness
+            let smoothingFactor = mapStore.followMode == "ride" ? 0.01 : 0.01; // Adjust this for smoothness
             if (mapStore.replayMode) { smoothingFactor = smoothingFactor * mapStore.replaySpeed }
             smoothedHeading = currentHeading + delta * smoothingFactor;
             smoothedHeading = (smoothedHeading + 360) % 360;
@@ -590,16 +591,15 @@ const ArcGISMap = observer(() => {
           if (mapStore.followMode == "fly") {
             // Use goTo without animation to instantly center the view on the followed rider.
 
-            const cameraPosition = getCameraOffsetPointPlanar(interpolated, calculatedHeading, 10, 10);
+            const cameraPosition = getCameraOffsetPointPlanar(interpolated, calculatedHeading);
             viewRef.current.camera = {
-              center: new Point({
-                longitude: cameraPosition.longitude,
-                latitude: cameraPosition.latitude,
-                z: cameraPosition.altitude,
-              }),
-              zoom: viewRef.current.camera.zoom,
+              position: [
+                cameraPosition.longitude,
+                cameraPosition.latitude,
+                cameraPosition.altitude,
+              ],
               tilt: viewRef.current.camera.tilt,
-              heading: smoothedHeading,
+              heading: calculatedHeading,
             };
           }
           else if (mapStore.followMode == "ride") {
