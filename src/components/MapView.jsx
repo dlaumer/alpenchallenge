@@ -440,15 +440,7 @@ const ArcGISMap = observer(() => {
   useEffect(() => {
     if (viewRef.current) {
       if (mapStore.riderFollowed == "") {
-        viewRef.current.goTo({
-          position: [
-            9.75325244,
-            46.20215233,
-            34712.77477
-          ],
-          heading: 358.70,
-          tilt: 50.05
-        }, { easing: "linear" })
+        
 
         mapStore.setIsFollowing(false);
 
