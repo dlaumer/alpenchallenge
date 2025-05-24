@@ -102,7 +102,7 @@ const ArcGISMap = observer(() => {
 
     const latestSimulation = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "be3fae7b018a4582b5e9fedc752b6260"
+        id: "9ba6f0f3640d4fdc9518d5cc8e97017b"
       },
       elevationInfo: {
         mode: "on-the-ground"
@@ -118,7 +118,7 @@ const ArcGISMap = observer(() => {
 
     const posHistory = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "cca7a7dbfbe8418a9490541c248c1276"
+        id: "d2d0025328514fa3842a2fbe7af8c7f8"
       },
       //definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10')",
       popupEnabled: false
@@ -132,7 +132,7 @@ const ArcGISMap = observer(() => {
       elevationInfo: {
         mode: "relative-to-ground",
       },
-      definitionExpression: "event IN ('granfondo')",
+      definitionExpression: "event IN ('gravelrace')",
       renderer: pointTypeRenderer,
       popupTemplate: {
         title: "{Label}", // replace with actual attribute name
@@ -154,7 +154,7 @@ const ArcGISMap = observer(() => {
 
     const route = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "cbbe1fce60b34a25ab45a05d13de444c"
+        id: "6a33648ee9074c2687842d2da73aace1"
       },
       elevationInfo: {
         mode: "on-the-ground"
