@@ -12,7 +12,7 @@ class RiderStore {
 
   downloadProgress = 0;
 
-  favorites = ["rider_154","rider_254","rider_376","rider_406","rider_565",];
+  favorites = [];
 
   constructor() {
     makeAutoObservable(this);

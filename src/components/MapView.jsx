@@ -125,10 +125,36 @@ const ArcGISMap = observer(() => {
     })
 
 
+    const specialPoints = new FeatureLayer({
+      portalItem: {  // autocasts as esri/portal/PortalItem
+        id: "398629a847f84793a978adb7d71efa6f"
+      },
+      elevationInfo: {
+        mode: "relative-to-ground",
+      },
+      definitionExpression: "event IN ('granfondo')",
+      renderer: pointTypeRenderer,
+      popupTemplate: {
+        title: "{Label}", // replace with actual attribute name
+        content: [
+          {
+            type: "fields",
+            title: "{title}",
+            fieldInfos: [
+              { fieldName: "pointType", label: "Type" },
+              { fieldName: "description", label: "Description" }, // optional
+              { fieldName: "urlLink", label: "URL Link" } // optional
+
+            ]
+          }
+        ]
+      }
+    })
+
 
     const route = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "e861c9af6e194769b8492a37a89c3984"
+        id: "cbbe1fce60b34a25ab45a05d13de444c"
       },
       elevationInfo: {
         mode: "on-the-ground"
@@ -198,7 +224,7 @@ const ArcGISMap = observer(() => {
     const map = new Map({                // Create a Map object
       basemap: "satellite",
       ground: "world-elevation",
-      layers: [favoriteLayer, animatedLayer, latestSimulation, route]
+      layers: [favoriteLayer, animatedLayer, latestSimulation, route, specialPoints]
     });
 
     const view = new SceneView({
@@ -206,12 +232,12 @@ const ArcGISMap = observer(() => {
       map: map,
       camera: {
         position: [
-          9.75325244,
-          46.20215233,
-          34712.77477
+          6.13281869,
+          50.58268639,
+          6276.02395
         ],
-        heading: 358.70,
-        tilt: 50.05
+        heading: 13.25,
+        tilt: 64.40
       },
 
       ui: {
@@ -414,15 +440,6 @@ const ArcGISMap = observer(() => {
   useEffect(() => {
     if (viewRef.current) {
       if (mapStore.riderFollowed == "") {
-        viewRef.current.goTo({
-          position: [
-            9.75325244,
-            46.20215233,
-            34712.77477
-          ],
-          heading: 358.70,
-          tilt: 50.05
-        }, { easing: "linear" })
 
         mapStore.setIsFollowing(false);
 
