@@ -227,7 +227,7 @@ const Header = observer(() => {
             </ProgressBarWrapper>
           </LiveTextWrapper>
         </LiveTitleWrapper>
-        3RIDES - Gran Fondo2
+        3RIDES - Gran Fondo
       </LeftSection>
 
       <RightSection>
