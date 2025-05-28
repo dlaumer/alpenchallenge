@@ -132,7 +132,7 @@ const ArcGISMap = observer(() => {
       elevationInfo: {
         mode: "relative-to-ground",
       },
-      definitionExpression: "event IN ('gravelrace')",
+      definitionExpression: "event IN ('granfondo')",
       renderer: pointTypeRenderer,
       popupTemplate: {
         title: "{Label}", // replace with actual attribute name
