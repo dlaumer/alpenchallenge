@@ -222,7 +222,7 @@ const ArcGISMap = observer(() => {
     favoriteLayerRef.current = favoriteLayer;
 
     const map = new Map({                // Create a Map object
-      basemap: "satellite",
+      basemap: "osm-3d",
       ground: "world-elevation",
       layers: [favoriteLayer, animatedLayer, latestSimulation, route, specialPoints]
     });
@@ -231,13 +231,13 @@ const ArcGISMap = observer(() => {
       container: mapRef.current,
       map: map,
       camera: {
-        position: [
-          6.13281869,
-          50.58268639,
-          6276.02395
-        ],
-        heading: 13.25,
-        tilt: 64.40
+          position: [
+            6.22459789,
+            50.40307830,
+            13469.36302
+          ],
+          heading: 13.32,
+          tilt: 64.27
       },
 
       ui: {
