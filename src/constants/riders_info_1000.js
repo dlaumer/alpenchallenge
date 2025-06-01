@@ -1588,13 +1588,6 @@ export const riders_info = {
     "Birthday": "29.08.2000",
     "Nationality": "DE"
   },
-  "10daf599-cb33-4860-8f5d-b1b8f324e16c": {
-    "FirstName": "Alex",
-    "LastName": "Aerts",
-    "Gender": "male",
-    "Birthday": "01.01.1992",
-    "Nationality": "BE"
-  },
   "10dba608-86ea-4c77-b3a0-e9734df23354": {
     "FirstName": "Francesco Vittorio",
     "LastName": "Caligiuri",
@@ -1852,6 +1845,13 @@ export const riders_info = {
     "LastName": "Kennes",
     "Gender": "male",
     "Birthday": "27.04.1999",
+    "Nationality": "BE"
+  },
+  "1390dafd-e6f1-4e05-85eb-8fef11ae4624": {
+    "FirstName": "Hannes",
+    "LastName": "Van Hijfte",
+    "Gender": "male",
+    "Birthday": "08.01.1994",
     "Nationality": "BE"
   },
   "13c92570-7caa-4df8-a0cb-79697d8e81a4": {
@@ -2735,6 +2735,13 @@ export const riders_info = {
     "Gender": "male",
     "Birthday": "11.05.1965",
     "Nationality": "DE"
+  },
+  "1c78f8f1-2b05-43a7-b8a6-f04795cec4ea": {
+    "FirstName": "Lili",
+    "LastName": "Perez",
+    "Gender": "female",
+    "Birthday": "13.10.1999",
+    "Nationality": "ES"
   },
   "1c8ab982-542e-4825-a8ec-0a7ca30f32c6": {
     "FirstName": "Andy",
@@ -4332,6 +4339,13 @@ export const riders_info = {
     "Birthday": "07.06.2005",
     "Nationality": "BR"
   },
+  "2bb7d9ab-d065-4e6c-80c1-e3586d9dcda2": {
+    "FirstName": "Steven",
+    "LastName": "Van Soom",
+    "Gender": "male",
+    "Birthday": "17.10.1989",
+    "Nationality": "BE"
+  },
   "2bc95c6c-2ec8-45a3-b58f-baf4ea9b9478": {
     "FirstName": "ghiru66",
     "LastName": "Ghiru66",
@@ -4478,13 +4492,6 @@ export const riders_info = {
     "Gender": "male",
     "Birthday": "16.09.1968",
     "Nationality": "IT"
-  },
-  "2d423b80-34de-4039-b4ec-ca6536f88b92": {
-    "FirstName": "Brent",
-    "LastName": "Van Uytsel",
-    "Gender": "male",
-    "Birthday": "05.09.1996",
-    "Nationality": "BE"
   },
   "2d498c4d-4345-4778-a906-1f4e1ddd8b5d": {
     "FirstName": "kimi",
@@ -6285,6 +6292,13 @@ export const riders_info = {
     "Birthday": "10.02.1994",
     "Nationality": "CH"
   },
+  "3ef0a8ad-f901-48a3-b27e-68e06b4448dd": {
+    "FirstName": "Hojjat",
+    "LastName": "Zahedzadeh",
+    "Gender": "male",
+    "Birthday": "18.09.1988",
+    "Nationality": "IR"
+  },
   "3f15d08c-27ed-4427-9e76-44c0ef61cf0a": {
     "FirstName": "josep",
     "LastName": "chalamanch",
@@ -6565,6 +6579,13 @@ export const riders_info = {
     "Birthday": "20.04.1977",
     "Nationality": "IT"
   },
+  "41cba009-3931-417d-8ca1-d61743e0352c": {
+    "FirstName": "Coumans",
+    "LastName": "Martijn",
+    "Gender": "male",
+    "Birthday": "12.08.1998",
+    "Nationality": "NL"
+  },
   "41cc0ecf-9f3c-41b5-b7e8-ed8a4529c7c4": {
     "FirstName": "Thierry",
     "LastName": "Laleeuw",
@@ -6683,6 +6704,13 @@ export const riders_info = {
     "Gender": "female",
     "Birthday": "30.10.1967",
     "Nationality": "DE"
+  },
+  "438def60-4817-4704-a4e8-f02b8289457a": {
+    "FirstName": "Ian",
+    "LastName": "Krumm",
+    "Gender": "male",
+    "Birthday": "20.02.1999",
+    "Nationality": ""
   },
   "439ccbfe-101b-4136-928a-605e3d667949": {
     "FirstName": "Luca",
@@ -7587,13 +7615,6 @@ export const riders_info = {
     "Birthday": "06.10.1981",
     "Nationality": ""
   },
-  "4d35a0fe-7173-482c-8f41-2678ee98b567": {
-    "FirstName": "Manuel",
-    "LastName": "Wirsching",
-    "Gender": "male",
-    "Birthday": "31.07.1981",
-    "Nationality": "DE"
-  },
   "4d51f229-9d07-4530-a815-d84a6ecd3f57": {
     "FirstName": "Ayadi",
     "LastName": "Jarray",
@@ -8027,6 +8048,13 @@ export const riders_info = {
     "Gender": "male",
     "Birthday": "11.04.1968",
     "Nationality": "BE"
+  },
+  "51399eb4-fedd-46cc-b508-6722d0ebde8d": {
+    "FirstName": "Chris",
+    "LastName": "Schweizer",
+    "Gender": "male",
+    "Birthday": "04.03.1986",
+    "Nationality": ""
   },
   "5179208b-f6b4-4cc1-ab0f-c122e91ef783": {
     "FirstName": "Nathan",
@@ -9708,6 +9736,13 @@ export const riders_info = {
     "Birthday": "27.09.1999",
     "Nationality": "EG"
   },
+  "60a7b129-1280-4755-9845-1a790a92fbdd": {
+    "FirstName": "Niklas",
+    "LastName": "Przybilski",
+    "Gender": "male",
+    "Birthday": "24.11.2000",
+    "Nationality": "DE"
+  },
   "60b8974f-7842-4be1-ae6b-7d955a020f78": {
     "FirstName": "Emre",
     "LastName": "Aner",
@@ -10079,6 +10114,13 @@ export const riders_info = {
     "Birthday": "22.05.1979",
     "Nationality": "IT"
   },
+  "6492ebba-2ade-40d5-850a-e076f843757e": {
+    "FirstName": "Leander",
+    "LastName": "Ihle",
+    "Gender": "male",
+    "Birthday": "10.07.2004",
+    "Nationality": ""
+  },
   "64a28b20-93bc-4e0f-813e-0e80c0810aed": {
     "FirstName": "Nono",
     "LastName": "Marantmar",
@@ -10231,6 +10273,13 @@ export const riders_info = {
     "LastName": "Stapel",
     "Gender": "female",
     "Birthday": "02.07.1981",
+    "Nationality": "DE"
+  },
+  "668b894f-3dce-4649-afae-742e09daa9f1": {
+    "FirstName": "Marcel",
+    "LastName": "M",
+    "Gender": "male",
+    "Birthday": "08.01.1989",
     "Nationality": "DE"
   },
   "669afc31-5602-4ab1-a9f2-7c0b4b0a1608": {
@@ -12241,6 +12290,13 @@ export const riders_info = {
     "Gender": "male",
     "Birthday": "09.01.1958",
     "Nationality": "CH"
+  },
+  "7a71fa3b-f535-41a8-be54-5a8ba0e01066": {
+    "FirstName": "Bart",
+    "LastName": "Geerkens",
+    "Gender": "male",
+    "Birthday": "24.03.1991",
+    "Nationality": "BE"
   },
   "7a740cee-6385-40a3-b89d-60eea217ee8c": {
     "FirstName": "YARED",
@@ -15889,6 +15945,13 @@ export const riders_info = {
     "Birthday": "19.10.1966",
     "Nationality": "IT"
   },
+  "a0270d1a-01bc-4113-8597-7d2b35ad12f7": {
+    "FirstName": "Strava",
+    "LastName": "Athlete",
+    "Gender": "female",
+    "Birthday": "20.02.1999",
+    "Nationality": ""
+  },
   "a0464496-ebaa-4ea6-8482-61b3564d54a5": {
     "FirstName": "Filippo",
     "LastName": "Guerra",
@@ -16483,6 +16546,13 @@ export const riders_info = {
     "Gender": "male",
     "Birthday": "02.06.1999",
     "Nationality": "IN"
+  },
+  "a6b56dea-4b36-41fb-b45f-2e3616ffe2d5": {
+    "FirstName": "Geert",
+    "LastName": "Vaesen",
+    "Gender": "male",
+    "Birthday": "12.08.1970",
+    "Nationality": "BE"
   },
   "a6dfef27-7499-4caf-80b7-2564840162ce": {
     "FirstName": "Sofia",
@@ -18920,6 +18990,13 @@ export const riders_info = {
     "Birthday": "17.08.1982",
     "Nationality": "IT"
   },
+  "c0eb88d3-cca3-439a-9cd9-acb96623583d": {
+    "FirstName": "Philipp",
+    "LastName": "Ossenbrüggen",
+    "Gender": "male",
+    "Birthday": "18.11.2003",
+    "Nationality": "DE"
+  },
   "c1078585-bac6-43fd-9f99-577ad841b5eb": {
     "FirstName": "daniel",
     "LastName": "gaber",
@@ -19823,6 +19900,13 @@ export const riders_info = {
     "Birthday": "23.03.1967",
     "Nationality": "IT"
   },
+  "c9ffd55c-5767-40bd-b9cc-be2ebf433773": {
+    "FirstName": "Matthias",
+    "LastName": "Krings",
+    "Gender": "male",
+    "Birthday": "09.01.1992",
+    "Nationality": ""
+  },
   "ca262fd3-78e0-42f8-9d5e-cb0d15b3570f": {
     "FirstName": "Christian",
     "LastName": "Fluri",
@@ -20228,6 +20312,13 @@ export const riders_info = {
     "Gender": "male",
     "Birthday": "27.06.1971",
     "Nationality": "ES"
+  },
+  "ce017ed3-cf5e-46af-9981-f793e4d3d32a": {
+    "FirstName": "Brent",
+    "LastName": "Van Uytsel",
+    "Gender": "male",
+    "Birthday": "05.09.1996",
+    "Nationality": "BE"
   },
   "ce07af60-9d22-4016-a807-e88c233380a2": {
     "FirstName": "Ringo",
@@ -21782,13 +21873,6 @@ export const riders_info = {
     "Gender": "male",
     "Birthday": "04.08.1987",
     "Nationality": "FR"
-  },
-  "dd3ccffe-1318-417b-8878-ef30009d3b67": {
-    "FirstName": "Aalokken",
-    "LastName": "Aalokken",
-    "Gender": "female",
-    "Birthday": "03.06.1969",
-    "Nationality": "NO"
   },
   "dd567874-9ab3-4dc3-868d-25d5f7956379": {
     "FirstName": "O",
