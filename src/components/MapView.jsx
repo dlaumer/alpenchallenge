@@ -15,6 +15,8 @@ import Point from "@arcgis/core/geometry/Point";
 import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 import Weather from "@arcgis/core/widgets/Weather";
 import Editor from "@arcgis/core/widgets/Editor";
+import Home from "@arcgis/core/widgets/Home";
+
 import { pointTypeRenderer, favoriteLayerRenderer, streamLayerRenderer } from "../utils/renderers";
 import ElevationProfile from "@arcgis/core/widgets/ElevationProfile";
 import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
@@ -273,6 +275,12 @@ const ArcGISMap = observer(() => {
     });
     view.ui.add(edit, "top-right")
 
+
+    
+    const home = new Home({
+        view: view
+      });
+    view.ui.add(home, "bottom-right")
 
     /**
      * Recursively fetches *all* features from a layer by paginating
