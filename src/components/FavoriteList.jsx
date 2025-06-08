@@ -142,6 +142,7 @@ const FavoriteList = observer(() => {
           const last = info.LastName || '';
           const isSelected = mapStore.riderSelected === id;
           const isFollowing = mapStore.riderFollowed === id;
+          const number = info && info.Startnummer ? info.Startnummer : info ? info.FirstName.substring(0, 1) + info.LastName.substring(0, 1) : id.substring(0, 3);
 
           return (
             <Item key={id}>
@@ -152,7 +153,7 @@ const FavoriteList = observer(() => {
                 <InfoPart>
                   <TopPart>
                     <RankCircle $following={isFollowing}>
-                      {id.substring(6)}
+                      {number}
                     </RankCircle>
                     <Name>
                       <span>{first}</span>

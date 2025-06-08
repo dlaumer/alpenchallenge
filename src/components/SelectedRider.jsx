@@ -113,11 +113,11 @@ const SelectedRider = observer(() => {
     return null; // Don't show the selected rider if it's the same as the followed one
 
   const info = riders_info[riderId];
-  const number = riderId.substring(6) || "";
   const name = info ? `${info.FirstName} ${info.LastName}` : riderId;
   const meta = info ? countryMeta[info.Nationality.toUpperCase()] : null;
   const country = meta ? meta.name : info?.Nationality || "";
   const speed = (riderData.previousPos?.speed ?? 0).toFixed(1);
+  const number = info && info.Startnummer ? info.Startnummer : info ? info.FirstName.substring(0,1) + info.LastName.substring(0,1) : riderId.substring(0,3);
 
   const isFavorited = riderStore.favorites.includes(riderId);
   const isFollowing = mapStore.riderFollowed === riderId;
