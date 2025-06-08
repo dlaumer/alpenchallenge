@@ -3728,12 +3728,12 @@ export const riders_info = {
     "Startnummer": ""
   },
   "227e44e6-765f-4687-a5d7-8b101c6a5483": {
-    "FirstName": "Theo",
-    "LastName": "Felten",
+    "FirstName": "Theo Felten",
+    "LastName": "Staff",
     "Gender": "male",
     "Birthday": "12.01.1971",
     "Nationality": "DE",
-    "Startnummer": ""
+    "Startnummer": "Spe1"
   },
   "2282a759-0034-48f7-8ae2-2e0ff0492bc0": {
     "FirstName": "Carlos",
@@ -8416,12 +8416,12 @@ export const riders_info = {
     "Startnummer": ""
   },
   "4ae2cfb6-dc24-4970-b564-762f0d61adb0": {
-    "FirstName": "Ralf",
-    "LastName": "Petervari",
+    "FirstName": "Ralf Rapet",
+    "LastName": "Staff",
     "Gender": "male",
     "Birthday": "20.10.1967",
     "Nationality": "",
-    "Startnummer": ""
+    "Startnummer": "Sp1"
   },
   "4aefff7e-a1c1-45a9-aa05-21533891dc0f": {
     "FirstName": "Maurizio",
@@ -9168,12 +9168,12 @@ export const riders_info = {
     "Startnummer": ""
   },
   "51399eb4-fedd-46cc-b508-6722d0ebde8d": {
-    "FirstName": "Chris",
-    "LastName": "Schweizer",
+    "FirstName": "Chris Schweizer",
+    "LastName": "Staff",
     "Gender": "male",
     "Birthday": "04.03.1986",
     "Nationality": "",
-    "Startnummer": ""
+    "Startnummer": "Cat1"
   },
   "5179208b-f6b4-4cc1-ab0f-c122e91ef783": {
     "FirstName": "Nathan",
@@ -11705,11 +11705,11 @@ export const riders_info = {
   },
   "668b894f-3dce-4649-afae-742e09daa9f1": {
     "FirstName": "Marcel",
-    "LastName": "M",
+    "LastName": "Staff",
     "Gender": "male",
     "Birthday": "08.01.1989",
     "Nationality": "DE",
-    "Startnummer": ""
+    "Startnummer": "Sp1"
   },
   "669afc31-5602-4ab1-a9f2-7c0b4b0a1608": {
     "FirstName": "Tanja",
@@ -24048,12 +24048,12 @@ export const riders_info = {
     "Startnummer": ""
   },
   "d558a38b-d7d2-42c9-84ee-fbe958a18583": {
-    "FirstName": "Susanne",
-    "LastName": "Wienand",
+    "FirstName": "Susanne Wienand",
+    "LastName": "Staff",
     "Gender": "female",
     "Birthday": "14.03.1979",
     "Nationality": "DE",
-    "Startnummer": ""
+    "Startnummer": "Vo1"
   },
   "d574fdd0-6977-4656-a097-b99e00d64032": {
     "FirstName": "Ferdi",
