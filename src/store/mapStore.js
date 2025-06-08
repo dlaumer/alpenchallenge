@@ -13,7 +13,8 @@ class MapStore {
   timeRefresh = null;
   timeReference = null;
   timeReferenceAnimation = Date.now();
-  replayMode = false;
+  replayMode = false; // true for replay, false for live
+  replayType = 'event'; // 'event' or 'post-event'
   playing = true;
 
   lag = 300000;
@@ -82,6 +83,18 @@ class MapStore {
   }
   setReplayMode(val) {
     this.replayMode = val;
+  }
+
+  setReplayType(type) {
+    this.replayType = type;
+  }
+
+  isPostEventReplay() {
+    return this.replayMode && this.replayType === 'post-event';
+  }
+
+  isEventReplay() {
+    return this.replayMode && this.replayType === 'event';
   }
 
   togglePlaying() {

@@ -9,6 +9,8 @@ import weatherSymbol from "../assets/symbols/weather.svg";
 import redPinSymbol from "../assets/red-pin-symbol.svg";
 import bluePinSymbol from "../assets/blue-pin-symbol.svg";
 import yellowPinSymbol from "../assets/yellow-pin-symbol.svg";
+import lightBluePinSymbol from "../assets/lightBlue-pin-symbol.svg";
+import greyPinSymbol from "../assets/grey-pin-symbol.svg";
 
 import PointSymbol3D from "@arcgis/core/symbols/PointSymbol3D";
 import IconSymbol3DLayer from "@arcgis/core/symbols/IconSymbol3DLayer";
@@ -90,23 +92,23 @@ export const createSymbol = (icon, size) => (
 // build the renderer
 export const streamLayerRenderer = new UniqueValueRenderer({
   field: "symbolisation",
-  defaultSymbol: createSymbolSimple(new Color("#8B0000")),  // fallback if no match
+  defaultSymbol: createSymbol(lightBluePinSymbol,30),  // fallback if no match
   uniqueValueInfos: [
     {
       value: "favorite",
-      symbol: createSymbolSimple(new Color("#2575b0")),     // blue
+      symbol: createSymbol(bluePinSymbol, 45),     // blue
     },
     {
       value: "selected",
-      symbol: createSymbolSimple(new Color("#FF0000")),      // dark red
+      symbol: createSymbol(redPinSymbol, 45),      // dark red
     },
     {
       value: "inactive",
-      symbol: createSymbolSimple(new Color([224, 234, 255, 0.6])),     // transparent
+      symbol: createSymbol(greyPinSymbol, 30),     // transparent
     },
     {
       value: "staff",
-      symbol: createSymbolSimple(new Color("#FCD53F")),     // yellow
+      symbol: createSymbol(yellowPinSymbol, 30),     // yellow
     }
   ]
 });

@@ -131,15 +131,22 @@ const SliderWrapper = styled.div`
   pointer-events: ${props => (props.disabled ? "none" : "auto")};
 `;
 
-const SliderProgress = styled.div`
+const SliderProgress = styled.div.attrs(props => ({
+  style: {
+    width: `${props.$progress}%`,
+    transition: props.$isDownloading ? "width 0.3s ease" : "none",
+  },
+}))`
   height: 100%;
   background: darkred;
   border-radius: 4px;
-  width: ${props => props.$progress}%;
-  transition: ${props => props.$isDownloading? "width 0.3s ease": "" };
 `;
 
-const SliderHandle = styled.div`
+const SliderHandle = styled.div.attrs(props => ({
+  style: {
+    left: `${props.$progress}%`,
+  },
+}))`
   width: 14px;
   height: 14px;
   background: white;
@@ -148,7 +155,6 @@ const SliderHandle = styled.div`
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  left: ${props => props.$progress}%;
   pointer-events: none;
 `;
 
@@ -175,11 +181,23 @@ const ReplaySlider = observer(() => {
   const sliderRef = useRef(null);
   const [elapsedPlaying, setElapsedPlaying] = useState(0);
 
-  const [startTs, endTs] = riderStore.getReplayTimeRange();
+  let [startTs, endTs] = riderStore.getReplayTimeRange();
+
+  // hardcode for this event for the replay
+  startTs = 1748694600 * 1000;
+  endTs = 1748711160 * 1000;
+
 
   const formatTime = ms => {
     const d = new Date(ms);
-    return d.toLocaleTimeString("de-CH");
+    return d.toLocaleString("de-CH", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
   };
 
   const togglePlay = () => {
@@ -206,9 +224,9 @@ const ReplaySlider = observer(() => {
     if (!mapStore.time) return 0;
     if (mapStore.replayMode) {
       let pct =
-        ((mapStore.time - startTs ) /
-          (endTs - startTs )) * 100;
-      if (pct > 100 && mapStore.playing) {
+        ((mapStore.time - startTs) /
+          (endTs - startTs)) * 100;
+      if (pct > 100 && mapStore.playing && mapStore.replayType === 'event') {
         pct = 100;
         setLive();
       }
@@ -226,8 +244,8 @@ const ReplaySlider = observer(() => {
     if (!isDownloading) {
       mapStore.setReplayMode(true);
       const newTime = Math.max(
-        startTs ,
-        Math.min(endTs , mapStore.time + deltaMs)
+        startTs,
+        Math.min(endTs, mapStore.time + deltaMs)
       );
       mapStore.setTimeReference(newTime);
       mapStore.setTimeReferenceAnimation(Date.now());
@@ -245,8 +263,8 @@ const ReplaySlider = observer(() => {
       const ts =
         startTs +
         pct *
-          (endTs - startTs);
-      if (pct === 1 && mapStore.playing) {
+        (endTs - startTs);
+      if (pct === 1 && mapStore.playing && mapStore.replayType === 'event') {
         setLive();
       } else {
         mapStore.setReplayMode(true);
@@ -319,7 +337,7 @@ const ReplaySlider = observer(() => {
             <LiveDot />
             LIVE
           </LiveTag>
-        ) : mapStore.buffering  ? (
+        ) : mapStore.buffering ? (
           <BufferingTag>
             <SpinnerIcon size={14} />
             Buffering

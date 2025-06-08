@@ -173,7 +173,7 @@ const ArcGISMap = observer(() => {
     // new: client‑side StreamLayer
     const animatedLayer = new StreamLayer({
       elevationInfo: {
-        mode: "on-the-ground"
+        mode: "relative-to-ground"
       },
       // define schema: must include an OID (objectIdField) and a trackId
       fields: [
@@ -413,6 +413,26 @@ const ArcGISMap = observer(() => {
           riderStore.clearDownloadProgress()
           console.log("Fetched features:", results.length);
           riderStore.setReplayData(results); // create a setter in your store
+
+          // check if data is stale
+          const [minTs, maxTs] = riderStore.getReplayTimeRange();
+          const now = Date.now();
+          const fifteenMinutes = 15 * 60 * 1000;
+
+          if (maxTs && now - maxTs > fifteenMinutes) {
+            console.log("⚠️ Data is stale, switching to replay mode");
+
+            mapStore.setReplayMode(true);
+            mapStore.setTimeReference(1748694600 * 1000);
+            mapStore.setTimeReferenceAnimation(Date.now());
+            mapStore.setTime(1748694600 * 1000);
+            mapStore.setReplayType("post-event")
+          } else {
+            console.log("✅ Live data available");
+            mapStore.setReplayMode(false);
+            mapStore.setTimeReference(now - mapStore.lag);
+            mapStore.setTimeReferenceAnimation(Date.now());
+          }
         });
       })
       .catch(err => console.error(err));

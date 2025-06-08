@@ -141,6 +141,8 @@ class RiderStore {
     }
 
     const timeDiff = data.ts - data.previousTs;
+    //console.log(timeDiff, mapStore.time, data.previousTs, data.ts);
+
     if (timeDiff <= 0) return null;
     let t = Math.max(0, Math.min(1, (mapStore.time - data.previousTs) / timeDiff));
 
@@ -157,6 +159,7 @@ class RiderStore {
     else if (data.snapped == 0) {
       result = this.interpolateBetweenPoints(t, data);
     }
+    if (!result) return null;
     result.active = active;
     return result
   }
@@ -219,7 +222,13 @@ class RiderStore {
 
   interpolateAlongPath(t, rider) {
     const riderId = rider.riderId;
+    if (rider.previousDistance == null) {
+      return null;
+    }
     const distDiff = rider.distance - rider.previousDistance;
+    if (distDiff > 1000) {
+      return null; // Skip large jumps
+    }
     const newDistance = rider.previousDistance + t * distDiff;
     let routeIndex = rider.previousRouteIndex;
 
@@ -229,6 +238,9 @@ class RiderStore {
     routeIndex = Math.max(0, routeIndex - 1);
 
     const i0 = routeIndex;
+    if (i0 == 0) {
+      return null; // No previous point to interpolate from
+    }
     const i1 = routeIndex + 1 < routeStore.dists.length ? routeIndex + 1 : routeIndex;
     const d0 = routeStore.getDistance(i0);
     const d1 = routeStore.getDistance(i1);
@@ -274,18 +286,25 @@ class RiderStore {
   }
 
   getReplayTimeRange() {
-    const allTimestamps = Object.values(this.replayTimestamps)
-      // only keep real arrays (skip undefined, null, non-arrays)
-      .filter(arr => Array.isArray(arr))
-      // flatten, but skip any empty arrays automatically
-      .flat();
+    let minTs = Infinity;
+    let maxTs = -Infinity;
 
-    if (allTimestamps.length === 0) return [null, null];
+    for (const timestamps of Object.values(this.replayTimestamps)) {
+      if (Array.isArray(timestamps) && timestamps.length > 0) {
+        const first = timestamps[0];
+        const last = timestamps[timestamps.length - 1];
+        if (first < minTs) minTs = first;
+        if (last > maxTs) maxTs = last;
+      }
+    }
 
-    const minTs = allTimestamps[0];
-    const maxTs = allTimestamps[allTimestamps.length - 1];
+    if (minTs === Infinity || maxTs === -Infinity) {
+      return [null, null];
+    }
+
     return [minTs, maxTs];
   }
+
 
   setDownloadProgress(progress) {
     this.downloadProgress = progress;
