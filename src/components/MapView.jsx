@@ -175,7 +175,7 @@ const ArcGISMap = observer(() => {
     // new: client‑side StreamLayer
     const animatedLayer = new StreamLayer({
       elevationInfo: {
-        mode: "on-the-ground"
+        mode: "relative-to-ground"
       },
       // define schema: must include an OID (objectIdField) and a trackId
       fields: [
