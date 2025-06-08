@@ -132,9 +132,9 @@ const FollowedRider = observer(() => {
   if (!riderId) return null;
 
   // same info lookup as SelectedRider
-  const info = riders_info[riderId] || {FirstName: riderId, LastName: ""};
-  const number = riderId.substring(0,3) || "";
+  const info = riders_info[riderId] || { FirstName: riderId, LastName: "" };
   const name = info ? `${info.FirstName} ${info.LastName}` : riderId;
+  const number = info && info.Startnummer ? info.Startnummer : info ? info.FirstName.substring(0, 1) + info.LastName.substring(0, 1) : riderId.substring(0, 3);
 
   return (
     <Container>
@@ -159,8 +159,8 @@ const FollowedRider = observer(() => {
       </ModeGroup>
 
       <IconButton title="Share">
-          <Share size={20} />
-        </IconButton>
+        <Share size={20} />
+      </IconButton>
 
       <CloseButton onClick={() => mapStore.toggleFollow(riderId)}>
         <X size={20} />
