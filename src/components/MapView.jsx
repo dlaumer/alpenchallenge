@@ -19,26 +19,11 @@ import Home from "@arcgis/core/widgets/Home";
 
 import { pointTypeRenderer, streamLayerRenderer } from "../utils/renderers";
 import ElevationProfile from "@arcgis/core/widgets/ElevationProfile";
-import UniqueValueRenderer from "@arcgis/core/renderers/UniqueValueRenderer";
 import Zoom from "@arcgis/core/widgets/Zoom";
 import Compass from "@arcgis/core/widgets/Compass";
 import NavigationToggle from "@arcgis/core/widgets/NavigationToggle";
 import { riders_info } from '../constants/riders_info_1000';
 
-import Color from "@arcgis/core/Color.js";
-import ObjectSymbol3DLayer from "@arcgis/core/symbols/ObjectSymbol3DLayer.js";
-import PointSymbol3D from "@arcgis/core/symbols/PointSymbol3D.js";
-import LineCallout3D from "@arcgis/core/symbols/callouts/LineCallout3D.js";
-import Symbol3DVerticalOffset from "@arcgis/core/symbols/support/Symbol3DVerticalOffset.js";
-
-import bluePinSymbol from "../assets/blue-pin-symbol.svg";
-import redPinSymbol from "../assets/red-pin-symbol.svg";
-import yellowPinSymbol from "../assets/yellow-pin-symbol.svg";
-import roadBike from '../assets/Road_Bike.glb'
-
-import { reaction } from "mobx";
-
-import { Anchor } from "lucide-react";
 
 const MapContainer = styled.div`
   width: 100%;
@@ -543,12 +528,16 @@ const ArcGISMap = observer(() => {
             isStaff = true;
           }
         }
+        let symbo = !interpolated.active ? "inactive" : isStaff ? "staff" : riderStore.favorites.includes(riderId) ? "favorite" : ""; 
+        if (mapStore.riderSelected == riderId) {
+          symbo = symbo + "_selected";
+        }
 
         features.push({
           attributes: {
             OBJECTID: objectIdCounter++,
             TRACKID: riderId,
-            symbolisation: !interpolated.active ? "inactive" : mapStore.riderSelected == riderId ? "selected" : isStaff ? "staff" : riderStore.favorites.includes(riderId) ? "favorite" : "",
+            symbolisation: symbo,
           },
           geometry: {
             x: interpolated.longitude,

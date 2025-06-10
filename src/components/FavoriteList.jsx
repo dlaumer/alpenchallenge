@@ -7,12 +7,14 @@ import { Play, Star } from 'lucide-react';
 import riderStore from '../store/riderStore';
 import mapStore from '../store/mapStore';
 import { riders_info } from '../constants/riders_info_1000';
+import uiStore from '../store/uiStore';
+import { countryMeta } from "../constants/countryMeta";
 
 const Container = styled.div`
   position: absolute;
   bottom: 50px;
   left: 0px;
-  width: 250px;
+  width: 200px;
   max-height: calc(100% - 100px);
   overflow-y: auto;
   padding: 4px 0;
@@ -46,21 +48,8 @@ const Bubble = styled.div`
   flex: 1;
   background: rgba(58, 63, 69, 0.6);
   backdrop-filter: blur(4px);
-  /* draw a 3px “border” outside on top, right and bottom when selected */
-  ${props =>
-    props.$selected
-      ? `
-    box-shadow:
-    /* top */
-    0 -3px 0 0 ${props.$following ? 'red' : '#4e8cff'},
-    /* right */
-    3px 0 0 0 ${props.$following ? 'red' : '#4e8cff'},
-    /* bottom */
-    0 3px 0 0 ${props.$following ? 'red' : '#4e8cff'};
-    `
-      : ''}
   border-radius: 0 54px 54px 0;
-  padding: 6px 8px 6px 6px; /* space for the circle */
+  padding: 8px 10px 8px 8px; /* space for the circle */
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -68,20 +57,21 @@ const Bubble = styled.div`
   cursor: pointer;
   align-items: center;
 `;
-
 const RankCircle = styled.div`
-  width: 40px;
-  height: 40px;
-  background: ${props => props.$following ? 'red' : '#4e8cff'};
+  width: 46px; /* 40px circle + 2×3px border */
+  height: 46px;
+  box-sizing: border-box;
+  background: ${props => props.color};
   border-radius: 50%;
+  border: ${props => props.$selected ? `3px solid #30D5C8` : "none"};
   color: #fff;
   font-size: 14px;
-  font-weight: bold;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2;
-    margin-right: 12px;
+  flex-shrink: 0;
+  margin-right: 12px;
 `;
 
 const Name = styled.div`
@@ -99,35 +89,12 @@ width: 70%;
   justify-content: center;
 `;
 
-const FollowButton = styled.button`
-  align-self: flex-start;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: ${props => props.$following ? 'red' : '#4e8cff'};
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 6px 12px;
-  font-size: 12px;
-  cursor: pointer;
-  width: 80%;
-  margin-top: 8px;
-`;
-
-const StarButton = styled.button`
-  top: 15px;
-  right: 15px;
-  background: none;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  height: fit-content;
-
-  svg {
-    stroke: ${props => props.$following ? 'red' : '#4e8cff'};
-    fill: ${props => props.$following ? 'red' : '#4e8cff'};
-  }
+const Flag = styled.img`
+  width: 24px;
+  height: 16px;
+  border-radius: 2px;
+  margin-left: auto;
+  margin-right: 6px;
 `;
 
 const FavoriteList = observer(() => {
@@ -145,6 +112,17 @@ const FavoriteList = observer(() => {
           const isFollowing = mapStore.riderFollowed === id;
           const number = info && info.Startnummer ? info.Startnummer : info ? info.FirstName.substring(0, 1) + info.LastName.substring(0, 1) : id.substring(0, 3);
 
+          const isStaff = info?.LastName === "Staff";
+          const color = isFollowing
+            ? uiStore.colorFollowing
+            : isStaff
+              ? uiStore.colorStaff
+              : riderStore.favorites.includes(id)
+                ? uiStore.colorFavorites
+                : uiStore.colorNormal;
+
+          const meta = countryMeta[info?.Nationality?.toUpperCase()];
+          const flag = meta?.flag;
           return (
             <Item key={id}>
               <Bubble $selected={isSelected} $following={isFollowing}
@@ -153,15 +131,18 @@ const FavoriteList = observer(() => {
                 }>
                 <InfoPart>
                   <TopPart>
-                    <RankCircle $following={isFollowing}>
+                    <RankCircle color={color} $selected={isSelected}>
                       {number}
                     </RankCircle>
-                    <Name>
-                      <span>{first + " " + last}</span>
-                      <span></span>
+                    <Name name={first + " " + last}>
+                      <span>{first}</span>
+                      <span>{last}</span>
                     </Name>
                   </TopPart>
+
                 </InfoPart>
+                                  {flag && <Flag src={flag} alt={info.Nationality} />}
+
               </Bubble>
             </Item>
           );

@@ -6,11 +6,12 @@ import mapStore from "../store/mapStore";
 import riderStore from "../store/riderStore";
 import { riders_info } from "../constants/riders_info_1000";
 import { countryMeta } from "../constants/countryMeta";
-import { X, Share } from "lucide-react";
+import { X, Share2 } from "lucide-react";
+import uiStore from "../store/uiStore";
 
 const Container = styled.div`
 
-  width: 460px;
+  width: 500px;
   padding: 12px 24px;
   background: #fff;
   border-radius: 32px;
@@ -28,7 +29,7 @@ const LeftGroup = styled.div`
 `;
 
 const NumberBadge = styled.div`
-  background: #e74c3c;
+  background: ${uiStore.colorFollowing};
   color: #fff;
   border-radius: 50%;
   width: 40px;
@@ -46,6 +47,7 @@ const Info = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  margin-right: 16px;
 `;
 
 const Label = styled.div`
@@ -85,8 +87,8 @@ const ModeButton = styled.button`
   padding: 6px 12px;
   font-size: 12px;
   border: none;
-  background: ${(props) => props.$active ? "#e74c3c" : "transparent"};
-  color: ${(props) => props.$active ? "#fff" : "e74c3c"};
+  background: ${(props) => props.$active ? `${uiStore.colorFollowing}` : "transparent"};
+  color: ${(props) => props.$active ? "#fff" : `#000`};
   cursor: pointer;
 
   &:first-child {
@@ -94,19 +96,21 @@ const ModeButton = styled.button`
   }
 `;
 
+
 const IconButton = styled.button`
-  background: none;
-  border: none;
-  padding: 6px;
-  margin-left: 12px;
-  cursor: pointer;
+  align-self: flex-start;
   display: flex;
   align-items: center;
-  color: #000;
-
-  &:hover {
-    opacity: 0.8;
-  }
+  gap: 4px;
+  background: rgba(0,0,0,0);
+  color: #555;
+  border: 1px solid #555;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 5px;
+  margin-left: 8px;
 `;
 /* Updated: circular close button */
 const CloseButton = styled.button`
@@ -127,6 +131,13 @@ const CloseButton = styled.button`
   }
 `;
 
+const FlagIcon = styled.img`
+  width: 24px;
+  height: 16px;
+  margin-left: 10px;
+  border-radius: 2px;
+`;
+
 const FollowedRider = observer(() => {
   const riderId = mapStore.riderFollowed;
   if (!riderId) return null;
@@ -136,6 +147,9 @@ const FollowedRider = observer(() => {
   const name = info ? `${info.FirstName} ${info.LastName}` : riderId;
   const number = info && info.Startnummer ? info.Startnummer : info ? info.FirstName.substring(0, 1) + info.LastName.substring(0, 1) : riderId.substring(0, 3);
 
+  const meta = info ? countryMeta[info.Nationality.toUpperCase()] : null;
+  const flag = meta?.flag;
+
   return (
     <Container>
       <LeftGroup>
@@ -144,6 +158,7 @@ const FollowedRider = observer(() => {
           <Label>You follow</Label>
           <NameRow>{name}</NameRow>
         </Info>
+        {flag && <FlagIcon src={flag} alt={info.Nationality} />}
       </LeftGroup>
 
       <ModeGroup>
@@ -159,7 +174,7 @@ const FollowedRider = observer(() => {
       </ModeGroup>
 
       <IconButton title="Share">
-        <Share size={20} />
+        <Share2 size={20} />{"Share"}
       </IconButton>
 
       <CloseButton onClick={() => mapStore.toggleFollow(riderId)}>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg height="64" viewBox="0 0 64 64" width="64" xmlns="http://www.w3.org/2000/svg">
+<!-- Subtle tail and thinner border -->
+<path d="M32 6C23 6 16 13 16 22c0 7 8 18 16 26 8-8 16-19 16-26 0-9-7-16-16-16z" fill="#30D5C8"/>
+<circle cx="32" cy="22" fill="#BFDBFF" r="13"/>
+</svg>

@@ -6,6 +6,12 @@ class UIStore {
   favoritePanelCollapsed = false;
   isMobile = false;
 
+  colorSelected = "#30D5C8"; // typical ArcGIS turquoise
+  colorFollowing = "#E74C3C"; // typical ArcGIS red
+  colorFavorites = "#4E8CFF"; // typical ArcGIS blue
+  colorNormal = "#BFDBFF";
+  colorStaff = "#FFB74D"; // typical ArcGIS yellow
+
   constructor() {
     this.favoritePanelCollapsed = false;
 

@@ -6,12 +6,13 @@ import mapStore from "../store/mapStore";
 import riderStore from "../store/riderStore";
 import { riders_info } from "../constants/riders_info_1000";
 import { countryMeta } from "../constants/countryMeta";
-import { Star, Play, Share } from "lucide-react";
+import { Star, Play, Share2 } from "lucide-react";
 import { X } from "lucide-react";
+import uiStore from '../store/uiStore';
 
 const Container = styled.div`
 
-  width: 500px;
+  width: 600px;
   padding: 12px 24px;
   background: rgba(58, 63, 69, 0.6);
   backdrop-filter: blur(4px);  border-radius: 32px;
@@ -26,23 +27,25 @@ const Container = styled.div`
 const LeftGroup = styled.div`
   display: flex;
   align-items: center;
-    width: 70%;
+    width: 40%;
 
 `;
 
 const NumberBadge = styled.div`
-  background: #4e8cff;
-  color: #fff;
+  width: 46px; /* 40px circle + 2×3px border */
+  height: 46px;
+  box-sizing: border-box;
+  background: ${props => props.color};
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  border: ${props => props.$selected ? `3px solid #30D5C8` : "none"};
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  font-weight: 600;
-  margin-right: 16px;
   flex-shrink: 0;
+  margin-right: 12px;
 `;
 
 const Info = styled.div`
@@ -69,18 +72,19 @@ const Subtitle = styled.div`
 `;
 
 const IconButton = styled.button`
-  background: none;
-  border: none;
-  padding: 6px;
-  margin-left: 12px;
-  cursor: pointer;
+  align-self: flex-start;
   display: flex;
   align-items: center;
+  gap: 4px;
+  background: rgba(0,0,0,0);
   color: #fff;
-
-  &:hover {
-    opacity: 0.8;
-  }
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 2px;
+  margin-left: 8px;
 `;
 
 /* Updated: circular close button */
@@ -103,20 +107,13 @@ const CloseButton = styled.button`
 `;
 
 
-const FollowButton = styled.button`
-  align-self: flex-start;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: ${props => props.$following ? 'red' : '#4e8cff'};
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  padding: 6px 12px;
-  font-size: 12px;
-  cursor: pointer;
-  margin-top: 4px;
+const FlagIcon = styled.img`
+  width: 24px;
+  height: 16px;
+  margin-left: 10px;
+  border-radius: 2px;
 `;
+
 const SelectedRider = observer(() => {
   const riderId = mapStore.riderSelected;
   if (!riderId) return null;
@@ -137,10 +134,21 @@ const SelectedRider = observer(() => {
   const isFavorited = riderStore.favorites.includes(riderId);
   const isFollowing = mapStore.riderFollowed === riderId;
 
+  const isStaff = info?.LastName === "Staff";
+  const color = isFollowing
+    ? uiStore.colorFollowing
+    : isStaff
+      ? uiStore.colorStaff
+      : riderStore.favorites.includes(riderId)
+        ? uiStore.colorFavorites
+        : uiStore.colorNormal;
+
+  const flag = meta?.flag;
+
   return (
     <Container>
       <LeftGroup>
-        <NumberBadge>{number}</NumberBadge>
+        <NumberBadge color={color} $selected={true}>{number}</NumberBadge>
         <Info>
           <NameRow>
             {name}
@@ -149,19 +157,21 @@ const SelectedRider = observer(() => {
             {country} &bull; {speed} km/h
           </Subtitle>
         </Info>
-        <FollowButton $following={isFollowing} onClick={() => mapStore.toggleFollow(riderId)}>
-          <Play size={20} /> {isFollowing ? "Unfollow" : "Follow"}
-        </FollowButton>
+        {flag && <FlagIcon src={flag} alt={info.Nationality} />}
       </LeftGroup>
       <div style={{ display: "flex", alignItems: "center" }}>
-        <IconButton title="Share">
-          <Share size={20} />
+        <IconButton $following={isFollowing} onClick={() => mapStore.toggleFollow(riderId)}>
+          <Play size={20} /> {isFollowing ? "Unfollow" : "Follow"}
         </IconButton>
+
         <IconButton
           title={isFavorited ? "Unfavorite" : "Favorite"}
           onClick={() => riderStore.toggleFavorite(riderId)}
         >
-          <Star size={20} color={isFavorited ? "#4e8cff" : "#ffffff"} fill={isFavorited ? "#4e8cff" : "none"} />
+          <Star size={20} color={isFavorited ? "#4e8cff" : "#ffffff"} fill={isFavorited ? "#4e8cff" : "none"} />{"Favorite"}
+        </IconButton>
+        <IconButton title="Share">
+          <Share2 size={20} />{"Share"}
         </IconButton>
       </div>
       <CloseButton onClick={() => mapStore.setRiderSelected(null)}>
