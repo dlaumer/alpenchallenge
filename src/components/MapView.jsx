@@ -180,6 +180,7 @@ const ArcGISMap = observer(() => {
         type: "manual"                     // so we can clear old features each tick
       },
       renderer: streamLayerRenderer,
+      screenSizePerspectiveEnabled: false,
     });
 
     animatedLayerRef.current = animatedLayer;
@@ -528,7 +529,7 @@ const ArcGISMap = observer(() => {
             isStaff = true;
           }
         }
-        let symbo = !interpolated.active ? "inactive" : isStaff ? "staff" : riderStore.favorites.includes(riderId) ? "favorite" : ""; 
+        let symbo = !interpolated.active ? "inactive" : isStaff ? "staff" : riderStore.favorites.includes(riderId) ? "favorite" : "";
         if (mapStore.riderSelected == riderId) {
           symbo = symbo + "_selected";
         }

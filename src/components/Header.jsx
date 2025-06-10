@@ -8,7 +8,7 @@ import { keyframes } from "styled-components";
 import mapStore from "../store/mapStore"; // required for updating state
 import { useEffect, useState } from "react";
 
-import logo from "../assets/logo.jpg";
+import logo from "../assets/logo.png";
 import enFlag from "../assets/flags/en.png";
 import deFlag from "../assets/flags/de.png";
 import frFlag from "../assets/flags/fr.png";
@@ -35,7 +35,7 @@ const LeftSection = styled.div`
 `;
 
 const Logo = styled.img`
-  height: 28px;
+  height: 38px;
 `;
 
 const MenuButton = styled.button`
@@ -220,7 +220,7 @@ const Header = observer(() => {
           <LiveTextWrapper>
             <TextRow>
               <LiveText>LIVE</LiveText>
-              <StreamText>STREAM</StreamText>
+              <StreamText>TRACE3D</StreamText>
             </TextRow>
             <ProgressBarWrapper>
               <ProgressBar $progress={mapStore.t} />

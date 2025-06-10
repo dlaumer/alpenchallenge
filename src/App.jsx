@@ -16,6 +16,9 @@ import { useEffect, useState, useRef } from "react";
 import ReplaySlider from "./components/ReplaySlider";
 import FollowedRider from "./components/FollowedRider";  // ← new import
 import mapStore from "./store/mapStore";                // ← new import
+import { getStateFromUrl, updateUrlFromState } from "./utils/urlState";
+import { autorun } from "mobx";
+import riderStore from "./store/riderStore";
 
 const Container = styled.div`
   display: flex;
@@ -72,8 +75,36 @@ const App = observer(() => {
   const elevationWidgetRef = useRef();
 
   useEffect(() => {
-    languageStore.initLanguageFromURL();
+    const state = getStateFromUrl();
+
+    riderStore.favorites = state.favorites;
+    mapStore.setRiderSelected(state.selected);
+    mapStore.riderFollowed = state.followed;
+    if (mapStore.riderFollowed) {
+      mapStore.setIsFollowing(true);
+    }
+    mapStore.followMode = state.mode;
+    mapStore.playing = state.playing;
+    mapStore.replayMode = state.time !== "live";
+    mapStore.setTime(state.time === "live" ? Date.now() : Number(state.time));
+    languageStore.setLanguage(state.lang);
   }, []);
+
+  useEffect(() => {
+  const dispose = autorun(() => {
+    updateUrlFromState({
+      favorites: riderStore.favorites,
+      selected: mapStore.riderSelected,
+      followed: mapStore.riderFollowed,
+      time: mapStore.replayMode ? mapStore.time : "live",
+      mode: mapStore.followMode,
+      playing: mapStore.playing,
+      lang: languageStore.language,
+    });
+  });
+
+  return () => dispose(); // clean up autorun on unmount
+}, []);
 
   const showOverlay = !!mapStore.riderFollowed;
 
