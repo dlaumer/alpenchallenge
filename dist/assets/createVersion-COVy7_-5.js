@@ -1,1 +1,0 @@
-import{b4 as f,gq as c,gr as v,av as p}from"./index-CzpP-9qK.js";async function g(a,i,o){const e=f(a),r=i.toJSON(),t=c(e.query,{query:v({...r,f:"json"}),...o,authMode:"immediate",method:"post"}),s=`${e.path}/create`,{data:n}=await p(s,t),{versionName:d,versionGuid:m,...u}=n.versionInfo;return{...u,versionIdentifier:{name:d,guid:m}}}export{g as createVersion};
