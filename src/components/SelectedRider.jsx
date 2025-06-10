@@ -11,7 +11,7 @@ import { X } from "lucide-react";
 
 const Container = styled.div`
 
-  width: 460px;
+  width: 500px;
   padding: 12px 24px;
   background: rgba(58, 63, 69, 0.6);
   backdrop-filter: blur(4px);  border-radius: 32px;
@@ -26,7 +26,7 @@ const Container = styled.div`
 const LeftGroup = styled.div`
   display: flex;
   align-items: center;
-    width: 50%;
+    width: 70%;
 
 `;
 
@@ -102,6 +102,21 @@ const CloseButton = styled.button`
   }
 `;
 
+
+const FollowButton = styled.button`
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: ${props => props.$following ? 'red' : '#4e8cff'};
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 4px;
+`;
 const SelectedRider = observer(() => {
   const riderId = mapStore.riderSelected;
   if (!riderId) return null;
@@ -117,7 +132,7 @@ const SelectedRider = observer(() => {
   const meta = info ? countryMeta[info.Nationality.toUpperCase()] : null;
   const country = meta ? meta.name : info?.Nationality || "";
   const speed = (riderData.previousPos?.speed ?? 0).toFixed(1);
-  const number = info && info.Startnummer ? info.Startnummer : info ? info.FirstName.substring(0,1) + info.LastName.substring(0,1) : riderId.substring(0,3);
+  const number = info && info.Startnummer ? info.Startnummer : info ? info.FirstName.substring(0, 1) + info.LastName.substring(0, 1) : riderId.substring(0, 3);
 
   const isFavorited = riderStore.favorites.includes(riderId);
   const isFollowing = mapStore.riderFollowed === riderId;
@@ -134,22 +149,19 @@ const SelectedRider = observer(() => {
             {country} &bull; {speed} km/h
           </Subtitle>
         </Info>
+        <FollowButton $following={isFollowing} onClick={() => mapStore.toggleFollow(riderId)}>
+          <Play size={20} /> {isFollowing ? "Unfollow" : "Follow"}
+        </FollowButton>
       </LeftGroup>
       <div style={{ display: "flex", alignItems: "center" }}>
+        <IconButton title="Share">
+          <Share size={20} />
+        </IconButton>
         <IconButton
           title={isFavorited ? "Unfavorite" : "Favorite"}
           onClick={() => riderStore.toggleFavorite(riderId)}
         >
-          <Star size={20} color={isFavorited ? "#4e8cff" : "#ffffff" } fill={isFavorited ? "#4e8cff" : "none"} />
-        </IconButton>
-        <IconButton
-          title={isFollowing ? "Unfollow" : "Follow"}
-          onClick={() => mapStore.toggleFollow(riderId)}  // :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
-        >
-          <Play size={20} style={{ transform: isFollowing ? "rotate(90deg)" : "none" }} />
-        </IconButton>
-        <IconButton title="Share">
-          <Share size={20} />
+          <Star size={20} color={isFavorited ? "#4e8cff" : "#ffffff"} fill={isFavorited ? "#4e8cff" : "none"} />
         </IconButton>
       </div>
       <CloseButton onClick={() => mapStore.setRiderSelected(null)}>
