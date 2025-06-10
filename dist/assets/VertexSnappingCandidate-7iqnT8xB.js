@@ -1,0 +1,1 @@
+import{iB as r,iC as s}from"./index-CzpP-9qK.js";import{n as i}from"./PointSnappingHint-BThTomXu.js";class a extends r{constructor(t){super({...t,constraint:new s(t.targetPoint)})}get hints(){return[new i(this.targetPoint,this.isDraped,this.domain)]}}export{a as r};
