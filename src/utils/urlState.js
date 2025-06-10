@@ -6,7 +6,7 @@ export function getStateFromUrl() {
     followed: params.get("followed") || null,
     time: params.get("time") || "live",
     mode: params.get("mode") || "fly",
-    playing: params.get("playing") === "true",
+    playing: params.get("playing")? params.get("playing") === "true" : true,
     lang: params.get("lang") || "en"
   };
 }
