@@ -8,6 +8,7 @@ import { riders_info } from "../constants/riders_info_1000";
 import { countryMeta } from "../constants/countryMeta";
 import { X, Share2 } from "lucide-react";
 import uiStore from "../store/uiStore";
+import { useShare } from "./useShare.jsx";
 
 const Container = styled.div`
 
@@ -139,6 +140,9 @@ const FlagIcon = styled.img`
 `;
 
 const FollowedRider = observer(() => {
+
+  const { share, Toast } = useShare();
+
   const riderId = mapStore.riderFollowed;
   if (!riderId) return null;
 
@@ -173,9 +177,10 @@ const FollowedRider = observer(() => {
         </ModeButtons>
       </ModeGroup>
 
-      <IconButton title="Share">
+      <IconButton onClick={share} title="Share">
         <Share2 size={20} />{"Share"}
       </IconButton>
+      {Toast}
 
       <CloseButton onClick={() => mapStore.toggleFollow(riderId)}>
         <X size={20} />

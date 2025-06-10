@@ -9,6 +9,7 @@ import { countryMeta } from "../constants/countryMeta";
 import { Star, Play, Share2 } from "lucide-react";
 import { X } from "lucide-react";
 import uiStore from '../store/uiStore';
+import { useShare } from "./useShare.jsx";
 
 const Container = styled.div`
 
@@ -115,6 +116,9 @@ const FlagIcon = styled.img`
 `;
 
 const SelectedRider = observer(() => {
+
+  const { share, Toast } = useShare();
+
   const riderId = mapStore.riderSelected;
   if (!riderId) return null;
 
@@ -170,9 +174,10 @@ const SelectedRider = observer(() => {
         >
           <Star size={20} color={isFavorited ? "#4e8cff" : "#ffffff"} fill={isFavorited ? "#4e8cff" : "none"} />{"Favorite"}
         </IconButton>
-        <IconButton title="Share">
+        <IconButton onClick={share} title="Share">
           <Share2 size={20} />{"Share"}
         </IconButton>
+        {Toast}
       </div>
       <CloseButton onClick={() => mapStore.setRiderSelected(null)}>
         <X size={20} color="#ffffff" />
