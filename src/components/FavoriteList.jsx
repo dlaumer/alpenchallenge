@@ -10,9 +10,9 @@ import { riders_info } from '../constants/riders_info_1000';
 
 const Container = styled.div`
   position: absolute;
-  top: 120px;
+  bottom: 50px;
   left: 0px;
-  width: 200px;
+  width: 250px;
   max-height: calc(100% - 100px);
   overflow-y: auto;
   padding: 4px 0;
@@ -21,7 +21,7 @@ const Container = styled.div`
 
 const List = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   gap: 8px;
 `;
 
@@ -36,7 +36,7 @@ const TopPart = styled.div`
 `;
 
 const InfoPart = styled.div`
-width: 80%;
+width: 95%;
 
 `;
 
@@ -60,7 +60,7 @@ const Bubble = styled.div`
     `
       : ''}
   border-radius: 0 54px 54px 0;
-  padding: 12px 16px 12px 12px; /* space for the circle */
+  padding: 6px 8px 6px 6px; /* space for the circle */
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -96,6 +96,7 @@ width: 70%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  justify-content: center;
 `;
 
 const FollowButton = styled.button`
@@ -156,17 +157,11 @@ const FavoriteList = observer(() => {
                       {number}
                     </RankCircle>
                     <Name>
-                      <span>{first}</span>
-                      <span>{last}</span>
+                      <span>{first + " " + last}</span>
+                      <span></span>
                     </Name>
                   </TopPart>
-                  <FollowButton $following={isFollowing} onClick={() => mapStore.toggleFollow(id)}>
-                    <Play size={12} /> {isFollowing ? "Unfollow" : "Follow"}
-                  </FollowButton>
                 </InfoPart>
-                <StarButton $following={isFollowing} onClick={() => riderStore.toggleFavorite(id)}>
-                  <Star size={18} />
-                </StarButton>
               </Bubble>
             </Item>
           );
