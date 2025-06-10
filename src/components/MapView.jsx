@@ -90,6 +90,7 @@ const ArcGISMap = observer(() => {
   const latestSimulationRef = useRef(null);
   const popupExpand = useRef(null);
   const basemapGalleryExpand = useRef(null);
+  const lastFrameTimeRef = useRef(0);
 
   useEffect(() => {
     const isMobile = window.innerWidth <= 768;
@@ -252,10 +253,10 @@ const ArcGISMap = observer(() => {
     view.ui.add(edit, "top-right")
 
 
-    
+
     const home = new Home({
-        view: view
-      });
+      view: view
+    });
     view.ui.add(home, "bottom-right")
 
     /**
@@ -302,10 +303,14 @@ const ArcGISMap = observer(() => {
 
     // Animation: Use requestAnimationFrame for smoother updates.
     // Use a plain object to store graphics keyed by rider ID.
-    const animate = () => {
+    const animate = (time) => {
 
-      if (mapStore.playing) {
-        animation()
+      const desiredFrameTime = 1000 / mapStore.frameRate; // ms per frame
+      if (time - lastFrameTimeRef.current >= desiredFrameTime) {
+        if (mapStore.playing) {
+          animation()
+        }
+        lastFrameTimeRef.current = time;
       }
       // Request the next animation frame for smooth updates
       animationFrameRef.current = requestAnimationFrame(animate);
@@ -323,7 +328,7 @@ const ArcGISMap = observer(() => {
 
     const startLoop = () => {
       if (!animationFrameRef.current) {
-        animationFrameRef.current = requestAnimationFrame(animate);
+        animationFrameRef.current = requestAnimationFrame((t) => animate(t));
       }
     };
 
@@ -424,7 +429,7 @@ const ArcGISMap = observer(() => {
   useEffect(() => {
     if (viewRef.current) {
       if (mapStore.riderFollowed == "") {
-        
+
 
         mapStore.setIsFollowing(false);
 
@@ -603,7 +608,7 @@ const ArcGISMap = observer(() => {
       animatedLayerRef.current.sendMessageToClient({ type: "clear" });
       animatedLayerRef.current.sendMessageToClient({ type: "features", features });
 
-      
+      features = []
     }
   }
 

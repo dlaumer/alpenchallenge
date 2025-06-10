@@ -17,6 +17,7 @@ class MapStore {
   playing = true;
 
   lag = 300000;
+  frameRate = 30; // frames per second
 
   buffering = false;
   updating = false;
@@ -69,7 +70,7 @@ class MapStore {
   setTime(time) {
     this.time = time;
   }
-  
+
   setTimeRefresh(time) {
     this.timeRefresh = time;
   }
@@ -106,7 +107,7 @@ class MapStore {
   setJumpTime(jumpTime) {
     this.jumpTime = jumpTime;
   }
-  
+
   setPopupVisible(val) {
     this.popupVisible = val;
   }
