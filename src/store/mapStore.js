@@ -4,6 +4,8 @@ class MapStore {
   layerVisible = true; // Default visibility
   popupContent = null;
   view = null;
+  camera = null; // format: [lon, lat, z, heading, tilt]
+
   riderSelected = null;
   riderFollowed = ""; // New variable
   isFollowing = false; // New variable to track if a rider is being followed
@@ -43,6 +45,10 @@ class MapStore {
 
   setView(view) {
     this.view = view;
+  }
+
+  setCamera(camArray) {
+    this.camera = camArray;
   }
 
   setRiderSelected(riderSelected) {

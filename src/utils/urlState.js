@@ -1,13 +1,18 @@
+
+
 export function getStateFromUrl() {
   const params = new URLSearchParams(window.location.search);
+  const camRaw = params.get("cam")?.split(",").map(Number);
+  const cam = camRaw?.length === 5 ? camRaw : null;
   return {
     favorites: params.get("favorites")?.split(",").filter(Boolean) || [],
     selected: params.get("selected") || null,
     followed: params.get("followed") || null,
     time: params.get("time") || "live",
     mode: params.get("mode") || "fly",
-    playing: params.get("playing")? params.get("playing") === "true" : true,
-    lang: params.get("lang") || "en"
+    playing: params.get("playing") ? params.get("playing") === "true" : true,
+    lang: params.get("lang") || "en",
+    cam: cam
   };
 }
 
@@ -21,7 +26,9 @@ export function updateUrlFromState(state) {
   if (state.mode) params.set("mode", state.mode);
   if (state.playing !== undefined) params.set("playing", state.playing);
   if (state.lang) params.set("lang", state.lang);
-
+  if (state.camera && state.camera?.length === 5) {
+    params.set("cam", state.camera.join(","));
+  }
   const newUrl = `${window.location.pathname}?${params.toString()}`;
   window.history.replaceState(null, "", newUrl);
 }

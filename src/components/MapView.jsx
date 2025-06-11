@@ -23,7 +23,8 @@ import Zoom from "@arcgis/core/widgets/Zoom";
 import Compass from "@arcgis/core/widgets/Compass";
 import NavigationToggle from "@arcgis/core/widgets/NavigationToggle";
 import { riders_info } from '../constants/riders_info_1000';
-
+import * as reactiveUtils from "@arcgis/core/core/reactiveUtils";
+import { getStateFromUrl, updateUrlFromState } from "../utils/urlState";
 
 const MapContainer = styled.div`
   width: 100%;
@@ -341,6 +342,21 @@ const ArcGISMap = observer(() => {
 
       window.view = view;
       viewRef.current = view;
+      mapStore.setView(view);
+
+      
+      reactiveUtils.watch(
+        () => viewRef.current.camera,
+        (cam) => {
+          mapStore.setCamera([
+            Number(cam.position.longitude.toFixed(5)),
+            Number(cam.position.latitude.toFixed(5)),
+            Number(cam.position.z.toFixed(0)),
+            Number(cam.heading.toFixed(1)),
+            Number(cam.tilt.toFixed(1)),
+          ]);
+        }
+      );
       // Watch the layerView's updating property using reactiveUtils.when.
       latestSimulation.on("refresh", function (event) {
         if (event.dataChanged) {

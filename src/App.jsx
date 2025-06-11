@@ -73,9 +73,10 @@ const FollowOverlay = styled.div`
 
 const App = observer(() => {
   const elevationWidgetRef = useRef();
+  const initialUrlState = useRef(getStateFromUrl());
 
   useEffect(() => {
-    const state = getStateFromUrl();
+    const state = initialUrlState.current;
 
     riderStore.favorites = state.favorites;
     mapStore.setRiderSelected(state.selected);
@@ -88,23 +89,33 @@ const App = observer(() => {
     mapStore.replayMode = state.time !== "live";
     mapStore.setTime(state.time === "live" ? Date.now() : Number(state.time));
     languageStore.setLanguage(state.lang);
-  }, []);
+
+    if (state.cam && mapStore.view) {
+      const [lon, lat, z, heading, tilt] = state.cam;
+      mapStore.view.camera = {
+        position: [lon, lat, z ],
+        heading: heading,
+        tilt: tilt
+      };
+    }
+  }, [mapStore.view]);
 
   useEffect(() => {
-  const dispose = autorun(() => {
-    updateUrlFromState({
-      favorites: riderStore.favorites,
-      selected: mapStore.riderSelected,
-      followed: mapStore.riderFollowed,
-      time: mapStore.replayMode ? mapStore.time : "live",
-      mode: mapStore.followMode,
-      playing: mapStore.playing,
-      lang: languageStore.language,
+    const dispose = autorun(() => {
+      updateUrlFromState({
+        favorites: riderStore.favorites,
+        selected: mapStore.riderSelected,
+        followed: mapStore.riderFollowed,
+        time: mapStore.replayMode ? mapStore.time : "live",
+        mode: mapStore.followMode,
+        playing: mapStore.playing,
+        lang: languageStore.language,
+        camera: mapStore.camera
+      });
     });
-  });
 
-  return () => dispose(); // clean up autorun on unmount
-}, []);
+    return () => dispose(); // clean up autorun on unmount
+  }, []);
 
   const showOverlay = !!mapStore.riderFollowed;
 
