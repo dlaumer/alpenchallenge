@@ -86,19 +86,43 @@ const App = observer(() => {
     }
     mapStore.followMode = state.mode;
     mapStore.playing = state.playing;
-    mapStore.replayMode = state.time !== "live";
-    mapStore.setTime(state.time === "live" ? Date.now() : Number(state.time));
     languageStore.setLanguage(state.lang);
+    // mark replay mode but defer setting actual time
+    mapStore.replayMode = state.time !== "live";
+    if (state.time === "live") {
+      mapStore.setTime(Date.now());
+    }
 
     if (state.cam && mapStore.view) {
       const [lon, lat, z, heading, tilt] = state.cam;
       mapStore.view.camera = {
-        position: [lon, lat, z ],
+        position: [lon, lat, z],
         heading: heading,
         tilt: tilt
       };
     }
   }, [mapStore.view]);
+
+
+  // 2) Once replayData arrives (only happens once), restore the URL time
+  useEffect(() => {
+    const state = initialUrlState.current;
+
+    if (
+      mapStore.replayMode &&
+      state.time !== "live" &&
+      Object.keys(riderStore.replayData).length > 0
+    ) {
+      const raw = Number(state.time);
+      const [start, end] = riderStore.getReplayTimeRange();
+      const ts = raw >= start && raw <= end ? raw : start;
+      mapStore.setTime(ts);
+      mapStore.setTimeReference(ts);
+      mapStore.setTimeReferenceAnimation(Date.now());
+    }
+  }, [riderStore.replayData]);
+
+
 
   useEffect(() => {
     const dispose = autorun(() => {

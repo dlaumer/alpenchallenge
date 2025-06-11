@@ -344,7 +344,7 @@ const ArcGISMap = observer(() => {
       viewRef.current = view;
       mapStore.setView(view);
 
-      
+
       reactiveUtils.watch(
         () => viewRef.current.camera,
         (cam) => {
@@ -404,6 +404,9 @@ const ArcGISMap = observer(() => {
           riderStore.clearDownloadProgress()
           console.log("Fetched features:", results.length);
           riderStore.setReplayData(results); // create a setter in your store
+          setTimeout(() => {
+            animation();
+          }, "1000");
         });
       })
       .catch(err => console.error(err));
@@ -516,6 +519,21 @@ const ArcGISMap = observer(() => {
 
   }, [riderStore.downloadProgress]);
 
+  /*
+  // at the very bottom of your component, after all your other useEffects:
+  useEffect(() => {
+    // nothing here before
+    // whenever selection/favorites/followed change, re-draw immediately:
+    animation();
+  }, [
+    mapStore.riderSelected,
+    mapStore.riderFollowed,
+    // favorites is a new array whenever you toggle, so this will re-fire
+    riderStore.favorites
+  ]);
+  */
+
+
   let objectIdCounter = 1;
 
   const animation = () => {
@@ -523,7 +541,7 @@ const ArcGISMap = observer(() => {
     if (!mapStore.replayMode) {
       mapStore.setTime(Date.now() - mapStore.lag);
     }
-    else {
+    else if (mapStore.playing) {
       let elapsed = Date.now() - mapStore.timeReferenceAnimation;
       elapsed = elapsed * mapStore.replaySpeed;
       mapStore.setTime(mapStore.timeReference + elapsed);
@@ -614,7 +632,6 @@ const ArcGISMap = observer(() => {
       animatedLayerRef.current.sendMessageToClient({ type: "clear" });
       animatedLayerRef.current.sendMessageToClient({ type: "features", features });
 
-      features = []
     }
   }
 
