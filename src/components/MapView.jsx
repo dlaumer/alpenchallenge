@@ -524,11 +524,12 @@ const ArcGISMap = observer(() => {
   useEffect(() => {
     // nothing here before
     // whenever selection/favorites/followed change, re-draw immediately:
-    mapStore.togglePlaying();
-    setTimeout(() => {
+    if (!mapStore.playing) {
       mapStore.togglePlaying();
-    }, 100); // wait a second to let the map stabilize
-
+      setTimeout(() => {
+        mapStore.togglePlaying();
+      }, 100); // wait a second to let the map stabilize
+    }
   }, [
     mapStore.riderSelected,
     mapStore.riderFollowed,

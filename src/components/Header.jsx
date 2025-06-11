@@ -1,10 +1,9 @@
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import { observer } from "mobx-react-lite";
 import { Menu } from "lucide-react";
 import uiStore from "../store/uiStore";
 import { languageStore } from "../store/languageStore";
 import { getTranslation } from "../utils/getTranslation";
-import { keyframes } from "styled-components";
 import mapStore from "../store/mapStore"; // required for updating state
 import { useEffect, useState } from "react";
 
@@ -36,6 +35,7 @@ const LeftSection = styled.div`
 
 const Logo = styled.img`
   height: 38px;
+  cursor: pointer;
 `;
 
 const MenuButton = styled.button`
@@ -46,7 +46,6 @@ const MenuButton = styled.button`
   cursor: pointer;
   padding: 4px;
 `;
-
 
 const RightSection = styled.div`
   display: flex;
@@ -79,10 +78,11 @@ const FlagIcon = styled.img`
   height: 18px;
   margin-right: 8px;
 `;
+
 const DropdownList = styled.ul`
   position: absolute;
   top: 100%;
-  right: 0; /* Flip from left to right */
+  right: 0;
   margin: 0;
   padding: 6px 0;
   background: white;
@@ -96,7 +96,6 @@ const DropdownList = styled.ul`
   overflow-x: hidden;
 `;
 
-
 const DropdownItem = styled.li`
   display: flex;
   align-items: center;
@@ -109,6 +108,11 @@ const DropdownItem = styled.li`
   }
 `;
 
+const expandOnce = keyframes`
+  0% { transform: scale(1); }
+  30% { transform: scale(2); }
+  100% { transform: scale(1); }
+`;
 
 const LiveTitleWrapper = styled.div`
   display: flex;
@@ -117,12 +121,7 @@ const LiveTitleWrapper = styled.div`
   font-weight: 400;
   font-family: "Arial Narrow", "Helvetica Neue Condensed", sans-serif;
   letter-spacing: 0.5px;
-`;
-
-const expandOnce = keyframes`
-  0% { transform: scale(1); }
-  30% { transform: scale(2); }
-  100% { transform: scale(1); }
+  cursor: pointer; /* make clickable */
 `;
 
 const LiveDot = styled.div`
@@ -132,15 +131,6 @@ const LiveDot = styled.div`
   border-radius: 50%;
   margin-right: 8px;
   animation: ${({ $animate }) => ($animate ? expandOnce : "none")} 0.6s ease-in-out;
-`;
-
-const LiveText = styled.span`
-  font-weight: 900;
-`;
-
-const StreamText = styled.span`
-  font-weight: 400;
-  margin-left: 2px;
 `;
 
 const LiveTextWrapper = styled.div`
@@ -155,6 +145,15 @@ const TextRow = styled.div`
   font-size: 18px;
   font-weight: 400;
   letter-spacing: 0.5px;
+`;
+
+const LiveText = styled.span`
+  font-weight: 900;
+`;
+
+const StreamText = styled.span`
+  font-weight: 400;
+  margin-left: 2px;
 `;
 
 const ProgressBarWrapper = styled.div`
@@ -173,49 +172,32 @@ const ProgressBar = styled.div.attrs(({ $progress }) => ({
   transition: width 0.3s ease;
 `;
 
-
-
 const Header = observer(() => {
   const [open, setOpen] = useState(false);
   const [animateDot, setAnimateDot] = useState(false);
 
   const currentLang = languageStore.language;
 
-  const flagIcons = {
-    de: deFlag,
-    fr: frFlag,
-    it: itFlag,
-    en: enFlag
-  };
-
-  const langLabels = {
-    de: "Deutsch",
-    fr: "Français",
-    it: "Italiano",
-    en: "English"
-  };
+  const flagIcons = { de: deFlag, fr: frFlag, it: itFlag, en: enFlag };
+  const langLabels = { de: "Deutsch", fr: "Français", it: "Italiano", en: "English" };
 
   useEffect(() => {
     if (mapStore.updating) {
       setAnimateDot(true);
-      const timeout = setTimeout(() => setAnimateDot(false), 600); // Match animation duration
+      const timeout = setTimeout(() => setAnimateDot(false), 600);
       return () => clearTimeout(timeout);
     }
   }, [mapStore.updating]);
 
-  const handleSelect = (lang) => {
-    languageStore.setLanguage(lang);
-    setOpen(false);
-  };
+  const handleSelect = (lang) => { languageStore.setLanguage(lang); setOpen(false); };
 
   return (
     <HeaderContainer $panelOpen={uiStore.isPanelOpen}>
       <LeftSection>
-        <MenuButton onClick={uiStore.togglePanel}>
-          <Menu size={24} />
-        </MenuButton>
-        <Logo src={logo} alt="Logo" />
-        <LiveTitleWrapper>
+        <MenuButton onClick={uiStore.togglePanel}><Menu size={24} /></MenuButton>
+        <a href="https://www.alpenchallengelenzerheide.ch/" target="_blank" rel="noopener noreferrer">
+          <Logo src={logo} alt="Logo" />
+        </a>        <LiveTitleWrapper onClick={() => { window.location.search = ""; }}>
           <LiveDot $animate={animateDot} />
           <LiveTextWrapper>
             <TextRow>
@@ -227,9 +209,7 @@ const Header = observer(() => {
             </ProgressBarWrapper>
           </LiveTextWrapper>
         </LiveTitleWrapper>
-
       </LeftSection>
-
       <RightSection>
         <Dropdown>
           <DropdownButton onClick={() => setOpen(!open)}>
@@ -237,11 +217,10 @@ const Header = observer(() => {
             {!uiStore.isMobile && langLabels[currentLang]}
           </DropdownButton>
           {open && (
-            <DropdownList>M
+            <DropdownList>
               {Object.entries(flagIcons).map(([code, icon]) => (
                 <DropdownItem key={code} onClick={() => handleSelect(code)}>
-                  <FlagIcon src={icon} alt={code} />
-                  {langLabels[code]}
+                  <FlagIcon src={icon} alt={code} />{langLabels[code]}
                 </DropdownItem>
               ))}
             </DropdownList>
