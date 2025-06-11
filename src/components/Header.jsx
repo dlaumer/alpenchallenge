@@ -220,7 +220,7 @@ const Header = observer(() => {
           <LiveTextWrapper>
             <TextRow>
               <LiveText>LIVE</LiveText>
-              <StreamText>TRACE3D</StreamText>
+              <StreamText>TRAC3D</StreamText>
             </TextRow>
             <ProgressBarWrapper>
               <ProgressBar $progress={mapStore.t} />

@@ -162,6 +162,8 @@ const ArcGISMap = observer(() => {
 
     // new: client‑side StreamLayer
     const animatedLayer = new StreamLayer({
+      objectIdField: "OBJECTID",
+
       elevationInfo: {
         mode: "relative-to-ground"
       },
@@ -178,7 +180,7 @@ const ArcGISMap = observer(() => {
       spatialReference: { wkid: 4326 },    // match your data
       updateInterval: 0,                   // we'll push every frame
       purgeOptions: {
-        type: "manual"                     // so we can clear old features each tick
+        type: "manual"                    // so we can clear old features each tick
       },
       renderer: streamLayerRenderer,
       screenSizePerspectiveEnabled: false,
@@ -412,8 +414,6 @@ const ArcGISMap = observer(() => {
       .catch(err => console.error(err));
 
 
-
-
     // Clean up on component unmount.
     return () => {
       // cleanup loop & listeners
@@ -519,19 +519,23 @@ const ArcGISMap = observer(() => {
 
   }, [riderStore.downloadProgress]);
 
-  /*
+
   // at the very bottom of your component, after all your other useEffects:
   useEffect(() => {
     // nothing here before
     // whenever selection/favorites/followed change, re-draw immediately:
-    animation();
+    mapStore.togglePlaying();
+    setTimeout(() => {
+      mapStore.togglePlaying();
+    }, 100); // wait a second to let the map stabilize
+
   }, [
     mapStore.riderSelected,
     mapStore.riderFollowed,
     // favorites is a new array whenever you toggle, so this will re-fire
     riderStore.favorites
   ]);
-  */
+
 
 
   let objectIdCounter = 1;

@@ -78,17 +78,17 @@ const App = observer(() => {
   useEffect(() => {
     const state = initialUrlState.current;
 
-    riderStore.favorites = state.favorites;
+    riderStore.setFavorites(state.favorites);
     mapStore.setRiderSelected(state.selected);
-    mapStore.riderFollowed = state.followed;
+    mapStore.toggleFollow(state.followed);
     if (mapStore.riderFollowed) {
       mapStore.setIsFollowing(true);
     }
-    mapStore.followMode = state.mode;
-    mapStore.playing = state.playing;
+    mapStore.setFollowMode(state.mode);
+    mapStore.setPlaying(state.playing);
     languageStore.setLanguage(state.lang);
     // mark replay mode but defer setting actual time
-    mapStore.replayMode = state.time !== "live";
+    mapStore.setReplayMode(state.time !== "live");
     if (state.time === "live") {
       mapStore.setTime(Date.now());
     }
@@ -119,6 +119,7 @@ const App = observer(() => {
       mapStore.setTime(ts);
       mapStore.setTimeReference(ts);
       mapStore.setTimeReferenceAnimation(Date.now());
+      
     }
   }, [riderStore.replayData]);
 

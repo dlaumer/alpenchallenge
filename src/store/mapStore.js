@@ -95,6 +95,11 @@ class MapStore {
     this.playing = !this.playing;
   }
 
+
+  
+  setPlaying(playing) {
+    this.playing = playing;
+  }
   setReplaySpeed(speed) {
     this.replaySpeed = speed;
   }

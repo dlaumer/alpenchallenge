@@ -313,6 +313,10 @@ class RiderStore {
     }
   }
 
+  setFavorites(favorites) {
+    this.favorites = favorites;
+  }
+
 }
 
 const riderStore = new RiderStore();
