@@ -1,6 +1,6 @@
 // src/stores/routeStore.js
 import { makeAutoObservable, runInAction } from "mobx";
-import { route } from "../constants/route";
+import { route } from "../constants/routeLong";
 
 export class RouteStore {
   // typed arrays
@@ -49,5 +49,5 @@ export class RouteStore {
   getPoint(idx)     { return { lat: this.lats[idx-1], long: this.longs[idx-1], alt: this.alts[idx-1] }; }
 }
 
-const routeStore = new RouteStore();
-export default routeStore;
+const routeStoreLong = new RouteStore();
+export default routeStoreLong;

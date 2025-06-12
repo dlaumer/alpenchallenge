@@ -1,7 +1,8 @@
 import { makeAutoObservable } from "mobx";
 import mapStore from "../store/mapStore";
 import uiStore from "../store/uiStore";
-import routeStore from "../store/routeStore.js";
+import routeStoreShort from "./routeStoreShort.js";
+import routeStoreLong from "./routeStoreLong.js";
 
 class RiderStore {
   riders = {}
@@ -14,14 +15,20 @@ class RiderStore {
 
   favorites = ["rider_1"];
 
+  
   constructor() {
+
+    const routeStores = {"short": routeStoreShort, "long": routeStoreLong};
     makeAutoObservable(this);
 
-    routeStore.initialize()
+    routeStores["short"].initialize()
       .then(() => {
-        console.log(
-          `✅ routeStore loaded ${routeStore.count} vertices`
-        );
+        routeStores["long"].initialize()
+          .then(() => {
+            console.log(
+              `✅ routeStore loaded ${routeStores["short"].count + routeStores["long"].count} vertices`
+            );
+          })
       })
       .catch((err) => {
         console.error("Failed to load route vertices", err);
@@ -107,6 +114,7 @@ class RiderStore {
       speed: attributes.speed,
 
       snapped: attributes.snapped,
+      route: attributes.route
     };
   };
   // Process the feature layer's query results into the data format expected by your store.
@@ -223,26 +231,26 @@ class RiderStore {
     const newDistance = rider.previousDistance + t * distDiff;
     let routeIndex = rider.previousRouteIndex;
 
-    while (newDistance > routeStore.getDistance(routeIndex)) {
+    while (newDistance > routeStores[rider.route].getDistance(routeIndex)) {
       routeIndex = routeIndex + 1;
     }
     routeIndex = Math.max(0, routeIndex - 1);
 
     const i0 = routeIndex;
-    const i1 = routeIndex + 1 < routeStore.dists.length ? routeIndex + 1 : routeIndex;
-    const d0 = routeStore.getDistance(i0);
-    const d1 = routeStore.getDistance(i1);
+    const i1 = routeIndex + 1 < routeStores[rider.route].dists.length ? routeIndex + 1 : routeIndex;
+    const d0 = routeStores[rider.route].getDistance(i0);
+    const d1 = routeStores[rider.route].getDistance(i1);
     const tSegment = d1 - d0 === 0 ? 0 : (newDistance - d0) / (d1 - d0);
 
-    const p0 = routeStore.getPoint(i0);
-    const p1 = routeStore.getPoint(i1);
+    const p0 = routeStores[rider.route].getPoint(i0);
+    const p1 = routeStores[rider.route].getPoint(i1);
     const interpolatedPoint = [
       p0.long + (p1.long - p0.long) * tSegment,
       p0.lat + (p1.lat - p0.lat) * tSegment,
       p0.alt + (p1.alt - p0.alt) * tSegment
 
     ];
-    const heading = routeStore.getHeading(i1);
+    const heading = routeStores[rider.route].getHeading(i1);
 
     return {
       longitude: interpolatedPoint[0],

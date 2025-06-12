@@ -90,7 +90,7 @@ const ArcGISMap = observer(() => {
 
     const latestSimulation = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "827c3c8ca6f74538bae7ce9cc5287b2b"
+        id: "bd2b2a1f294e4ff0a80d62942ec24ece"
       },
       elevationInfo: {
         mode: "on-the-ground"
@@ -107,7 +107,7 @@ const ArcGISMap = observer(() => {
 
     const posHistory = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "dab72e3b5d8c40f1bdcd1052d9afcf6e"
+        id: "d0a6c13d0fad47df98e76d17f53318f0"
       },
       //definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10')",
       //definitionExpression: "userId IN ('rider_1')",
@@ -142,7 +142,7 @@ const ArcGISMap = observer(() => {
 
 
 
-    const route = new FeatureLayer({
+    const routeShort = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
         id: "e861c9af6e194769b8492a37a89c3984"
       },
@@ -159,6 +159,27 @@ const ArcGISMap = observer(() => {
       },
       popupEnabled: false
     })
+
+
+
+    const routeLong = new FeatureLayer({
+      portalItem: {  // autocasts as esri/portal/PortalItem
+        id: "e28c78f6838e44208eef8e44a769372f"
+      },
+      elevationInfo: {
+        mode: "on-the-ground"
+      },
+      renderer: {
+        type: "simple",
+        symbol: {
+          type: "simple-line",
+          color: "darkred",
+          width: "4px"
+        }
+      },
+      popupEnabled: false
+    })
+
 
     // new: client‑side StreamLayer
     const animatedLayer = new StreamLayer({
@@ -192,7 +213,7 @@ const ArcGISMap = observer(() => {
     const map = new Map({                // Create a Map object
       basemap: "satellite",
       ground: "world-elevation",
-      layers: [animatedLayer, latestSimulation, route, specialPoints]
+      layers: [animatedLayer, latestSimulation, routeShort, routeLong, specialPoints]
     });
 
     const view = new SceneView({
@@ -200,12 +221,12 @@ const ArcGISMap = observer(() => {
       map: map,
       camera: {
         position: [
-          9.75325244,
-          46.20215233,
-          34712.77477
+          9.56813731,
+          45.80280017,
+          48086.58705
         ],
-        heading: 358.70,
-        tilt: 50.05
+        heading: 2.24,
+        tilt: 56.44
       },
 
       ui: {
@@ -266,7 +287,7 @@ const ArcGISMap = observer(() => {
       while (true) {
         // build a fresh Query each time
         const query = layer.createQuery();
-        query.outFields = ["userId", "distance", "ts", "routeIndex", "previousDistance", "previousTs", "previousRouteIndex", "heading", "speed", "latitude", "longitude", "altitude", "previousLatitude", "previousLongitude", "previousAltitude", "snapped"];
+        query.outFields = ["userId", "distance", "ts", "routeIndex", "previousDistance", "previousTs", "previousRouteIndex", "heading", "speed", "latitude", "longitude", "altitude", "previousLatitude", "previousLongitude", "previousAltitude", "snapped", "route"];
         query.returnGeometry = false;
         query.start = start;                // zero-based offset :contentReference[oaicite:0]{index=0}
         query.num = max;                    // page size
