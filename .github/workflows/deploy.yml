@@ -35,31 +35,31 @@ jobs:
       - name: Build main version (root deploy)
         run: VITE_BASE_PATH=/alpenchallenge/ npm run build
 
-      # --- Build GranFondo Branch Version ---
-      - name: Checkout GranFondo branch
+      # --- Build lenzerheide Branch Version ---
+      - name: Checkout lenzerheide branch
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository }}
-          ref: GranFondo
-          path: GranFondo
+          ref: lenzerheide
+          path: lenzerheide
 
-      - name: Setup Node.js (GranFondo)
+      - name: Setup Node.js (lenzerheide)
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      - name: Install dependencies (GranFondo)
-        working-directory: GranFondo
+      - name: Install dependencies (lenzerheide)
+        working-directory: lenzerheide
         run: npm ci
 
-      - name: Build GranFondo branch version
-        working-directory: GranFondo
-        run: VITE_BASE_PATH=/alpenchallenge/GranFondo/ npm run build
+      - name: Build lenzerheide branch version
+        working-directory: lenzerheide
+        run: VITE_BASE_PATH=/alpenchallenge/lenzerheide/ npm run build
 
-      - name: Copy GranFondo build into main dist
+      - name: Copy lenzerheide build into main dist
         run: |
-          mkdir -p dist/GranFondo
-          cp -r GranFondo/dist/* dist/GranFondo/
+          mkdir -p dist/lenzerheide
+          cp -r lenzerheide/dist/* dist/lenzerheide/
 
       # --- Build GravelRace Branch Version ---
       - name: Checkout GravelRace branch
