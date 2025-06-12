@@ -17,6 +17,7 @@ class MapStore {
   timeReferenceAnimation = Date.now();
   replayMode = false;
   playing = true;
+  elapsedPlaying = 0; // Time elapsed while not playing
 
   lag = 300000;
   frameRate = 30; // frames per second
@@ -61,6 +62,7 @@ class MapStore {
   toggleFollow(riderId) {
     if (this.riderFollowed === riderId) {
       this.riderFollowed = "";
+      this.setRiderSelected(riderId)
     } else {
       this.riderFollowed = riderId;
     }
@@ -95,8 +97,10 @@ class MapStore {
     this.playing = !this.playing;
   }
 
+  setElapsedPlaying(elapsed) {
+    this.elapsedPlaying = elapsed;
+  }
 
-  
   setPlaying(playing) {
     this.playing = playing;
   }

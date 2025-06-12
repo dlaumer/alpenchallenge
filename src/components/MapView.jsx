@@ -433,9 +433,16 @@ const ArcGISMap = observer(() => {
 
   useEffect(() => {
     if (viewRef.current) {
+
       if (mapStore.riderFollowed == "") {
-
-
+        const interpolated = riderStore.getInterpolatedPosition(mapStore.riderSelected)
+        if (!interpolated) return;
+        mapStore.togglePlaying();
+        viewRef.current.goTo({
+          center: [interpolated.longitude, interpolated.latitude], zoom: 16,
+        }).then(() => {
+          mapStore.togglePlaying()
+        })
         mapStore.setIsFollowing(false);
 
 
@@ -443,7 +450,6 @@ const ArcGISMap = observer(() => {
       else {
 
         if (mapStore.riderFollowed && riderStore.replayData[mapStore.riderFollowed]) {
-
           const interpolated = riderStore.getInterpolatedPosition(mapStore.riderFollowed)
           if (!interpolated) return;
           // Use goTo without animation to instantly center the view on the followed rider.
@@ -468,53 +474,6 @@ const ArcGISMap = observer(() => {
   }, [mapStore.riderFollowed]);
 
   useEffect(() => {
-    if (viewRef.current) {
-      mapStore.setIsFollowing(false);
-
-      const interpolated = riderStore.getInterpolatedPosition(mapStore.riderFollowed)
-      if (!interpolated) return;
-
-      if (mapStore.followMode == "fly") {
-
-        const cameraPosition = getCameraOffsetPointPlanar(interpolated, interpolated.heading);
-        // Use goTo without animation to instantly center the view on the followed rider.
-        viewRef.current.goTo(
-          {
-            center: new Point({
-              longitude: cameraPosition.longitude,
-              latitude: cameraPosition.latitude,
-              z: cameraPosition.altitude,
-            }),
-            zoom: viewRef.current.camera.zoom,
-            tilt: 85,
-            heading: interpolated.heading,
-          }, { easing: "linear" }
-        ).then(() => {
-          mapStore.setIsFollowing(true);
-        });
-      }
-      else if (mapStore.followMode == "ride") {
-        const cam = viewRef.current.camera.clone();
-        // the position is autocast as new Point()
-        cam.position = {
-          latitude: interpolated.latitude,
-          longitude: interpolated.longitude,
-          z: interpolated.altitude  // altitude in meters
-        }
-        cam.heading = interpolated.heading;
-        cam.tilt = 90; // tilt in degrees
-        // go to the new camera
-        viewRef.current.goTo(cam, { easing: "linear" })
-          .then(() => {
-            mapStore.setIsFollowing(true);
-          })
-      }
-    }
-
-  }, [mapStore.followMode]);
-
-
-  useEffect(() => {
     console.log("Download progress:", riderStore.downloadProgress);
 
   }, [riderStore.downloadProgress]);
@@ -526,8 +485,11 @@ const ArcGISMap = observer(() => {
     // whenever selection/favorites/followed change, re-draw immediately:
     if (!mapStore.playing) {
       mapStore.togglePlaying();
+      mapStore.setTimeReferenceAnimation(Date.now() - mapStore.elapsedPlaying);
+
       setTimeout(() => {
         mapStore.togglePlaying();
+        mapStore.setElapsedPlaying(Date.now() - mapStore.timeReferenceAnimation);
       }, 100); // wait a second to let the map stabilize
     }
   }, [
@@ -537,6 +499,22 @@ const ArcGISMap = observer(() => {
     riderStore.favorites
   ]);
 
+  // at the very bottom of your component, after all your other useEffects:
+  useEffect(() => {
+    // nothing here before
+    if (viewRef.current && !mapStore.isFollowing && mapStore.riderSelected) {
+      const interpolated = riderStore.getInterpolatedPosition(mapStore.riderSelected)
+
+      mapStore.togglePlaying();
+      viewRef.current.goTo({
+        center: [interpolated.longitude, interpolated.latitude], zoom: 16,
+      }).then(() => {
+        mapStore.togglePlaying()
+      })
+    }
+  }, [
+    mapStore.riderSelected,
+  ]);
 
 
   let objectIdCounter = 1;
@@ -617,7 +595,7 @@ const ArcGISMap = observer(() => {
                 cameraPosition.latitude,
                 cameraPosition.altitude,
               ],
-              tilt: viewRef.current.camera.tilt,
+              tilt: 65,
               heading: calculatedHeading,
             };
           }

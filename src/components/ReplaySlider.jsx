@@ -131,15 +131,22 @@ const SliderWrapper = styled.div`
   pointer-events: ${props => (props.disabled ? "none" : "auto")};
 `;
 
-const SliderProgress = styled.div`
+const SliderProgress = styled.div.attrs(props => ({
+  style: {
+    width: `${props.$progress}%`,
+    transition: props.$isDownloading ? "width 0.3s ease" : "none",
+  },
+}))`
   height: 100%;
   background: darkred;
   border-radius: 4px;
-  width: ${props => props.$progress}%;
-  transition: ${props => props.$isDownloading? "width 0.3s ease": "" };
 `;
 
-const SliderHandle = styled.div`
+const SliderHandle = styled.div.attrs(props => ({
+  style: {
+    left: `${props.$progress}%`,
+  },
+}))`
   width: 14px;
   height: 14px;
   background: white;
@@ -148,9 +155,9 @@ const SliderHandle = styled.div`
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  left: ${props => props.$progress}%;
   pointer-events: none;
 `;
+
 
 const BufferingTag = styled.div`
   display: flex;
@@ -173,7 +180,6 @@ const SpinnerIcon = styled(Loader)`
 const ReplaySlider = observer(() => {
   const [isDragging, setIsDragging] = useState(false);
   const sliderRef = useRef(null);
-  const [elapsedPlaying, setElapsedPlaying] = useState(0);
 
   const [startTs, endTs] = riderStore.getReplayTimeRange();
 
@@ -185,10 +191,10 @@ const ReplaySlider = observer(() => {
   const togglePlay = () => {
     mapStore.togglePlaying();
     mapStore.setReplayMode(true);
-    if (mapStore.playing) {
-      setElapsedPlaying(Date.now() - mapStore.timeReferenceAnimation);
+    if (!mapStore.playing) {
+      mapStore.setElapsedPlaying(Date.now() - mapStore.timeReferenceAnimation);
     } else {
-      mapStore.setTimeReferenceAnimation(Date.now() - elapsedPlaying);
+      mapStore.setTimeReferenceAnimation(Date.now() - mapStore.elapsedPlaying);
     }
   };
 
