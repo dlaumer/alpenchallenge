@@ -406,6 +406,27 @@ const ArcGISMap = observer(() => {
           riderStore.clearDownloadProgress()
           console.log("Fetched features:", results.length);
           riderStore.setReplayData(results); // create a setter in your store
+
+          // check if data is staleAdd commentMore actions
+          const maxTs = 1749828300 * 1000;
+          const now = Date.now();
+          const fifteenMinutes = 15 * 60 * 1000;
+
+          if (maxTs && now - maxTs > fifteenMinutes) {
+            console.log("⚠️ Data is stale, switching to replay mode");
+
+            mapStore.setReplayMode(true);
+            mapStore.setTimeReference(1749790920 * 1000);
+            mapStore.setTimeReferenceAnimation(Date.now());
+            mapStore.setTime(1749790920 * 1000);
+            mapStore.setReplayType("post-event")
+          } else {
+            console.log("✅ Live data available");
+            mapStore.setReplayMode(false);
+            mapStore.setTimeReference(now - mapStore.lag);
+            mapStore.setTimeReferenceAnimation(Date.now());
+          }
+
           setTimeout(() => {
             animation();
           }, "1000");

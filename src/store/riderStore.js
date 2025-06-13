@@ -274,16 +274,22 @@ class RiderStore {
   }
 
   getReplayTimeRange() {
-    const allTimestamps = Object.values(this.replayTimestamps)
-      // only keep real arrays (skip undefined, null, non-arrays)
-      .filter(arr => Array.isArray(arr))
-      // flatten, but skip any empty arrays automatically
-      .flat();
+    let minTs = Infinity;
+    let maxTs = -Infinity;
 
-    if (allTimestamps.length === 0) return [null, null];
+    for (const timestamps of Object.values(this.replayTimestamps)) {
+      if (Array.isArray(timestamps) && timestamps.length > 0) {
+        const first = timestamps[0];
+        const last = timestamps[timestamps.length - 1];
+        if (first < minTs) minTs = first;
+        if (last > maxTs) maxTs = last;
+      }
+    }
 
-    const minTs = allTimestamps[0];
-    const maxTs = allTimestamps[allTimestamps.length - 1];
+    if (minTs === Infinity || maxTs === -Infinity) {
+      return [null, null];
+    }
+
     return [minTs, maxTs];
   }
 
