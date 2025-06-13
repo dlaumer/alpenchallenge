@@ -185,7 +185,14 @@ const ReplaySlider = observer(() => {
 
   const formatTime = ms => {
     const d = new Date(ms);
-    return d.toLocaleTimeString("de-CH");
+    return d.toLocaleString("de-CH", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
   };
 
   const togglePlay = () => {
@@ -212,8 +219,8 @@ const ReplaySlider = observer(() => {
     if (!mapStore.time) return 0;
     if (mapStore.replayMode) {
       let pct =
-        ((mapStore.time - startTs ) /
-          (endTs - startTs )) * 100;
+        ((mapStore.time - startTs) /
+          (endTs - startTs)) * 100;
       if (pct > 100 && mapStore.playing) {
         pct = 100;
         setLive();
@@ -232,8 +239,8 @@ const ReplaySlider = observer(() => {
     if (!isDownloading) {
       mapStore.setReplayMode(true);
       const newTime = Math.max(
-        startTs ,
-        Math.min(endTs , mapStore.time + deltaMs)
+        startTs,
+        Math.min(endTs, mapStore.time + deltaMs)
       );
       mapStore.setTimeReference(newTime);
       mapStore.setTimeReferenceAnimation(Date.now());
@@ -251,7 +258,7 @@ const ReplaySlider = observer(() => {
       const ts =
         startTs +
         pct *
-          (endTs - startTs);
+        (endTs - startTs);
       if (pct === 1 && mapStore.playing) {
         setLive();
       } else {
@@ -325,7 +332,7 @@ const ReplaySlider = observer(() => {
             <LiveDot />
             LIVE
           </LiveTag>
-        ) : mapStore.buffering  ? (
+        ) : mapStore.buffering ? (
           <BufferingTag>
             <SpinnerIcon size={14} />
             Buffering
