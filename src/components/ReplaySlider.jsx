@@ -46,14 +46,14 @@ const SliderRow = styled.div`
   flex: 1;
   width: 100%;
 `;
-
 const LiveTag = styled.div`
   display: flex;
   align-items: center;
   margin-right: 10px;
-  color: red;
+  color: ${props => (props.replay ? "#666" : "red")};
   font-weight: bold;
-  cursor: pointer;
+  cursor: ${props => (props.disabled ? "default" : "pointer")};
+  pointer-events: ${props => (props.disabled ? "none" : "auto")};
 `;
 
 const LiveDot = styled.div`
@@ -61,9 +61,8 @@ const LiveDot = styled.div`
   height: 10px;
   border-radius: 50%;
   margin-right: 6px;
-  background-color: red;
+  background-color: ${props => (props.replay ? "#666" : "red")};
 `;
-
 const Time = styled.div`
   font-variant-numeric: tabular-nums;
   margin-right: 10px;
@@ -140,6 +139,8 @@ const SliderProgress = styled.div.attrs(props => ({
   height: 100%;
   background: darkred;
   border-radius: 4px;
+    cursor: pointer;
+
 `;
 
 const SliderHandle = styled.div.attrs(props => ({
@@ -156,6 +157,7 @@ const SliderHandle = styled.div.attrs(props => ({
   top: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
+    cursor: pointer;
 `;
 
 
@@ -182,11 +184,6 @@ const ReplaySlider = observer(() => {
   const sliderRef = useRef(null);
 
   let [startTs, endTs] = riderStore.getReplayTimeRange();
-
-    // hardcode for this event for the replayAdd commentMore actions
-  startTs = 1749790920 * 1000;
-  endTs = 1749828300 * 1000;
-
   const formatTime = ms => {
     const d = new Date(ms);
     return d.toLocaleString("de-CH", {
@@ -210,8 +207,10 @@ const ReplaySlider = observer(() => {
   };
 
   const setLive = () => {
-    mapStore.setReplayMode(false);
-    mapStore.setReplaySpeed(1);
+    if (mapStore.replayType != 'post-event') {
+      mapStore.setReplayMode(false);
+      mapStore.setReplaySpeed(1);
+    }
   };
 
   const isDownloading = riderStore.downloadProgress != null;
@@ -225,9 +224,13 @@ const ReplaySlider = observer(() => {
       let pct =
         ((mapStore.time - startTs) /
           (endTs - startTs)) * 100;
-      if (pct > 100 && mapStore.playing && mapStore.replayType === 'event') {
+      if (pct > 100) {
         pct = 100;
-        setLive();
+        // if this is a live “event” replay, drop back to live;
+        // for post-event we just clamp and stay in replay.
+        if (mapStore.replayType === 'event') {
+          setLive();
+        }
       }
       return pct;
     }
@@ -259,17 +262,26 @@ const ReplaySlider = observer(() => {
         0,
         Math.min(1, (clientX - rect.left) / rect.width)
       );
-      const ts =
-        startTs +
-        pct *
-        (endTs - startTs);
-      if (pct === 1 && mapStore.playing && mapStore.replayType === 'event') {
-        setLive();
-      } else {
-        mapStore.setReplayMode(true);
-        mapStore.setTimeReference(ts);
-        mapStore.setTimeReferenceAnimation(Date.now());
-        mapStore.setJumpTime(true);
+      let ts = startTs + pct * (endTs - startTs);
+      ts = Math.min(ts, endTs);
+
+      // always enter replay and seek
+      mapStore.setReplayMode(true);
+      mapStore.setTimeReference(ts);
+      mapStore.setTimeReferenceAnimation(Date.now());
+      mapStore.setJumpTime(true);
+      mapStore.setTime(ts);               // ← ADD THIS LINE
+
+
+      // if they dragged right to 100% while playing…
+      if (pct === 1) {
+        if (mapStore.replayType === 'event') {
+          // live‐event: switch back to live
+          setLive();
+        } else {
+          // post‐event: just pause at the end
+          mapStore.setPlaying(false);
+        }
       }
     }
   };
@@ -328,12 +340,26 @@ const ReplaySlider = observer(() => {
     };
   }, [isDragging, isDownloading]);
 
+  useEffect(() => {
+    if (
+      mapStore.replayMode &&
+      mapStore.replayType === 'post-event' &&
+      mapStore.time >= endTs
+    ) {
+      mapStore.setPlaying(false);
+    }
+  }, [mapStore.time]);
+
   return (
     <Container>
       <ControlsRow>
         {mapStore.replayMode ? (
-          <LiveTag onClick={setLive}>
-            <LiveDot />
+          <LiveTag
+            replay={true}
+            disabled={mapStore.replayType === "post-event"}
+            onClick={mapStore.replayType === "post-event" ? undefined : setLive}
+          >
+            <LiveDot replay={true} />
             LIVE
           </LiveTag>
         ) : mapStore.buffering ? (
@@ -342,8 +368,12 @@ const ReplaySlider = observer(() => {
             Buffering
           </BufferingTag>
         ) : (
-          <LiveTag onClick={setLive}>
-            <LiveDot />
+          <LiveTag
+            replay={false}
+            // always clickable when live
+            onClick={setLive}
+          >
+            <LiveDot replay={false} />
             LIVE
           </LiveTag>
         )}
