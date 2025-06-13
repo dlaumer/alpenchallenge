@@ -221,11 +221,14 @@ const ReplaySlider = observer(() => {
   const getReplayPct = () => {
     if (!mapStore.time) return 0;
     if (mapStore.replayMode) {
-      let pct =
-        ((mapStore.time - startTs) /
-          (endTs - startTs)) * 100;
-      if (pct > 100) {
-        pct = 100;
+      // compute effective “end” as the earlier of event-endTs or liveCutoff
+      const liveCutoff = Date.now() - mapStore.lag;
+      const currentMax = Math.min(endTs, liveCutoff);
+      const elapsed = mapStore.time - startTs;
+      const duration = currentMax - startTs;
+      let pct = (elapsed / duration) * 100;
+      pct = Math.min(Math.max(pct, 0), 100);
+      if (pct == 100) {
         // if this is a live “event” replay, drop back to live;
         // for post-event we just clamp and stay in replay.
         if (mapStore.replayType === 'event') {
@@ -263,7 +266,10 @@ const ReplaySlider = observer(() => {
         Math.min(1, (clientX - rect.left) / rect.width)
       );
       let ts = startTs + pct * (endTs - startTs);
-      ts = Math.min(ts, endTs);
+      // clamp to [startTs, min(endTs, liveCutoff)]
+      const liveCutoff = Date.now() - mapStore.lag;
+      const maxTs = Math.min(endTs, liveCutoff);
+      ts = Math.max(startTs, Math.min(ts, maxTs));
 
       // always enter replay and seek
       mapStore.setReplayMode(true);
