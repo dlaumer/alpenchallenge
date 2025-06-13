@@ -52,7 +52,7 @@ const RiderSearch = observer(() => {
   // Get only the rider IDs currently present in replayData
   const replayIds = Object.keys(riderStore.replayData);
 
-  // When focused, show all riders; when typing, filter by ID, full name, or nationality
+  // When focused, show all or filtered riders
   const filteredIds = focused
     ? replayIds.filter(id => {
         if (!q) return true;
@@ -92,7 +92,7 @@ const RiderSearch = observer(() => {
       />
       {focused && matches.length > 0 && (
         <Dropdown>
-          {matches.slice(0, 10).map(match => (
+          {matches.map(match => (
             <Option key={match.id} onClick={() => selectRider(match.id)}>
               {match.isInfo
                 ? `${match.FirstName} ${match.LastName} — ${match.Nationality}`
