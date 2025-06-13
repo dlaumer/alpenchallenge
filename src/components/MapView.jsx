@@ -406,9 +406,8 @@ const ArcGISMap = observer(() => {
           riderStore.clearDownloadProgress()
           console.log("Fetched features:", results.length);
           riderStore.setReplayData(results); // create a setter in your store
-
+          let [startTs, maxTs] = riderStore.getReplayTimeRange();
           // check if data is staleAdd commentMore actions
-          const maxTs = 1749828300 * 1000;
           const now = Date.now();
           const fifteenMinutes = 15 * 60 * 1000;
 
@@ -449,7 +448,7 @@ const ArcGISMap = observer(() => {
     }
     mapStore.setJumpTime(false);
 
-  }, [mapStore.jumpTime]);
+  }, [mapStore.time, mapStore.jumpTime]);
 
 
   useEffect(() => {
