@@ -1,7 +1,8 @@
 import React, { useState } from "react";
+import { observer } from "mobx-react-lite";
 import styled from "styled-components";
+import riderStore from "../store/riderStore";
 import mapStore from "../store/mapStore";
-import riderStore from '../store/riderStore';
 import { riders_info } from "../constants/riders_info_1000";
 
 const Container = styled.div`
@@ -43,33 +44,35 @@ const Option = styled.li`
   }
 `;
 
-const RiderSearch = () => {
+const RiderSearch = observer(() => {
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
   const q = query.toLowerCase();
 
-  // 1) Filter static info
-  const infoMatches = q.length > 0
-    ? Object.entries(riders_info)
-        .filter(([id, r]) => {
-          const fullName = `${r.FirstName} ${r.LastName}`.toLowerCase();
-          return (
-            fullName.includes(q) ||
-            r.Nationality?.toLowerCase().includes(q)
-          );
-        })
-        .map(([id, r]) => ({ id, ...r, isInfo: true }))
+  // Get only the rider IDs currently present in replayData
+  const replayIds = Object.keys(riderStore.replayData);
+
+  // When focused, show all riders; when typing, filter by ID, full name, or nationality
+  const filteredIds = focused
+    ? replayIds.filter(id => {
+        if (!q) return true;
+        const info = riders_info[id];
+        const fullName = info ? `${info.FirstName} ${info.LastName}`.toLowerCase() : "";
+        const country = info?.Nationality?.toLowerCase() || "";
+        return (
+          id.toLowerCase().includes(q) ||
+          fullName.includes(q) ||
+          country.includes(q)
+        );
+      })
     : [];
 
-  // 2) Filter live store by riderId only
-  const storeMatches = q.length > 0
-    ? Object.keys(riderStore.replayData)
-        .filter(id => id.toLowerCase().includes(q))
-        .map(id => ({ id, isInfo: false }))
-    : [];
-
-  // Combine them (you may also dedupe if needed)
-  const matches = [...infoMatches, ...storeMatches];
+  const matches = filteredIds.map(id => {
+    const info = riders_info[id];
+    return info
+      ? { id, ...info, isInfo: true }
+      : { id, isInfo: false };
+  });
 
   const selectRider = riderId => {
     mapStore.setRiderSelected(riderId);
@@ -101,6 +104,6 @@ const RiderSearch = () => {
       )}
     </Container>
   );
-};
+});
 
 export default RiderSearch;
