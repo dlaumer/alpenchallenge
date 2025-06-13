@@ -181,7 +181,11 @@ const ReplaySlider = observer(() => {
   const [isDragging, setIsDragging] = useState(false);
   const sliderRef = useRef(null);
 
-  const [startTs, endTs] = riderStore.getReplayTimeRange();
+  let [startTs, endTs] = riderStore.getReplayTimeRange();
+
+    // hardcode for this event for the replayAdd commentMore actions
+  startTs = 1749790920 * 1000;
+  endTs = 1749828300 * 1000;
 
   const formatTime = ms => {
     const d = new Date(ms);
@@ -221,7 +225,7 @@ const ReplaySlider = observer(() => {
       let pct =
         ((mapStore.time - startTs) /
           (endTs - startTs)) * 100;
-      if (pct > 100 && mapStore.playing) {
+      if (pct > 100 && mapStore.playing && mapStore.replayType === 'event') {
         pct = 100;
         setLive();
       }
@@ -259,7 +263,7 @@ const ReplaySlider = observer(() => {
         startTs +
         pct *
         (endTs - startTs);
-      if (pct === 1 && mapStore.playing) {
+      if (pct === 1 && mapStore.playing && mapStore.replayType === 'event') {
         setLive();
       } else {
         mapStore.setReplayMode(true);

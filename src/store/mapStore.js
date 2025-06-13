@@ -16,6 +16,9 @@ class MapStore {
   timeReference = null;
   timeReferenceAnimation = Date.now();
   replayMode = false;
+  replayType = 'event'; // 'event' or 'post-event'
+
+
   playing = true;
   elapsedPlaying = 0; // Time elapsed while not playing
 
@@ -93,10 +96,25 @@ class MapStore {
     this.replayMode = val;
   }
 
+  setReplayType(type) {
+    this.replayType = type;
+  }
+
+  isPostEventReplay() {
+    return this.replayMode && this.replayType === 'post-event';
+  }
+
+  isEventReplay() {
+    return this.replayMode && this.replayType === 'event';
+  }
+
   togglePlaying() {
     this.playing = !this.playing;
   }
+  /**
 
+/*************  ✨ Windsurf Command ⭐  *************/
+  /*******  622f8645-cc28-4827-a546-047b81180f65  *******/
   setElapsedPlaying(elapsed) {
     this.elapsedPlaying = elapsed;
   }
