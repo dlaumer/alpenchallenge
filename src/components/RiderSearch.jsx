@@ -4,6 +4,7 @@ import styled from "styled-components";
 import riderStore from "../store/riderStore";
 import mapStore from "../store/mapStore";
 import { riders_info } from "../constants/riders_info_1000";
+import { getTranslation } from "../utils/getTranslation";
 
 const Container = styled.div`
   position: absolute;
@@ -84,7 +85,7 @@ const RiderSearch = observer(() => {
     <Container>
       <Input
         type="text"
-        placeholder="Search rider by name or country"
+        placeholder={getTranslation("searchRiderByNameOrCountry")}
         value={query}
         onChange={e => setQuery(e.target.value)}
         onFocus={() => setFocused(true)}

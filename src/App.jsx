@@ -87,6 +87,7 @@ const App = observer(() => {
     mapStore.setFollowMode(state.mode);
     mapStore.setPlaying(state.playing);
     languageStore.setLanguage(state.lang);
+
     // mark replay mode but defer setting actual time
     mapStore.setReplayMode(state.time !== "live");
     if (state.time === "live") {
@@ -100,6 +101,7 @@ const App = observer(() => {
         heading: heading,
         tilt: tilt
       };
+
     }
   }, [mapStore.view]);
 
@@ -119,10 +121,9 @@ const App = observer(() => {
       mapStore.setTime(ts);
       mapStore.setTimeReference(ts);
       mapStore.setTimeReferenceAnimation(Date.now());
-      
+
     }
   }, [riderStore.replayData]);
-
 
 
   useEffect(() => {

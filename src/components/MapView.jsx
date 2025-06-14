@@ -25,6 +25,8 @@ import NavigationToggle from "@arcgis/core/widgets/NavigationToggle";
 import { riders_info } from '../constants/riders_info_1000';
 import * as reactiveUtils from "@arcgis/core/core/reactiveUtils";
 import { getStateFromUrl, updateUrlFromState } from "../utils/urlState";
+import { languageStore } from "../store/languageStore";
+import { setLocale } from "@arcgis/core/intl";
 
 const MapContainer = styled.div`
   width: 100%;
@@ -88,6 +90,7 @@ const ArcGISMap = observer(() => {
 
   useEffect(() => {
 
+      setLocale(languageStore.language); // <-- apply current language to widgets
     const latestSimulation = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
         id: "bd2b2a1f294e4ff0a80d62942ec24ece"

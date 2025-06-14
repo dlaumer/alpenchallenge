@@ -12,6 +12,7 @@ import enFlag from "../assets/flags/en.png";
 import deFlag from "../assets/flags/de.png";
 import frFlag from "../assets/flags/fr.png";
 import itFlag from "../assets/flags/it.png";
+import { setLocale } from '@arcgis/core/intl';
 
 const HeaderContainer = styled.header`
   z-index: 100;
@@ -189,7 +190,11 @@ const Header = observer(() => {
     }
   }, [mapStore.updating]);
 
-  const handleSelect = (lang) => { languageStore.setLanguage(lang); setOpen(false); };
+  const handleSelect = (lang) => {
+    languageStore.setLanguage(lang);
+    setLocale(lang); // <-- this line ensures widgets follow the selected language
+    setOpen(false);
+  };
 
   return (
     <HeaderContainer $panelOpen={uiStore.isPanelOpen}>
