@@ -144,6 +144,80 @@ const ArcGISMap = observer(() => {
       }
     })
 
+    const specialPointsLabels = new FeatureLayer({
+      portalItem: {  // autocasts as esri/portal/PortalItem
+        id: "398629a847f84793a978adb7d71efa6f"
+      },
+      elevationInfo: {
+        mode: "relative-to-ground",
+      },
+      definitionExpression: "event IN ('alpenchallenge') AND (pointType = 'routesection' OR pointType = 'pass')",
+      // Set a renderer that will show the points with icon symbols
+      renderer: {
+        type: "simple", // autocasts as new SimpleRenderer()
+        symbol: {
+          type: "point-3d", // autocasts as new PointSymbol3D()
+          symbolLayers: [
+            {
+              type: "icon", // autocasts as new IconSymbol3DLayer()
+              resource: {
+                primitive: "circle"
+              },
+              material: {
+                color: "black"
+              },
+              size: 4
+            }
+          ]
+        }
+      },
+      outFields: ["*"],
+
+      // Add labels with callouts of type line to the icons
+      labelingInfo: {
+        // autocasts as new LabelClass()
+        labelPlacement: "above-center", // When using callouts on labels, "above-center" is the only allowed position
+        labelExpressionInfo: {
+          expression: ` 
+          IIF(
+        $feature.pointType == "routesection",
+        $feature.TITLE + " km",
+        $feature.TITLE + TextFormatting.NewLine + $feature.DESCRIPTION
+      )`
+        },
+        symbol: {
+          type: "label-3d", // autocasts as new LabelSymbol3D()
+          symbolLayers: [
+            {
+              type: "text", // autocasts as new TextSymbol3DLayer()
+              material: { color: "black" },
+              halo: {
+                color: [255, 255, 255, 0.7],
+                size: 1.2
+              },
+              size: 12 // Larger font sizes will be prioritized when deconflicting labels
+            }
+          ],
+          // Labels need a small vertical offset that will be used by the callout
+          verticalOffset: {
+            screenLength: 75,
+            maxWorldLength: 1000,
+            minWorldLength: 30
+          },
+          // The callout has to have a defined type (currently only line is possible)
+          // The size, the color and the border color can be customized
+          callout: {
+            type: "line", // autocasts as new LineCallout3D()
+            size: 0.5,
+            color: [0, 0, 0],
+            border: {
+              color: [255, 255, 255, 0.7]
+            }
+          }
+        }
+      }
+    })
+
 
 
     const routeShort = new FeatureLayer({
@@ -217,7 +291,7 @@ const ArcGISMap = observer(() => {
     const map = new Map({                // Create a Map object
       basemap: "satellite",
       ground: "world-elevation",
-      layers: [animatedLayer, latestSimulation, routeShort, routeLong, specialPoints]
+      layers: [animatedLayer, latestSimulation, routeShort, routeLong, specialPoints, specialPointsLabels]
     });
 
     const view = new SceneView({
