@@ -34,7 +34,6 @@ const Container = styled.div`
 const ControlsRow = styled.div`
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   justify-content: center;
 
   @media (max-width: 768px) {
