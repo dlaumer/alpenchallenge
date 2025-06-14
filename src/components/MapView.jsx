@@ -27,6 +27,7 @@ import * as reactiveUtils from "@arcgis/core/core/reactiveUtils";
 import { getStateFromUrl, updateUrlFromState } from "../utils/urlState";
 import { languageStore } from "../store/languageStore";
 import { setLocale } from "@arcgis/core/intl";
+import { getFollowCamera } from "../utils/getFollowCamera"; // or wherever you put it
 
 const MapContainer = styled.div`
   width: 100%;
@@ -90,7 +91,7 @@ const ArcGISMap = observer(() => {
 
   useEffect(() => {
 
-      setLocale(languageStore.language); // <-- apply current language to widgets
+    setLocale(languageStore.language); // <-- apply current language to widgets
     const latestSimulation = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
         id: "bd2b2a1f294e4ff0a80d62942ec24ece"
@@ -610,50 +611,12 @@ const ArcGISMap = observer(() => {
 
         // If a rider is followed, update the camera center to that rider's current position.
         if (mapStore.riderFollowed == riderId && mapStore.isFollowing) {
-          const calculatedHeading = interpolated.heading;
-
-          // Smooth the heading transition only if the difference is less than 90 degrees.
-          let currentHeading = viewRef.current.camera.heading;
-          let delta = calculatedHeading - currentHeading;
-
-          // Normalize delta to the range [-180, 180]
-          if (delta > 180) delta -= 360;
-          if (delta < -180) delta += 360;
-
-          let smoothedHeading;
-          if (Math.abs(delta) < 90) {
-            let smoothingFactor = mapStore.followMode == "ride" ? 0.01 : 0.01; // Adjust this for smoothness
-            if (mapStore.replayMode) { smoothingFactor = smoothingFactor * mapStore.replaySpeed }
-            smoothedHeading = currentHeading + delta * smoothingFactor;
-            smoothedHeading = (smoothedHeading + 360) % 360;
-          } else {
-            smoothedHeading = calculatedHeading;
-          }
-          if (mapStore.followMode == "fly") {
-            // Use goTo without animation to instantly center the view on the followed rider.
-
-            const cameraPosition = getCameraOffsetPointPlanar(interpolated, calculatedHeading);
-            viewRef.current.camera = {
-              position: [
-                cameraPosition.longitude,
-                cameraPosition.latitude,
-                cameraPosition.altitude,
-              ],
-              tilt: 65,
-              heading: calculatedHeading,
-            };
-          }
-          else if (mapStore.followMode == "ride") {
-            viewRef.current.camera = {
-              position: [
-                interpolated.longitude,
-                interpolated.latitude,
-                interpolated.altitude
-              ],
-              heading: smoothedHeading,
-              tilt: 90
-            }
-          }
+          viewRef.current.camera = getFollowCamera(
+            viewRef.current.camera,
+            interpolated,
+            mapStore.followMode === "fly",
+            mapStore.replayMode ? 0.08 * mapStore.replaySpeed : 0.08
+          );
         }
       });
       animatedLayerRef.current.sendMessageToClient({ type: "clear" });
