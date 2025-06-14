@@ -9,10 +9,11 @@ import { countryMeta } from "../constants/countryMeta";
 import { X, Share2 } from "lucide-react";
 import uiStore from "../store/uiStore";
 import { useShare } from "./useShare.jsx";
+import { getTranslation } from "../utils/getTranslation";
 
 const Container = styled.div`
 
-  width: 500px;
+  width: 600px;
   padding: 12px 24px;
   background: #fff;
   border-radius: 32px;
@@ -159,26 +160,26 @@ const FollowedRider = observer(() => {
       <LeftGroup>
         <NumberBadge>{number}</NumberBadge>
         <Info>
-          <Label>You follow</Label>
+          <Label>{getTranslation("youFollow")}</Label>
           <NameRow>{name}</NameRow>
         </Info>
         {flag && <FlagIcon src={flag} alt={info.Nationality} />}
       </LeftGroup>
 
       <ModeGroup>
-        <ModeLabel>Follow mode</ModeLabel>
+        <ModeLabel>{getTranslation("followMode")}</ModeLabel>
         <ModeButtons>
           <ModeButton $active={mapStore.followMode === "fly"} onClick={() => mapStore.setFollowMode("fly")}>
-            Fly
+            {getTranslation("fly")}
           </ModeButton>
           <ModeButton $active={mapStore.followMode === "ride"} onClick={() => mapStore.setFollowMode("ride")}>
-            Ride
+            {getTranslation("ride")}
           </ModeButton>
         </ModeButtons>
       </ModeGroup>
 
-      <IconButton onClick={share} title="Share">
-        <Share2 size={20} />{"Share"}
+      <IconButton onClick={share} title={getTranslation("share")}>
+        <Share2 size={20} />{getTranslation("share")}
       </IconButton>
       {Toast}
 

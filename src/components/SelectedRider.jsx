@@ -10,10 +10,11 @@ import { Star, Play, Share2 } from "lucide-react";
 import { X } from "lucide-react";
 import uiStore from '../store/uiStore';
 import { useShare } from "./useShare.jsx";
+import { getTranslation } from "../utils/getTranslation";
 
 const Container = styled.div`
 
-  width: 600px;
+  width: 670px;
   padding: 12px 24px;
   background: rgba(58, 63, 69, 0.6);
   backdrop-filter: blur(4px);  border-radius: 32px;
@@ -165,17 +166,17 @@ const SelectedRider = observer(() => {
       </LeftGroup>
       <div style={{ display: "flex", alignItems: "center" }}>
         <IconButton $following={isFollowing} onClick={() => mapStore.toggleFollow(riderId)}>
-          <Play size={20} /> {isFollowing ? "Unfollow" : "Follow"}
+          <Play size={20} /> {isFollowing ? getTranslation("unfollow") : getTranslation("follow")}
         </IconButton>
 
         <IconButton
-          title={isFavorited ? "Unfavorite" : "Favorite"}
+          title={isFavorited ? getTranslation("unfavorite") : getTranslation("favorite")}
           onClick={() => riderStore.toggleFavorite(riderId)}
         >
-          <Star size={20} color={isFavorited ? "#4e8cff" : "#ffffff"} fill={isFavorited ? "#4e8cff" : "none"} />{"Favorite"}
+          <Star size={20} color={isFavorited ? "#4e8cff" : "#ffffff"} fill={isFavorited ? "#4e8cff" : "none"} />{isFavorited ? getTranslation("unfavorite") : getTranslation("favorite")}
         </IconButton>
         <IconButton onClick={share} title="Share">
-          <Share2 size={20} />{"Share"}
+          <Share2 size={20} />{getTranslation("share")}
         </IconButton>
         {Toast}
       </div>
