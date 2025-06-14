@@ -5,6 +5,7 @@ import riderStore from "../store/riderStore";
 import mapStore from "../store/mapStore";
 import { riders_info } from "../constants/riders_info_1000";
 import { getTranslation } from "../utils/getTranslation";
+import { countryMeta } from "../constants/countryMeta";
 
 const Container = styled.div`
   position: absolute;
@@ -45,6 +46,14 @@ const Option = styled.li`
   }
 `;
 
+const Flag = styled.img`
+  width: 24px;
+  height: 16px;
+  border-radius: 2px;
+  margin-right: 8px;
+  flex-shrink: 0;
+`;
+
 const RiderSearch = observer(() => {
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
@@ -56,16 +65,16 @@ const RiderSearch = observer(() => {
   // When focused, show all or filtered riders
   const filteredIds = focused
     ? replayIds.filter(id => {
-        if (!q) return true;
-        const info = riders_info[id];
-        const fullName = info ? `${info.FirstName} ${info.LastName}`.toLowerCase() : "";
-        const country = info?.Nationality?.toLowerCase() || "";
-        return (
-          id.toLowerCase().includes(q) ||
-          fullName.includes(q) ||
-          country.includes(q)
-        );
-      })
+      if (!q) return true;
+      const info = riders_info[id];
+      const fullName = info ? `${info.FirstName} ${info.LastName}`.toLowerCase() : "";
+      const country = info?.Nationality?.toLowerCase() || "";
+      return (
+        id.toLowerCase().includes(q) ||
+        fullName.includes(q) ||
+        country.includes(q)
+      );
+    })
     : [];
 
   const matches = filteredIds.map(id => {
@@ -95,10 +104,19 @@ const RiderSearch = observer(() => {
         <Dropdown>
           {matches.map(match => (
             <Option key={match.id} onClick={() => selectRider(match.id)}>
-              {match.isInfo
-                ? `${match.FirstName} ${match.LastName} — ${match.Nationality}`
-                : match.id
-              }
+              <div style={{ display: "flex", alignItems: "center" }}>
+                {match.isInfo && countryMeta[match.Nationality?.toUpperCase()] && (
+                  <Flag
+                    src={countryMeta[match.Nationality.toUpperCase()].flag}
+                    alt={match.Nationality}
+                  />
+                )}
+                <span>
+                  {match.isInfo
+                    ? `${match.FirstName} ${match.LastName}`
+                    : match.id}
+                </span>
+              </div>
             </Option>
           ))}
         </Dropdown>
