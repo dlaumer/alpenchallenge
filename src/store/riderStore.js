@@ -3,6 +3,7 @@ import mapStore from "../store/mapStore";
 import uiStore from "../store/uiStore";
 import routeStoreShort from "./routeStoreShort.js";
 import routeStoreLong from "./routeStoreLong.js";
+import { act } from "react";
 
 class RiderStore {
   riders = {}
@@ -165,7 +166,9 @@ class RiderStore {
     else if (data.snapped == 0) {
       result = this.interpolateBetweenPoints(t, data);
     }
-    result.active = active;
+    if (!result.active) {
+      result.active = active;
+    }
     return result
   }
 
@@ -228,6 +231,18 @@ class RiderStore {
   interpolateAlongPath(t, rider) {
     const riderId = rider.riderId;
     const distDiff = rider.distance - rider.previousDistance;
+
+    if (distDiff < 0) {
+      console.warn(`Negative distance difference for rider ${riderId}: ${distDiff}`);
+      return {
+        longitude: rider.previousLongitude,
+        latitude: rider.previousLatitude,
+        altitude: rider.previousAltitude,
+        heading: rider.heading,
+        speed: rider.speed,
+        active: false
+      };
+    }
     const newDistance = rider.previousDistance + t * distDiff;
     let routeIndex = rider.previousRouteIndex;
 
