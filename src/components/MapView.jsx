@@ -270,7 +270,7 @@ const ArcGISMap = observer(() => {
     const map = new Map({                // Create a Map object
       basemap: "satellite",
       ground: "world-elevation",
-      layers: [animatedLayer, latestSimulation, routeShort, routeLong, specialPoints, specialPointsLabels]
+      layers: [animatedLayer, latestSimulation, route, specialPoints, specialPointsLabels]
     });
 
     const view = new SceneView({
