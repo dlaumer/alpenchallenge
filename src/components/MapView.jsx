@@ -429,7 +429,7 @@ const ArcGISMap = observer(() => {
     const home = new Home({
       view: view
     });
-    view.ui.add(home, "bottom-right")
+    view.ui.add(home, "top-right")
 
     /**
      * Recursively fetches *all* features from a layer by paginating

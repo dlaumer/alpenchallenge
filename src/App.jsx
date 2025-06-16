@@ -13,6 +13,7 @@ import uiStore from "./store/uiStore";
 import GlobalStyles from "./styles/globalStyles";
 import { languageStore } from "./store/languageStore";
 import { useEffect, useState, useRef } from "react";
+import ViewpointNavigator from "./components/ViewpointNavigator";
 import ReplaySlider from "./components/ReplaySlider";
 import FollowedRider from "./components/FollowedRider";  // ← new import
 import mapStore from "./store/mapStore";                // ← new import
@@ -170,6 +171,8 @@ const App = observer(() => {
           </CardsWrapper>
 
           <MapView elevationWidgetRef={elevationWidgetRef} />
+          <ViewpointNavigator/>
+
           <ReplaySlider />
         </MapContainer>
       </MainContent>
