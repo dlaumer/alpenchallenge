@@ -7,6 +7,7 @@ import uiStore from "../store/uiStore";
 import styled from "styled-components";
 import SceneView from "@arcgis/core/views/SceneView";
 import Map from "@arcgis/core/Map";
+import WebScene from "@arcgis/core/WebScene";
 import Expand from "@arcgis/core/widgets/Expand";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
 import SceneLayer from "@arcgis/core/layers/SceneLayer";
@@ -164,6 +165,77 @@ const ArcGISMap = observer(() => {
                 primitive: "circle"
               },
               material: {
+                color: [255, 255, 255, 1]
+              },
+              size: 4
+            }
+          ]
+        }
+      },
+      outFields: ["*"],
+      // Add labels with callouts of type line to the icons
+      labelingInfo: [
+        {
+          where: "pointType = 'routesection'",
+          // autocasts as new LabelClass()
+          labelPlacement: "above-center", // When using callouts on labels, "above-center" is the only allowed position
+          labelExpressionInfo: {
+            expression: `$feature.TITLE + " km"`
+          },
+          symbol: {
+            type: "label-3d", // autocasts as new LabelSymbol3D()
+            symbolLayers: [
+              {
+                type: "text", // autocasts as new TextSymbol3DLayer()
+                material: { color: "black" },
+                halo: {
+                  color: [255, 255, 255, 0.7],
+                  size: 1.2
+                },
+                size: 12 // Larger font sizes will be prioritized when deconflicting labels
+              }
+            ],
+            // Labels need a small vertical offset that will be used by the callout
+            verticalOffset: {
+              screenLength: 75,
+              maxWorldLength: 1000,
+              minWorldLength: 5
+            },
+            // The callout has to have a defined type (currently only line is possible)
+            // The size, the color and the border color can be customized
+            callout: {
+              type: "line", // autocasts as new LineCallout3D()
+              size: 0.5,
+              color: [0, 0, 0],
+              border: {
+                color: [255, 255, 255, 0.7]
+              }
+            }
+          }
+        }]
+    })
+
+
+    const specialPointsLabels2 = new FeatureLayer({
+      portalItem: {  // autocasts as esri/portal/PortalItem
+        id: "398629a847f84793a978adb7d71efa6f"
+      },
+      elevationInfo: {
+        mode: "relative-to-ground",
+      },
+      definitionExpression: "event IN ('alpenchallenge') AND pointType = 'pass'",
+      // Set a renderer that will show the points with icon symbols
+      renderer: {
+        type: "simple", // autocasts as new SimpleRenderer()
+        symbol: {
+          type: "point-3d", // autocasts as new PointSymbol3D()
+          symbolLayers: [
+            {
+              type: "icon", // autocasts as new IconSymbol3DLayer()
+              resource: {
+                primitive: "circle"
+              },
+              material: {
                 color: "black"
               },
               size: 4
@@ -178,12 +250,7 @@ const ArcGISMap = observer(() => {
         // autocasts as new LabelClass()
         labelPlacement: "above-center", // When using callouts on labels, "above-center" is the only allowed position
         labelExpressionInfo: {
-          expression: ` 
-          IIF(
-        $feature.pointType == "routesection",
-        $feature.TITLE + " km",
-        $feature.TITLE + TextFormatting.NewLine + $feature.DESCRIPTION
-      )`
+          expression: `$feature.TITLE + TextFormatting.NewLine + $feature.DESCRIPTION`
         },
         symbol: {
           type: "label-3d", // autocasts as new LabelSymbol3D()
@@ -218,6 +285,15 @@ const ArcGISMap = observer(() => {
       }
     })
 
+    const buildings = new SceneLayer({
+      portalItem: {  // autocasts as esri/portal/PortalItem
+        id: "a714a2ca145446b79d97aaa7b895ff95"
+      },
+      elevationInfo: {
+        mode: "on-the-ground"
+      },
+      popupEnabled: false
+    })
 
 
     const routeShort = new FeatureLayer({
@@ -288,15 +364,23 @@ const ArcGISMap = observer(() => {
     animatedLayerRef.current = animatedLayer;
 
 
-    const map = new Map({                // Create a Map object
-      basemap: "satellite",
-      ground: "world-elevation",
-      layers: [animatedLayer, latestSimulation, routeShort, routeLong, specialPoints, specialPointsLabels]
+    const webscene = new WebScene({
+      portalItem: {  // autocasts as esri/portal/PortalItem
+        id: "ea36687328c5407fb42561e3737d52ca"
+      },
     });
+
+    webscene.layers.add(animatedLayer); // add the animated layer to the webscene
+    webscene.layers.add(latestSimulation); // add the latest simulation layer to the webscene
+    webscene.layers.add(route); // add the route layer to the webscene
+    webscene.layers.add(specialPointsLabels); // add the special points layer to the webscene 
+    webscene.layers.add(specialPointsLabels2); // add the special points layer to the webscene 
+    webscene.layers.add(buildings); // add the buildings layer to the webscene
+
 
     const view = new SceneView({
       container: mapRef.current,
-      map: map,
+      map: webscene,
       camera: {
         position: [
           9.56813731,
