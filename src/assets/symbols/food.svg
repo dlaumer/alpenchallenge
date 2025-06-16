@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 48 48" fill="none">
+  <!-- Beverage: Cup with Straw -->
+  <g stroke="#000" stroke-width="2" fill="none">
+    <!-- Straw -->
+    <path d="M30 8 L32 4 L36 4" stroke-linecap="round"/>
+    <!-- Cup Body -->
+    <path d="M28 10 L38 10 L36 36 H30 L28 10 Z" />
+  </g>
+
+  <!-- Food: Burger -->
+  <g stroke="#000" stroke-width="2" fill="none">
+    <!-- Top Bun -->
+    <path d="M10 30 Q22 20 34 30" />
+    <!-- Filling -->
+    <path d="M12 32 H32" />
+    <!-- Bottom Bun -->
+    <path d="M12 36 H32" />
+  </g>
+</svg>

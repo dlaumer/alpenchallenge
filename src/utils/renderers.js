@@ -4,6 +4,9 @@ import realTimeSymbol from "../assets/symbols/realTimeResults.svg";
 import poiSymbol from "../assets/symbols/poi.svg";
 import adSymbol from "../assets/symbols/ads.svg";
 import weatherSymbol from "../assets/symbols/weather.svg";
+import startSymbol from "../assets/symbols/start.svg";
+import finishSymbol from "../assets/symbols/finish.svg";
+import foodSymbol from "../assets/symbols/food.svg";
 
 
 import bluePinSymbol from "../assets/pins/blue-pin-symbol.svg";
@@ -165,14 +168,14 @@ export const latestSimulationRenderer = new SimpleRenderer({
 });
 
 
-function makeSymbol(url) {
+function makeSymbol(url, size = 20) {
   return {
     type: "point-3d",
     symbolLayers: [
       {
         type: "icon",
         resource: { href: url },
-        size: 20,
+        size: size,
         anchor: "relative",
         anchorPosition: { x: 0, y: 0.25 }
       }
@@ -223,6 +226,21 @@ export const pointTypeRenderer = {
       value: "weather",
       label: "Weather",
       symbol: makeSymbol(weatherSymbol)
+    },
+    {
+      value: "Start",
+      label: "Start",
+      symbol: makeSymbol(startSymbol, 40)
+    },
+    {
+      value: "Finish",
+      label: "Finish",
+      symbol: makeSymbol(finishSymbol, 40)
+    },
+    {
+      value: "Food",
+      label: "Food",
+      symbol: makeSymbol(foodSymbol, 50)
     }
   ]
 };
