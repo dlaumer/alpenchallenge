@@ -29,6 +29,7 @@ import { getStateFromUrl, updateUrlFromState } from "../utils/urlState";
 import { languageStore } from "../store/languageStore";
 import { setLocale } from "@arcgis/core/intl";
 import { getFollowCamera } from "../utils/getFollowCamera"; // or wherever you put it
+import SpatialReference from "@arcgis/core/geometry/SpatialReference";
 
 const MapContainer = styled.div`
   width: 100%;
@@ -353,10 +354,11 @@ const ArcGISMap = observer(() => {
       },
       geometryType: "point",               // required
       spatialReference: { wkid: 4326 },    // match your data
-      updateInterval: 0,                   // we'll push every frame
+      /*updateInterval: 0,                   // we'll push every frame
       purgeOptions: {
         type: "manual"                    // so we can clear old features each tick
       },
+      */
       renderer: streamLayerRenderer,
       screenSizePerspectiveEnabled: false,
     });
@@ -763,7 +765,7 @@ const ArcGISMap = observer(() => {
           geometry: {
             x: interpolated.longitude,
             y: interpolated.latitude,
-            spatialReference: { wkid: 4326 }
+            spatialReference: SpatialReference.WGS84
           }
         });
 
@@ -777,7 +779,7 @@ const ArcGISMap = observer(() => {
           );
         }
       });
-      animatedLayerRef.current.sendMessageToClient({ type: "clear" });
+      //animatedLayerRef.current.sendMessageToClient({ type: "clear" });
       animatedLayerRef.current.sendMessageToClient({ type: "features", features });
 
     }
