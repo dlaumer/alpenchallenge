@@ -13,6 +13,8 @@ import deFlag from "../assets/flags/de.png";
 import frFlag from "../assets/flags/fr.png";
 import itFlag from "../assets/flags/it.png";
 import { setLocale } from '@arcgis/core/intl';
+import { useShare } from "./useShare.jsx";
+import { X, Share2 } from "lucide-react";
 
 const HeaderContainer = styled.header`
   z-index: 100;
@@ -163,6 +165,25 @@ const ProgressBarWrapper = styled.div`
   background: transparent;
 `;
 
+
+const IconButton = styled.button`
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0,0,0,0);
+  color: #555;
+  border: 1px solid #555;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-left: 8px;
+`;
+const ShareWrapper = styled.div`
+  position: relative;
+  display: inline-block;
+`;
 const ProgressBar = styled.div.attrs(({ $progress }) => ({
   style: {
     width: `${$progress * 100}%`
@@ -176,6 +197,7 @@ const ProgressBar = styled.div.attrs(({ $progress }) => ({
 const Header = observer(() => {
   const [open, setOpen] = useState(false);
   const [animateDot, setAnimateDot] = useState(false);
+  const { share, Toast } = useShare();
 
   const currentLang = languageStore.language;
 
@@ -216,6 +238,13 @@ const Header = observer(() => {
         </LiveTitleWrapper>
       </LeftSection>
       <RightSection>
+        <ShareWrapper>
+
+          <IconButton onClick={() => share(false)} title={getTranslation("share")}>
+            <Share2 size={20} />{getTranslation("share")}
+          </IconButton>
+          {Toast}
+        </ShareWrapper>
         <Dropdown>
           <DropdownButton onClick={() => setOpen(!open)}>
             <FlagIcon src={flagIcons[currentLang]} alt={currentLang} />

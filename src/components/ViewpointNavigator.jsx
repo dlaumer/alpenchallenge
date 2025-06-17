@@ -121,6 +121,55 @@ const ViewpointNavigator = observer(() => {
             }
         },
         {
+            id: 'savognin', name: 'Savognin',
+            camera: {
+                position: [
+                    9.61408759,
+                    46.57836911,
+                    1593.65402
+                ],
+                heading: 328.64,
+                tilt: 82.80
+            }
+        },
+        {
+            id: 'maloja', name: 'Malojapass',
+            camera: {
+                position: [
+                    9.67258795,
+                    46.38615633,
+                    2280.33604
+                ],
+                heading: 46.70,
+                tilt: 81.71
+            }
+        },
+        {
+            id: 'spluegen', name: 'Splügenpass',
+            camera: {
+                position: [
+                    9.28120299,
+                    46.54469367,
+                    4404.65276
+                ],
+                heading: 142.62,
+                tilt: 73.81
+            }
+        },
+        {
+            id: 'thusis', name: 'Thusis',
+            camera:
+            {
+                position: [
+                    9.42313066,
+                    46.70304823,
+                    1332.80161
+                ],
+                heading: 115.95,
+                tilt: 80.22
+            }
+        },
+        {
             id: 'finish', name: 'Finish',
             camera: {
                 position: [
@@ -132,6 +181,7 @@ const ViewpointNavigator = observer(() => {
                 tilt: 75.41
             }
         },
+
     ];
     // clear active on manual interaction
     useEffect(() => {
