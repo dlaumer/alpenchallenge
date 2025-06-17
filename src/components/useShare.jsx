@@ -4,9 +4,16 @@ import { useState } from "react";
 export function useShare() {
   const [toast, setToast] = useState("");
 
-  function share() {
+  function share(all = true) {
     try {
-      navigator.clipboard.writeText(window.location.href);
+      if (all) {
+        navigator.clipboard.writeText(window.location.href);
+      }
+      else {
+        // copy only origin + pathname (no ?… parameters)
+        const base = window.location.origin + window.location.pathname;
+        navigator.clipboard.writeText(base);
+      }
       setToast("Link copied to clipboard!");
     } catch (e) {
       setToast("Failed to copy link");
@@ -16,8 +23,8 @@ export function useShare() {
 
   const Toast = toast ? (
     <div style={{
-      position: "fixed",
-      bottom: "20px",
+      position: "absolute",
+      top: "20px",
       left: "50%",
       transform: "translateX(-50%)",
       background: "#333",
