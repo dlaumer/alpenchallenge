@@ -333,11 +333,11 @@ const ArcGISMap = observer(() => {
       },
       geometryType: "point",               // required
       spatialReference: { wkid: 4326 },    // match your data
-      /*updateInterval: 0,                   // we'll push every frame
+      updateInterval: 0,                   // we'll push every frame
       purgeOptions: {
         type: "manual"                    // so we can clear old features each tick
       },
-      */
+      
       renderer: streamLayerRenderer,
       screenSizePerspectiveEnabled: false,
     });
@@ -758,7 +758,7 @@ const ArcGISMap = observer(() => {
           );
         }
       });
-      //animatedLayerRef.current.sendMessageToClient({ type: "clear" });
+      animatedLayerRef.current.sendMessageToClient({ type: "clear" });
       animatedLayerRef.current.sendMessageToClient({ type: "features", features });
 
     }
