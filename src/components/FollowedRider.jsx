@@ -128,7 +128,7 @@ const Separator = styled.span`
 `;
 const BatteryPercentage = styled.span`
   margin-left: 4px;
-  color: ${props => props.low ? 'red' : 'inherit'};
+  color: ${props => props.$low ? 'red' : 'inherit'};
 `;
 const IconWrapper = styled.div`
     width: 20px;
@@ -215,7 +215,7 @@ const FollowedRider = observer(() => {
                 color={batteryLevel < 33 ? 'red' : '#555'}
               />
             </IconWrapper>
-            <BatteryPercentage low={batteryLevel < 33}>
+            <BatteryPercentage $low={batteryLevel < 33}>
               {batteryLevel}%</BatteryPercentage>
           </Subtitle>
         </Info>

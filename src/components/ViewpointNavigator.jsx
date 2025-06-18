@@ -12,7 +12,7 @@ const CIRCLE_SIZE = 12;    // px
 
 const Container = styled.div`
   position: absolute;
-  top: 20%;
+  top: 50px;
   right: 20px;
   z-index: 1000;
   width: 150px;
@@ -71,11 +71,11 @@ const Dot = styled.div`
   border-radius: 50%;
   z-index: 3;           /* above the line */
   transition: transform 0.2s;
-background-color: ${p => (p.active ? 'rgb(255, 135, 135)' : 'white')};
+background-color: ${p => (p.$active ? 'rgb(255, 135, 135)' : 'white')};
   border: 2px solid red;
 
   &:hover {
-    transform: scale(${p => (p.active ? 1.3 : 1.1)});
+    transform: scale(${p => (p.$active ? 1.3 : 1.1)});
   }
 `;
 
@@ -218,7 +218,7 @@ const ViewpointNavigator = observer(() => {
                 return (
                     <Dot
                         key={vp.id}
-                        active={vp.id === activeId}
+                        $active={vp.id === activeId}
                         style={{ top }}
                         onClick={() => goTo(vp)}
                     />

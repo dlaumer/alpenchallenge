@@ -29,6 +29,8 @@ import { languageStore } from "../store/languageStore";
 import { setLocale } from "@arcgis/core/intl";
 import { getFollowCamera } from "../utils/getFollowCamera"; // or wherever you put it
 import SpatialReference from "@arcgis/core/geometry/SpatialReference";
+import LocalBasemapsSource from "@arcgis/core/widgets/BasemapGallery/support/LocalBasemapsSource";
+import Basemap from "@arcgis/core/Basemap";
 
 const MapContainer = styled.div`
   width: 100%;
@@ -399,14 +401,26 @@ const ArcGISMap = observer(() => {
       }
     });
 
+
+    const customBasemaps = [
+      Basemap.fromId("satellite"),
+      Basemap.fromId("topo-vector"),
+      Basemap.fromId("gray-vector"),
+      Basemap.fromId("dark-gray-vector"),
+      Basemap.fromId("osm")
+    ];
+
     const basemapGallery = new BasemapGallery({
-      view: view,  // The view that provides access to the map's "streets-vector" basemap
+      view,
+      source: new LocalBasemapsSource({ basemaps: customBasemaps })
     });
+
     basemapGalleryExpand.current = new Expand({
       content: basemapGallery,
-      view: view
+      view: view,
+      group: "bottom-right",
     });
-    view.ui.add(basemapGalleryExpand.current, "top-right")
+    view.ui.add(basemapGalleryExpand.current, "bottom-right")
 
 
     const weather = new Weather({
@@ -414,9 +428,10 @@ const ArcGISMap = observer(() => {
     });
     const weatherExpand = new Expand({
       content: weather,
-      view: view
+      view: view,
+      group: "bottom-right",
     });
-    view.ui.add(weatherExpand, "top-right")
+    view.ui.add(weatherExpand, "bottom-right")
 
     const home = new Home({
       view: view
