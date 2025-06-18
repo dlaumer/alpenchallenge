@@ -69,5 +69,10 @@ export const translations = {
     de: "Favorit entfernen",
     fr: "Retirer des favoris",
     it: "Rimuovi dai preferiti",
+  }, info: {
+    en: "Info",
+    de: "Info",
+    fr: "Info",
+    it: "Info",
   },
 };

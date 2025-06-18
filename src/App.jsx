@@ -1,10 +1,9 @@
 // src/App.jsx
 import Header from "./components/Header";
-import SidePanel from "./components/SidePanel";
 import FavoriteList from "./components/FavoriteList";
-import Popup from "./components/Popup";
 import SelectedRider from "./components/SelectedRider"; // adjust path if needed
 import RiderSearch from "./components/RiderSearch";     // adjust path if needed
+import InfoPanel from "./components/InfoPanel";     // adjust path if needed
 
 import MapView from "./components/MapView";
 import styled from "styled-components";
@@ -20,6 +19,7 @@ import mapStore from "./store/mapStore";                // ← new import
 import { getStateFromUrl, updateUrlFromState } from "./utils/urlState";
 import { autorun } from "mobx";
 import riderStore from "./store/riderStore";
+import { Info } from "lucide-react";
 
 const Container = styled.div`
   display: flex;
@@ -149,8 +149,8 @@ const App = observer(() => {
 
   return (
     <Container>
+      <InfoPanel />
       <GlobalStyles />
-      <SidePanel />
       <RiderSearch />
       <FavoriteList />
       <Header />
