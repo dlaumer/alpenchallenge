@@ -123,7 +123,7 @@ const SelectedRider = observer(() => {
   const riderId = mapStore.riderSelected;
   if (!riderId) return null;
 
-  const riderData = riderStore.replayData[riderId];
+  const riderData = riderStore.replayCache[riderId];
   if (!riderData) return null;
 
   if (riderId === mapStore.riderFollowed)
@@ -133,7 +133,7 @@ const SelectedRider = observer(() => {
   const name = info ? `${info.FirstName} ${info.LastName}` : riderId;
   const meta = info ? countryMeta[info.Nationality.toUpperCase()] : null;
   const country = meta ? meta.name : info?.Nationality || "";
-  const speed = (riderData.previousPos?.speed ?? 0).toFixed(1);
+  const speed = (riderData?.speed ?? 0).toFixed(1);
   const number = info && info.Startnummer ? info.Startnummer : info ? info.FirstName.substring(0, 1) + info.LastName.substring(0, 1) : riderId.substring(0, 3);
 
   const isFavorited = riderStore.favorites.includes(riderId);
