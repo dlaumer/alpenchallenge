@@ -8,13 +8,14 @@ import mapStore from "../store/mapStore"; // required for updating state
 import { useEffect, useState } from "react";
 
 import logo from "../assets/logo.png";
+import logoActyvo from "../assets/actyvo_transparent.png";
 import enFlag from "../assets/flags/en.png";
 import deFlag from "../assets/flags/de.png";
 import frFlag from "../assets/flags/fr.png";
 import itFlag from "../assets/flags/it.png";
 import { setLocale } from '@arcgis/core/intl';
 import { useShare } from "./useShare.jsx";
-import { X, Share2 } from "lucide-react";
+import { X, Share2, Info } from "lucide-react";
 
 const HeaderContainer = styled.header`
   z-index: 10000;
@@ -26,7 +27,6 @@ const HeaderContainer = styled.header`
   color: black;
   padding: 0 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-left: ${(props) => (props.$panelOpen ? "250px" : "0")};
   transition: margin-left 0.3s ease-in-out;
 `;
 
@@ -166,20 +166,23 @@ const ProgressBarWrapper = styled.div`
 `;
 
 
-const IconButton = styled.button`
-  align-self: flex-start;
+const ShareButton = styled.button`
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(0,0,0,0);
-  color: #555;
-  border: 1px solid #555;
-  border-radius: 10px;
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #f8f8f8;
   cursor: pointer;
-  margin-left: 8px;
+  font-size: 14px;
+  color: inherit;
+
+  &:hover {
+    background-color: #eee;
+  }
 `;
+
 const ShareWrapper = styled.div`
   position: relative;
   display: inline-block;
@@ -219,12 +222,15 @@ const Header = observer(() => {
   };
 
   return (
-    <HeaderContainer $panelOpen={uiStore.isPanelOpen}>
+    <HeaderContainer>
       <LeftSection>
-        <MenuButton onClick={uiStore.togglePanel}><Menu size={24} /></MenuButton>
-        <a href="https://www.alpenchallengelenzerheide.ch/" target="_blank" rel="noopener noreferrer">
+        <a style={{display: "flex"}} href="https://www.alpenchallengelenzerheide.ch/" target="_blank" rel="noopener noreferrer">
           <Logo src={logo} alt="Logo" />
-        </a>        <LiveTitleWrapper onClick={() => { window.location.search = ""; }}>
+        </a>     
+        <a style={{display: "flex"}} href="https://www.actyvo.app/" target="_blank" rel="noopener noreferrer">
+          <Logo src={logoActyvo} alt="LogoActyvo" />
+        </a>    
+        <LiveTitleWrapper onClick={() => { window.location.search = ""; }}>
           <LiveDot $animate={animateDot} />
           <LiveTextWrapper>
             <TextRow>
@@ -240,9 +246,15 @@ const Header = observer(() => {
       <RightSection>
         <ShareWrapper>
 
-          <IconButton onClick={() => share(false)} title={getTranslation("share")}>
+          <ShareButton onClick={() => uiStore.setInfoPanel(true)} title={getTranslation("info")}>
+            <Info size={20} />{getTranslation("info")}
+          </ShareButton>
+        </ShareWrapper>
+        <ShareWrapper>
+
+          <ShareButton onClick={() => share(false)} title={getTranslation("share")}>
             <Share2 size={20} />{getTranslation("share")}
-          </IconButton>
+          </ShareButton>
           {Toast}
         </ShareWrapper>
         <Dropdown>

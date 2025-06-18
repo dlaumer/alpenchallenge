@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 
 class UIStore {
-  isPanelOpen = false;
+  isInfoPanelOpen = false;
   lastFavoriteSlotClicked = null;
   favoritePanelCollapsed = false;
   isMobile = false;
@@ -22,9 +22,8 @@ class UIStore {
     this.lastFavoriteSlotClicked = index;
   }
 
-  togglePanel = () => {
-    this.favoritePanelCollapsed = !this.favoritePanelCollapsed;
-    this.isPanelOpen = !this.isPanelOpen;
+  setInfoPanel = (isOpen) => {
+    this.isInfoPanelOpen = isOpen;
   };
 
   toggleFavoritePanel = () => {
