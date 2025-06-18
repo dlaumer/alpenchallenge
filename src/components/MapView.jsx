@@ -374,7 +374,8 @@ const ArcGISMap = observer(() => {
 
     webscene.layers.add(animatedLayer); // add the animated layer to the webscene
     webscene.layers.add(latestSimulation); // add the latest simulation layer to the webscene
-    webscene.layers.add(route); // add the route layer to the webscene
+    webscene.layers.add(routeShort); // add the route layer to the webscene
+    webscene.layers.add(routeLong); // add the route layer to the webscene
     webscene.layers.add(specialPointsLabels); // add the special points layer to the webscene 
     webscene.layers.add(specialPointsLabels2); // add the special points layer to the webscene 
     webscene.layers.add(buildings); // add the buildings layer to the webscene
