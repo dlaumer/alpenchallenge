@@ -133,6 +133,7 @@ const App = observer(() => {
         favorites: riderStore.favorites,
         selected: mapStore.riderSelected,
         followed: mapStore.riderFollowed,
+        time: mapStore.replayMode ? mapStore.time : "live",
         mode: mapStore.followMode,
         playing: mapStore.playing,
         lang: languageStore.language,

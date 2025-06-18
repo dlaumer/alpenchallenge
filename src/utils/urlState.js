@@ -17,6 +17,12 @@ export function getStateFromUrl() {
 }
 
 export function updateUrlFromState(state) {
+  const paramsOld = new URLSearchParams(window.location.search);
+  if (paramsOld.get("time") !== "live" && state.time != paramsOld.get("time")) {
+    if (Math.abs(state.time - paramsOld.get("time")) < 1000) {
+      return; // Don't update URL if the time change is less than 1 second
+    }
+  }
   const params = new URLSearchParams();
 
   if (state.favorites?.length) params.set("favorites", state.favorites.join(","));
