@@ -58,10 +58,10 @@ const CardsWrapper = styled.div`
 const FollowOverlay = styled.div`
   pointer-events: none;
   position: absolute;
-  top: 90px;
-  left: 40px;
-  right: 40px;
-  bottom: 50px;
+  top: 110px;
+  left: 220px;
+  right: 200px;
+  bottom: 100px;
   z-index: 100;
 
   border: 2px solid #e1003b;
