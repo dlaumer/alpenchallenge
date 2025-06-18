@@ -6,7 +6,7 @@ import mapStore from "../store/mapStore";
 import riderStore from "../store/riderStore";
 import { riders_info } from "../constants/riders_info_1000";
 import { countryMeta } from "../constants/countryMeta";
-import { Star, Play, Share2 } from "lucide-react";
+import { Star, Play, Share2, BatteryFull, BatteryMedium, BatteryLow } from "lucide-react";
 import { X } from "lucide-react";
 import uiStore from '../store/uiStore';
 import { useShare } from "./useShare.jsx";
@@ -29,7 +29,7 @@ const Container = styled.div`
 const LeftGroup = styled.div`
   display: flex;
   align-items: center;
-    width: 40%;
+    width: 50%;
 
 `;
 
@@ -67,12 +67,15 @@ const NameRow = styled.div`
   text-overflow: ellipsis;
 `;
 
+// Styled components
 const Subtitle = styled.div`
   font-size: 14px;
   color: rgba(255, 255, 255, 0.7);
   margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 0;
 `;
-
 const IconButton = styled.button`
   align-self: flex-start;
   display: flex;
@@ -112,9 +115,23 @@ const CloseButton = styled.button`
 const FlagIcon = styled.img`
   width: 24px;
   height: 16px;
-  margin-left: 10px;
+  margin-right: 10px;
   border-radius: 2px;
 `;
+
+const Separator = styled.span`
+  margin: 0 4px;
+`;
+const BatteryPercentage = styled.span`
+  margin-left: 4px;
+  color: ${props => props.low ? 'red' : 'inherit'};
+`;
+const IconWrapper = styled.div`
+    width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  `
 
 const SelectedRider = observer(() => {
 
@@ -134,6 +151,17 @@ const SelectedRider = observer(() => {
   const meta = info ? countryMeta[info.Nationality.toUpperCase()] : null;
   const country = meta ? meta.name : info?.Nationality || "";
   const speed = (riderData?.speed ?? 0).toFixed(1);
+  const altitude = (riderData?.altitude ?? 0).toFixed(1);
+  const batteryLevel = 30;
+  let BatteryIcon;
+  if (batteryLevel >= 66) {
+    BatteryIcon = BatteryFull;
+  } else if (batteryLevel >= 33) {
+    BatteryIcon = BatteryMedium;
+  } else {
+    BatteryIcon = BatteryLow;
+  }
+
   const number = info && info.Startnummer ? info.Startnummer : info ? info.FirstName.substring(0, 1) + info.LastName.substring(0, 1) : riderId.substring(0, 3);
 
   const isFavorited = riderStore.favorites.includes(riderId);
@@ -156,13 +184,24 @@ const SelectedRider = observer(() => {
         <NumberBadge color={color} $selected={true}>{number}</NumberBadge>
         <Info>
           <NameRow>
+            {flag && <FlagIcon title={country} src={flag} alt={info.Nationality} />}
             {name}
           </NameRow>
           <Subtitle>
-            {country} &bull; {speed} km/h
+            <span>{speed} km/h</span>
+            <Separator>&bull;</Separator>
+            <span>{altitude} m</span>
+            <Separator>&bull;</Separator>
+            <IconWrapper>
+              <BatteryIcon
+                size={16}
+                color={batteryLevel < 33 ? 'red' : 'inherit'}
+              />
+            </IconWrapper>
+            <BatteryPercentage low={batteryLevel < 33}>
+              {batteryLevel}%</BatteryPercentage>
           </Subtitle>
         </Info>
-        {flag && <FlagIcon src={flag} alt={info.Nationality} />}
       </LeftGroup>
       <div style={{ display: "flex", alignItems: "center" }}>
         <IconButton $following={isFollowing} onClick={() => mapStore.toggleFollow(riderId)}>
