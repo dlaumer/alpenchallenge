@@ -107,6 +107,7 @@ class RiderStore {
       speed: attributes.speed,
 
       snapped: attributes.snapped,
+      battery: attributes.battery,
     };
   };
   // Process the feature layer's query results into the data format expected by your store.
