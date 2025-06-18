@@ -6,7 +6,7 @@ import mapStore from "../store/mapStore";
 import riderStore from "../store/riderStore";
 import { riders_info } from "../constants/riders_info_1000";
 import { countryMeta } from "../constants/countryMeta";
-import { X, Share2 } from "lucide-react";
+import { X, Share2, BatteryFull, BatteryMedium, BatteryLow  } from "lucide-react";
 import uiStore from "../store/uiStore";
 import { useShare } from "./useShare.jsx";
 import { getTranslation } from "../utils/getTranslation";
@@ -15,7 +15,7 @@ const Container = styled.div`
 
   width: 600px;
   padding: 12px 24px;
-  background: #fff;
+  background: #e0e6ed;
   border-radius: 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   display: flex;
@@ -32,7 +32,7 @@ const LeftGroup = styled.div`
 
 const NumberBadge = styled.div`
   background: ${uiStore.colorFollowing};
-  color: #fff;
+  color: #e0e6ed;
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -45,25 +45,6 @@ const NumberBadge = styled.div`
   flex-shrink: 0;
 `;
 
-const Info = styled.div`
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  margin-right: 16px;
-`;
-
-const Label = styled.div`
-  font-size: 12px;
-  color: #555;
-`;
-
-const NameRow = styled.div`
-  font-size: 18px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
 
 const ModeGroup = styled.div`
   display: flex;
@@ -79,9 +60,10 @@ const ModeLabel = styled.div`
 
 const ModeButtons = styled.div`
   display: flex;
-  border: 1px solid #ddd;
+  border: 1px solid #999;
   border-radius: 8px;
   overflow: hidden;
+  height: 32px;
 `;
 
 const ModeButton = styled.button`
@@ -100,23 +82,23 @@ const ModeButton = styled.button`
 
 
 const IconButton = styled.button`
-  align-self: flex-start;
   display: flex;
   align-items: center;
   gap: 4px;
   background: rgba(0,0,0,0);
   color: #555;
-  border: 1px solid #555;
-  border-radius: 10px;
+  border: 1px solid #999;
+  border-radius: 8px;
   padding: 6px 12px;
   font-size: 12px;
   cursor: pointer;
-  margin-top: 5px;
   margin-left: 8px;
+    height: 32px;
+
 `;
 /* Updated: circular close button */
 const CloseButton = styled.button`
-  background: #fff;
+  background: #e0e6ed;
   border: 1px solid #000;
   border-radius: 50%;
   width: 32px;
@@ -133,12 +115,55 @@ const CloseButton = styled.button`
   }
 `;
 
+
 const FlagIcon = styled.img`
   width: 24px;
   height: 16px;
-  margin-left: 10px;
+  margin-right: 10px;
   border-radius: 2px;
 `;
+
+const Separator = styled.span`
+  margin: 0 4px;
+`;
+const BatteryPercentage = styled.span`
+  margin-left: 4px;
+  color: ${props => props.low ? 'red' : 'inherit'};
+`;
+const IconWrapper = styled.div`
+    width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  `
+
+// Styled components
+const Subtitle = styled.div`
+  font-size: 14px;
+  color: #555;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+`;
+
+const Info = styled.div`
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+`;
+
+const NameRow = styled.div`
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
 
 const FollowedRider = observer(() => {
 
@@ -147,12 +172,27 @@ const FollowedRider = observer(() => {
   const riderId = mapStore.riderFollowed;
   if (!riderId) return null;
 
+  const riderData = riderStore.replayCache[riderId];
+  if (!riderData) return null;
   // same info lookup as SelectedRider
   const info = riders_info[riderId] || { FirstName: riderId, LastName: "" };
   const name = info ? `${info.FirstName} ${info.LastName}` : riderId;
   const number = info && info.Startnummer ? info.Startnummer : info ? info.FirstName.substring(0, 1) + info.LastName.substring(0, 1) : riderId.substring(0, 3);
 
   const meta = info ? countryMeta[info.Nationality.toUpperCase()] : null;
+  const country = meta ? meta.name : info?.Nationality || "";
+  const speed = (riderData?.speed ?? 0).toFixed(1);
+  const altitude = (riderData?.altitude ?? 0).toFixed(1);
+  const batteryLevel = 40;
+  let BatteryIcon;
+  if (batteryLevel >= 66) {
+    BatteryIcon = BatteryFull;
+  } else if (batteryLevel >= 33) {
+    BatteryIcon = BatteryMedium;
+  } else {
+    BatteryIcon = BatteryLow;
+  }
+
   const flag = meta?.flag;
 
   return (
@@ -160,14 +200,28 @@ const FollowedRider = observer(() => {
       <LeftGroup>
         <NumberBadge>{number}</NumberBadge>
         <Info>
-          <Label>{getTranslation("youFollow")}</Label>
-          <NameRow>{name}</NameRow>
+          <NameRow>
+            {flag && <FlagIcon title={country} src={flag} alt={info.Nationality} />}
+            {name}
+          </NameRow>
+          <Subtitle>
+            <span>{speed} km/h</span>
+            <Separator>&bull;</Separator>
+            <span>{altitude} m</span>
+            <Separator>&bull;</Separator>
+            <IconWrapper>
+              <BatteryIcon
+                size={16}
+                color={batteryLevel < 33 ? 'red' : '#555'}
+              />
+            </IconWrapper>
+            <BatteryPercentage low={batteryLevel < 33}>
+              {batteryLevel}%</BatteryPercentage>
+          </Subtitle>
         </Info>
-        {flag && <FlagIcon src={flag} alt={info.Nationality} />}
       </LeftGroup>
 
       <ModeGroup>
-        <ModeLabel>{getTranslation("followMode")}</ModeLabel>
         <ModeButtons>
           <ModeButton $active={mapStore.followMode === "fly"} onClick={() => mapStore.setFollowMode("fly")}>
             {getTranslation("fly")}
