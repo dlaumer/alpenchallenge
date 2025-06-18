@@ -41,7 +41,7 @@ const Item = styled.li`
   justify-content: space-between;
   align-items: center;
   height: ${ITEM_HEIGHT}px;
-  background: rgba(50,50,50,0.8);
+  background: #f8f8f8;
   border-radius: ${ITEM_HEIGHT / 2}px;
   padding: 0 16px;
   margin-bottom: ${ITEM_MARGIN}px;
@@ -55,11 +55,13 @@ const Item = styled.li`
   &:hover span {
     text-decoration: underline;
   }
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+
 `;
 
 const Label = styled.span`
   font-size: 14px;
-  color: #fff;
+  color: #000;
   font-weight: 500;
 `;
 
