@@ -17,7 +17,7 @@ import { useShare } from "./useShare.jsx";
 import { X, Share2 } from "lucide-react";
 
 const HeaderContainer = styled.header`
-  z-index: 100;
+  z-index: 10000;
   display: flex;
   align-items: center;
   justify-content: space-between;

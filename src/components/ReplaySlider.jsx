@@ -49,10 +49,10 @@ const LiveTag = styled.div`
   display: flex;
   align-items: center;
   margin-right: 10px;
-  color: ${props => (props.replay ? "#666" : "red")};
+  color: ${props => (props.$replay ? "#666" : "red")};
   font-weight: bold;
-  cursor: ${props => (props.disabled ? "default" : "pointer")};
-  pointer-events: ${props => (props.disabled ? "none" : "auto")};
+  cursor: ${props => (props.$disabled ? "default" : "pointer")};
+  pointer-events: ${props => (props.$disabled ? "none" : "auto")};
 `;
 
 const LiveDot = styled.div`
@@ -60,7 +60,7 @@ const LiveDot = styled.div`
   height: 10px;
   border-radius: 50%;
   margin-right: 6px;
-  background-color: ${props => (props.replay ? "#666" : "red")};
+  background-color: ${props => (props.$replay ? "#666" : "red")};
 `;
 const Time = styled.div`
   font-variant-numeric: tabular-nums;
@@ -360,11 +360,11 @@ const ReplaySlider = observer(() => {
       <ControlsRow>
         {mapStore.replayMode ? (
           <LiveTag
-            replay={true}
-            disabled={mapStore.replayType === "post-event"}
+            $replay={true}
+            $disabled={mapStore.replayType === "post-event"}
             onClick={mapStore.replayType === "post-event" ? undefined : setLive}
           >
-            <LiveDot replay={true} />
+            <LiveDot $replay={true} />
             LIVE
           </LiveTag>
         ) : mapStore.buffering ? (
@@ -374,11 +374,11 @@ const ReplaySlider = observer(() => {
           </BufferingTag>
         ) : (
           <LiveTag
-            replay={false}
+            $replay={false}
             // always clickable when live
             onClick={setLive}
           >
-            <LiveDot replay={false} />
+            <LiveDot $replay={false} />
             LIVE
           </LiveTag>
         )}
