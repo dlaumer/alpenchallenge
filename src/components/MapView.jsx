@@ -15,7 +15,6 @@ import StreamLayer from "@arcgis/core/layers/StreamLayer";
 import Point from "@arcgis/core/geometry/Point";
 import BasemapGallery from "@arcgis/core/widgets/BasemapGallery";
 import Weather from "@arcgis/core/widgets/Weather";
-import Editor from "@arcgis/core/widgets/Editor";
 import Home from "@arcgis/core/widgets/Home";
 
 import { pointTypeRenderer, streamLayerRenderer } from "../utils/renderers";
@@ -396,16 +395,6 @@ const ArcGISMap = observer(() => {
       view: view
     });
     view.ui.add(weatherExpand, "top-right")
-
-    const edit = new Expand({
-      content: new Editor({
-        view: view
-      }),
-      view: view
-    });
-    view.ui.add(edit, "top-right")
-
-
 
     const home = new Home({
       view: view
