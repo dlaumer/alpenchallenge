@@ -31,7 +31,6 @@ class RiderStore {
   // Action to update the riders data when new data is available
   setRiders(results) {
 
-    const data = {};
     results.features.forEach((feature) => {
       const attributes = feature.attributes;
       const riderId = attributes.userId;
