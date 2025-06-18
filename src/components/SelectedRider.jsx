@@ -152,7 +152,7 @@ const SelectedRider = observer(() => {
   const country = meta ? meta.name : info?.Nationality || "";
   const speed = (riderData?.speed ?? 0).toFixed(1);
   const altitude = (riderData?.altitude ?? 0).toFixed(1);
-  const batteryLevel = 30;
+  const batteryLevel = (riderData?.battery ?? 0).toFixed(0);
   let BatteryIcon;
   if (batteryLevel >= 66) {
     BatteryIcon = BatteryFull;
@@ -195,7 +195,7 @@ const SelectedRider = observer(() => {
             <IconWrapper>
               <BatteryIcon
                 size={16}
-                color={batteryLevel < 33 ? 'red' : 'inherit'}
+                color={batteryLevel < 33 ? 'red' : 'rgba(255, 255, 255, 0.7)'}
               />
             </IconWrapper>
             <BatteryPercentage low={batteryLevel < 33}>
