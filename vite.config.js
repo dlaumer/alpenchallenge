@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   assetsInclude: ['**/*.glb'],
-  base: process.env.VITE_BASE_PATH || '/alpenchallenge/',
+  base: process.env.VITE_BASE_PATH || '/AlpenChallengeLenzerheide/',
   build: {
     outDir: "dist",
     emptyOutDir: true,
