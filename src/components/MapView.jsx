@@ -31,6 +31,7 @@ import { getFollowCamera } from "../utils/getFollowCamera"; // or wherever you p
 import SpatialReference from "@arcgis/core/geometry/SpatialReference";
 import LocalBasemapsSource from "@arcgis/core/widgets/BasemapGallery/support/LocalBasemapsSource";
 import Basemap from "@arcgis/core/Basemap";
+import Locate from "@arcgis/core/widgets/Locate";
 
 const MapContainer = styled.div`
   width: 100%;
@@ -378,6 +379,11 @@ const ArcGISMap = observer(() => {
         components: ["attribution"]
       }
     });
+
+    const locate = new Locate({
+      view
+    })
+    view.ui.add(locate, "bottom-right")
 
 
     const customBasemaps = [
