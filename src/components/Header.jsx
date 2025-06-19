@@ -224,25 +224,26 @@ const Header = observer(() => {
   return (
     <HeaderContainer>
       <LeftSection>
-        <a style={{display: "flex"}} href="https://www.alpenchallengelenzerheide.ch/" target="_blank" rel="noopener noreferrer">
+        <a style={{ display: "flex" }} href="https://www.alpenchallengelenzerheide.ch/" target="_blank" rel="noopener noreferrer">
           <Logo src={logo} alt="Logo" />
-        </a>     
-        <a style={{display: "flex"}} href="https://www.actyvo.app/" target="_blank" rel="noopener noreferrer">
+        </a>
+        <a style={{ display: "flex" }} href="https://www.actyvo.app/" target="_blank" rel="noopener noreferrer">
           <Logo src={logoActyvo} alt="LogoActyvo" />
-        </a>    
-        <LiveTitleWrapper onClick={() => { window.location.search = ""; }}>
-          <LiveDot $animate={animateDot} />
-          <LiveTextWrapper>
-            <TextRow>
-              <LiveText>LIVE</LiveText>
-              <StreamText>TRAC3D</StreamText>
-            </TextRow>
-            <ProgressBarWrapper>
-              <ProgressBar $progress={mapStore.t} />
-            </ProgressBarWrapper>
-          </LiveTextWrapper>
-        </LiveTitleWrapper>
+        </a>
+
       </LeftSection>
+      <LiveTitleWrapper onClick={() => { window.location.search = ""; }}>
+        <LiveDot $animate={animateDot} />
+        <LiveTextWrapper>
+          <TextRow>
+            <LiveText>LIVE</LiveText>
+            <StreamText>TRAC3D</StreamText>
+          </TextRow>
+          <ProgressBarWrapper>
+            <ProgressBar $progress={mapStore.t} />
+          </ProgressBarWrapper>
+        </LiveTextWrapper>
+      </LiveTitleWrapper>
       <RightSection>
         <ShareWrapper>
 

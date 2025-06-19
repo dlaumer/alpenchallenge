@@ -88,7 +88,7 @@ const InfoPage = observer(() => {
   return (
     <Overlay>
       <HeaderBar>
-        <Title>About us</Title>
+        <Title>Wie es zu LiveTrac3D kam...</Title>
         <CloseButton onClick={() => uiStore.setInfoPanel(false)} aria-label="Close">×</CloseButton>
       </HeaderBar>
       <Content>
@@ -142,7 +142,7 @@ const InfoPage = observer(() => {
 
         <h2>📞 Kontakt</h2>
         <address>
-          Für eine persönliche Live-Demo oder weitere Fragen:<br />
+          Für eine persönliche Live-Demo oder weitere Fragen:<br /><br />
           sailer smartTRIP<br />
           Christian Sailer<br />
           Neue Dorfstrasse 20a<br />
