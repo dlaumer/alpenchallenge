@@ -21,7 +21,7 @@ import { useShare } from "./useShare.jsx";
 import { X, Share2, Info } from "lucide-react";
 
 const HeaderContainer = styled.header`
-  z-index: 10000;
+  z-index: 30000;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -62,6 +62,7 @@ const RightSection = styled.div`
 const Dropdown = styled.div`
   position: relative;
   user-select: none;
+  z-index: 30000;
 `;
 
 const DropdownButton = styled.div`
@@ -95,7 +96,7 @@ const DropdownList = styled.ul`
   border: 1px solid #ccc;
   border-radius: 6px;
   list-style: none;
-  z-index: 10;
+  z-index: 30000;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   min-width: 140px;
   max-width: 100vw;

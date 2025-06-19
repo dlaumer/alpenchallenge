@@ -17,6 +17,10 @@ const GlobalStyles = createGlobalStyle`
     bottom: 90px !important;
   }
 }
+  /* in your global stylesheet or injected via JS */
+.esri-view .esri-ui {
+  z-index: 999 !important;
+}
 `;
 
 export default GlobalStyles;
