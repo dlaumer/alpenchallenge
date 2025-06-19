@@ -758,7 +758,7 @@ const ArcGISMap = observer(() => {
 
         let isStaff = false;
         if (riders_info[riderId]) {
-          if (riders_info[riderId].LastName == "Staff") {
+          if (riders_info[riderId].Category == "staff") {
             isStaff = true;
           }
         }
