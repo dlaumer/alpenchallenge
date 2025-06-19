@@ -299,9 +299,28 @@ const ArcGISMap = observer(() => {
     })
 
 
-    const route = new FeatureLayer({
+    const routeShort = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
         id: "e861c9af6e194769b8492a37a89c3984"
+      },
+      elevationInfo: {
+        mode: "on-the-ground"
+      },
+      renderer: {
+        type: "simple",
+        symbol: {
+          type: "simple-line",
+          color: "darkred",
+          width: "4px"
+        }
+      },
+      popupEnabled: false
+    })
+
+
+    const routeLong = new FeatureLayer({
+      portalItem: {  // autocasts as esri/portal/PortalItem
+        id: "dd728d9233574670b2dab5b4cf2dad28"
       },
       elevationInfo: {
         mode: "on-the-ground"
@@ -355,7 +374,8 @@ const ArcGISMap = observer(() => {
 
     webscene.layers.add(animatedLayer); // add the animated layer to the webscene
     webscene.layers.add(latestSimulation); // add the latest simulation layer to the webscene
-    webscene.layers.add(route); // add the route layer to the webscene
+    webscene.layers.add(routeShort); // add the route layer to the webscene
+    webscene.layers.add(routeLong); // add the route layer to the webscene
     webscene.layers.add(specialPointsLabels); // add the special points layer to the webscene 
     webscene.layers.add(specialPointsLabels2); // add the special points layer to the webscene 
     webscene.layers.add(buildings); // add the buildings layer to the webscene
@@ -366,12 +386,12 @@ const ArcGISMap = observer(() => {
       map: webscene,
       camera: {
         position: [
-          9.75325244,
-          46.20215233,
-          34712.77477
+          9.56813731,
+          45.80280017,
+          48086.58705
         ],
-        heading: 358.70,
-        tilt: 50.05
+        heading: 2.24,
+        tilt: 56.44
       },
 
       ui: {
@@ -736,7 +756,7 @@ const ArcGISMap = observer(() => {
 
         let isStaff = false;
         if (riders_info[riderId]) {
-          if (riders_info[riderId].LastName == "Staff") {
+          if (riders_info[riderId].Category == "staff") {
             isStaff = true;
           }
         }
