@@ -9,8 +9,8 @@ class UIStore {
 
   colorSelected = "#30D5C8";  // typical ArcGIS turquoise
   colorFollowing = "#E74C3C"; // typical ArcGIS red
-  colorFavorites = "#4E8CFF"; // typical ArcGIS blue
-  colorNormal = "#BFDBFF";
+  colorFavorites = "#003494"; // typical ArcGIS blue
+  colorNormal = "#4E8CFF";
   colorStaff = "#FFB74D";     // typical ArcGIS yellow
 
   constructor() {

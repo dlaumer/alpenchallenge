@@ -63,7 +63,7 @@ const RankCircle = styled.div`
   box-sizing: border-box;
   background: ${props => props.color};
   border-radius: 50%;
-  border: ${props => props.$selected ? `3px solid #30D5C8` : "none"};
+  border: ${props => props.$selected ? `3px solid ${uiStore.colorSelected}` : "none"};
   color: #fff;
   font-size: 14px;
   font-weight: 600;
