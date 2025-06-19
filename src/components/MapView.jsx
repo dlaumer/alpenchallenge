@@ -85,13 +85,6 @@ const ArcGISMap = observer(() => {
   const basemapGalleryExpand = useRef(null);
   const lastFrameTimeRef = useRef(0);
 
-  useEffect(() => {
-    const isMobile = window.innerWidth <= 768;
-    if (isMobile) {
-      uiStore.setIsMobile(true)
-      uiStore.favoritePanelCollapsed = true;
-    }
-  }, []);
 
   useEffect(() => {
 

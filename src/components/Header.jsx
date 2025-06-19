@@ -9,6 +9,9 @@ import { useEffect, useState } from "react";
 
 import logo from "../assets/logo.png";
 import logoActyvo from "../assets/actyvo_transparent.png";
+
+import logoSmall from "../assets/logo_small.png";
+import logoActyvoSmall from "../assets/actyvo_transparent_small.png";
 import enFlag from "../assets/flags/en.png";
 import deFlag from "../assets/flags/de.png";
 import frFlag from "../assets/flags/fr.png";
@@ -202,6 +205,8 @@ const Header = observer(() => {
   const [animateDot, setAnimateDot] = useState(false);
   const { share, Toast } = useShare();
 
+  const { isMobile } = uiStore;            // ← grab the mobile flag
+
   const currentLang = languageStore.language;
 
   const flagIcons = { de: deFlag, fr: frFlag, it: itFlag, en: enFlag };
@@ -224,36 +229,36 @@ const Header = observer(() => {
   return (
     <HeaderContainer>
       <LeftSection>
-        <a style={{display: "flex"}} href="https://www.alpenchallengelenzerheide.ch/" target="_blank" rel="noopener noreferrer">
-          <Logo src={logo} alt="Logo" />
-        </a>     
-        <a style={{display: "flex"}} href="https://www.actyvo.app/" target="_blank" rel="noopener noreferrer">
-          <Logo src={logoActyvo} alt="LogoActyvo" />
-        </a>    
-        <LiveTitleWrapper onClick={() => { window.location.search = ""; }}>
-          <LiveDot $animate={animateDot} />
-          <LiveTextWrapper>
-            <TextRow>
-              <LiveText>LIVE</LiveText>
-              <StreamText>TRAC3D</StreamText>
-            </TextRow>
-            <ProgressBarWrapper>
-              <ProgressBar $progress={mapStore.t} />
-            </ProgressBarWrapper>
-          </LiveTextWrapper>
-        </LiveTitleWrapper>
+        <a style={{ display: "flex" }} href="https://www.alpenchallengelenzerheide.ch/" target="_blank" rel="noopener noreferrer">
+          <Logo src={isMobile ? logoSmall : logo} alt="Logo" />
+        </a>
+        <a style={{ display: "flex" }} href="https://www.actyvo.app/" target="_blank" rel="noopener noreferrer">
+          <Logo src={isMobile ? logoActyvoSmall : logoActyvo} alt="LogoActyvo" />
+        </a>
       </LeftSection>
+      <LiveTitleWrapper onClick={() => { window.location.search = ""; }}>
+        <LiveDot $animate={animateDot} />
+        <LiveTextWrapper>
+          <TextRow>
+            <LiveText>LIVE</LiveText>
+            <StreamText>TRAC3D</StreamText>
+          </TextRow>
+          <ProgressBarWrapper>
+            <ProgressBar $progress={mapStore.t} />
+          </ProgressBarWrapper>
+        </LiveTextWrapper>
+      </LiveTitleWrapper>
       <RightSection>
         <ShareWrapper>
 
           <ShareButton onClick={() => uiStore.setInfoPanel(true)} title={getTranslation("info")}>
-            <Info size={20} />{getTranslation("info")}
+            <Info size={20} />{!uiStore.isMobile && getTranslation("info")}
           </ShareButton>
         </ShareWrapper>
         <ShareWrapper>
 
           <ShareButton onClick={() => share(false)} title={getTranslation("share")}>
-            <Share2 size={20} />{getTranslation("share")}
+            <Share2 size={20} />{!uiStore.isMobile && getTranslation("share")}
           </ShareButton>
           {Toast}
         </ShareWrapper>

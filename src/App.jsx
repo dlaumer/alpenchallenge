@@ -44,7 +44,7 @@ const MapContainer = styled.div`
 /* Wrap both cards at top-center and manage their stacking */
 const CardsWrapper = styled.div`
   position: absolute;
-  top: 10px;
+  top: ${props => props.$isMobile ? "55px" : "20px"};
   left: 50%;
   transform: translateX(-50%);
   width: 460px;
@@ -58,10 +58,10 @@ const CardsWrapper = styled.div`
 const FollowOverlay = styled.div`
   pointer-events: none;
   position: absolute;
-  top: 110px;
-  left: 220px;
-  right: 200px;
-  bottom: 100px;
+  top: ${props => props.$isMobile ? "100px" : "110px"};
+  left: ${props => props.$isMobile ? "10px" : "220px"};
+  right: ${props => props.$isMobile ? "10px" : "200px"};
+  bottom: ${props => props.$isMobile ? "10px" : "100px"};
   z-index: 100;
 
   border: 2px solid #e1003b;
@@ -146,6 +146,7 @@ const App = observer(() => {
 
   const showOverlay = !!mapStore.riderFollowed;
 
+  const { isMobile } = uiStore;
 
   return (
     <Container>
@@ -154,11 +155,11 @@ const App = observer(() => {
       <RiderSearch />
       <FavoriteList />
       <Header />
-      {showOverlay && <FollowOverlay />}
+      {showOverlay && <FollowOverlay $isMobile={isMobile}/>}
 
       <MainContent $panelOpen={uiStore.isPanelOpen}>
         <MapContainer>
-          <CardsWrapper>
+          <CardsWrapper $isMobile={isMobile}>
             {mapStore.riderFollowed && (
               <FollowedRider
               />
@@ -171,7 +172,7 @@ const App = observer(() => {
           </CardsWrapper>
 
           <MapView elevationWidgetRef={elevationWidgetRef} />
-          <ViewpointNavigator/>
+          <ViewpointNavigator />
 
           <ReplaySlider />
         </MapContainer>

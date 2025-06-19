@@ -6,20 +6,28 @@ import mapStore from "../store/mapStore";
 import riderStore from "../store/riderStore";
 import { riders_info } from "../constants/riders_info_1000";
 import { countryMeta } from "../constants/countryMeta";
-import { Star, Play, Share2, BatteryFull, BatteryMedium, BatteryLow } from "lucide-react";
-import { X } from "lucide-react";
-import uiStore from '../store/uiStore';
+import {
+  Star,
+  Play,
+  Share2,
+  BatteryFull,
+  BatteryMedium,
+  BatteryLow,
+  X as XIcon
+} from "lucide-react";
+import uiStore from "../store/uiStore";
 import { useShare } from "./useShare.jsx";
 import { getTranslation } from "../utils/getTranslation";
 
 const Container = styled.div`
-
-  width: 670px;
-  padding: 12px 24px;
+  width: ${props => (props.$isMobile ? "calc(100% - 90px)" : "670px")};
+  padding: ${props => (props.$isMobile ? "8px 12px" : "12px 24px")};
   background: rgba(58, 63, 69, 0.6);
-  backdrop-filter: blur(4px);  border-radius: 32px;
+  backdrop-filter: blur(4px);
+  border-radius: 32px;
   display: flex;
-  align-items: center;
+  flex-direction: ${props => (props.$isMobile ? "column" : "row")};
+  align-items: ${props => (props.$isMobile ? "flex-start" : "center")};
   justify-content: space-between;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   color: #fff;
@@ -29,17 +37,26 @@ const Container = styled.div`
 const LeftGroup = styled.div`
   display: flex;
   align-items: center;
-    width: 50%;
+  width: ${props => (props.$isMobile ? "100%" : "40%")};
+  margin-bottom: ${props => (props.$isMobile ? "8px" : "0")};
+`;
 
+const RightGroup = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: ${props => (props.$isMobile ? "8px" : "0")};
+  width: ${props => (props.$isMobile ? "100%" : "auto")};
+  justify-content: ${props => (props.$isMobile ? "space-evenly" : "flex-end")};
 `;
 
 const NumberBadge = styled.div`
-  width: 46px; /* 40px circle + 2×3px border */
+  width: 46px;
   height: 46px;
   box-sizing: border-box;
   background: ${props => props.color};
   border-radius: 50%;
-  border: ${props => props.$selected ? `3px solid #30D5C8` : "none"};
+  border: ${props => (props.$selected ? `3px solid #30D5C8` : "none")};
   color: #fff;
   font-size: 14px;
   font-weight: 600;
@@ -67,7 +84,6 @@ const NameRow = styled.div`
   text-overflow: ellipsis;
 `;
 
-// Styled components
 const Subtitle = styled.div`
   font-size: 14px;
   color: rgba(255, 255, 255, 0.7);
@@ -76,25 +92,22 @@ const Subtitle = styled.div`
   align-items: center;
   gap: 0;
 `;
+
 const IconButton = styled.button`
-  align-self: flex-start;
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(0,0,0,0);
+  background: transparent;
   color: #fff;
   border: 2px solid rgba(255, 255, 255, 0.7);
   border-radius: 10px;
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: ${props => (props.$isMobile ? "4px 8px" : "6px 12px")};
+  font-size: ${props => (props.$isMobile ? "11px" : "12px")};
   cursor: pointer;
-  margin-top: 2px;
-  margin-left: 8px;
 `;
 
-/* Updated: circular close button */
 const CloseButton = styled.button`
-  background: rgba(0, 0, 0, 0);
+  background: transparent;
   border: 1px solid #fff;
   border-radius: 50%;
   width: 32px;
@@ -104,13 +117,13 @@ const CloseButton = styled.button`
   justify-content: center;
   cursor: pointer;
   padding: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-left: ${props => (props.$isMobile ? "0" : "8px")};
+  margin-top: ${props => (props.$isMobile ? "8px" : "0")};
 
   &:hover {
-    background: rgba(58, 63, 69, 0.6);;
+    background: rgba(58, 63, 69, 0.6);
   }
 `;
-
 
 const FlagIcon = styled.img`
   width: 24px;
@@ -122,29 +135,29 @@ const FlagIcon = styled.img`
 const Separator = styled.span`
   margin: 0 4px;
 `;
+
 const BatteryPercentage = styled.span`
   margin-left: 4px;
-  color: ${props => props.low ? 'red' : 'inherit'};
+  color: ${props => (props.low ? "red" : "inherit")};
 `;
+
 const IconWrapper = styled.div`
-    width: 20px;
+  width: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  `
+`;
 
 const SelectedRider = observer(() => {
-
   const { share, Toast } = useShare();
+  const { isMobile } = uiStore;
 
   const riderId = mapStore.riderSelected;
   if (!riderId) return null;
 
   const riderData = riderStore.replayCache[riderId];
   if (!riderData) return null;
-
-  if (riderId === mapStore.riderFollowed)
-    return null; // Don't show the selected rider if it's the same as the followed one
+  if (riderId === mapStore.riderFollowed) return null;
 
   const info = riders_info[riderId];
   const name = info ? `${info.FirstName} ${info.LastName}` : riderId;
@@ -153,35 +166,37 @@ const SelectedRider = observer(() => {
   const speed = (riderData?.speed ?? 0).toFixed(1);
   const altitude = (riderData?.altitude ?? 0).toFixed(0);
   const batteryLevel = (riderData?.battery ?? 0).toFixed(0);
-  let BatteryIcon;
-  if (batteryLevel >= 66) {
-    BatteryIcon = BatteryFull;
-  } else if (batteryLevel >= 33) {
-    BatteryIcon = BatteryMedium;
-  } else {
-    BatteryIcon = BatteryLow;
-  }
 
-  const number = info && info.Startnummer ? info.Startnummer : info ? info.FirstName.substring(0, 1) + info.LastName.substring(0, 1) : riderId.substring(0, 3);
+  let BatteryIcon = BatteryLow;
+  if (batteryLevel >= 66) BatteryIcon = BatteryFull;
+  else if (batteryLevel >= 33) BatteryIcon = BatteryMedium;
+
+  const number =
+    info?.Startnummer ||
+    (info
+      ? info.FirstName.substring(0, 1) + info.LastName.substring(0, 1)
+      : riderId.substring(0, 3));
 
   const isFavorited = riderStore.favorites.includes(riderId);
   const isFollowing = mapStore.riderFollowed === riderId;
-
   const isStaff = info?.LastName === "Staff";
+
   const color = isFollowing
     ? uiStore.colorFollowing
     : isStaff
-      ? uiStore.colorStaff
-      : riderStore.favorites.includes(riderId)
-        ? uiStore.colorFavorites
-        : uiStore.colorNormal;
+    ? uiStore.colorStaff
+    : isFavorited
+    ? uiStore.colorFavorites
+    : uiStore.colorNormal;
 
   const flag = meta?.flag;
 
   return (
-    <Container>
-      <LeftGroup>
-        <NumberBadge color={color} $selected={true}>{number}</NumberBadge>
+    <Container $isMobile={isMobile}>
+      <LeftGroup $isMobile={isMobile}>
+        <NumberBadge color={color} $selected>
+          {number}
+        </NumberBadge>
         <Info>
           <NameRow>
             {flag && <FlagIcon title={country} src={flag} alt={info.Nationality} />}
@@ -189,39 +204,55 @@ const SelectedRider = observer(() => {
           </NameRow>
           <Subtitle>
             <span>{speed} km/h</span>
-            <Separator>&bull;</Separator>
+            <Separator>•</Separator>
             <span>{altitude} m</span>
-            <Separator>&bull;</Separator>
+            <Separator>•</Separator>
             <IconWrapper>
               <BatteryIcon
                 size={16}
-                color={batteryLevel < 33 ? 'red' : 'rgba(255, 255, 255, 0.7)'}
+                color={batteryLevel < 33 ? "red" : "rgba(255, 255, 255, 0.7)"}
               />
             </IconWrapper>
             <BatteryPercentage low={batteryLevel < 33}>
-              {batteryLevel}%</BatteryPercentage>
+              {batteryLevel}%
+            </BatteryPercentage>
           </Subtitle>
         </Info>
       </LeftGroup>
-      <div style={{ display: "flex", alignItems: "center" }}>
-        <IconButton $following={isFollowing} onClick={() => mapStore.toggleFollow(riderId)}>
+
+      <RightGroup $isMobile={isMobile}>
+        <IconButton
+          $isMobile={isMobile}
+          $following={isFollowing}
+          onClick={() => mapStore.toggleFollow(riderId)}
+        >
           <Play size={20} /> {isFollowing ? getTranslation("unfollow") : getTranslation("follow")}
         </IconButton>
 
         <IconButton
+          $isMobile={isMobile}
           title={isFavorited ? getTranslation("unfavorite") : getTranslation("favorite")}
           onClick={() => riderStore.toggleFavorite(riderId)}
         >
-          <Star size={20} color={isFavorited ? "#4e8cff" : "#ffffff"} fill={isFavorited ? "#4e8cff" : "none"} />{isFavorited ? getTranslation("unfavorite") : getTranslation("favorite")}
+          <Star
+            size={20}
+            color={isFavorited ? "#4e8cff" : "#ffffff"}
+            fill={isFavorited ? "#4e8cff" : "none"}
+          />
+          {isFavorited ? getTranslation("unfavorite") : getTranslation("favorite")}
         </IconButton>
-        <IconButton onClick={share} title="Share">
-          <Share2 size={20} />{getTranslation("share")}
+
+        <IconButton $isMobile={isMobile} onClick={share} title="Share">
+          <Share2 size={20} />
+          {getTranslation("share")}
         </IconButton>
+
         {Toast}
-      </div>
-      <CloseButton onClick={() => mapStore.setRiderSelected(null)}>
-        <X size={20} color="#ffffff" />
-      </CloseButton>
+
+        <CloseButton $isMobile={isMobile} onClick={() => mapStore.setRiderSelected(null)}>
+          <XIcon size={20} color="#ffffff" />
+        </CloseButton>
+      </RightGroup>
     </Container>
   );
 });

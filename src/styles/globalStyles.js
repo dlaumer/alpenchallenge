@@ -12,6 +12,11 @@ const GlobalStyles = createGlobalStyle`
   align-items: flex-end;        /* keep them flush to the right edge */
   gap: 8px;                     /* space between widgets */
 }
+  @media (max-width: 768px) {
+   .esri-ui-bottom-right.esri-ui-corner {
+    bottom: 90px !important;
+  }
+}
 `;
 
 export default GlobalStyles;

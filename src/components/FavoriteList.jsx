@@ -12,7 +12,7 @@ import { countryMeta } from "../constants/countryMeta";
 
 const Container = styled.div`
   position: absolute;
-  bottom: 50px;
+  bottom: ${props => props.$isMobile ? "100px" : "50px"};
   left: 0px;
   width: 200px;
   max-height: calc(100% - 100px);
@@ -100,9 +100,10 @@ const Flag = styled.img`
 const FavoriteList = observer(() => {
   const { favorites } = riderStore;
   if (favorites.length === 0) return null;
+  const { isMobile } = uiStore;
 
   return (
-    <Container>
+    <Container $isMobile={isMobile}>
       <List>
         {favorites.map((id, idx) => {
           const info = riders_info[id] || { FirstName: id, LastName: "" };
@@ -141,7 +142,7 @@ const FavoriteList = observer(() => {
                   </TopPart>
 
                 </InfoPart>
-                                  {flag && <Flag src={flag} alt={info.Nationality} />}
+                {flag && <Flag src={flag} alt={info.Nationality} />}
 
               </Bubble>
             </Item>

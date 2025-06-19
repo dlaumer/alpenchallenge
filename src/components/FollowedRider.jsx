@@ -6,20 +6,20 @@ import mapStore from "../store/mapStore";
 import riderStore from "../store/riderStore";
 import { riders_info } from "../constants/riders_info_1000";
 import { countryMeta } from "../constants/countryMeta";
-import { X, Share2, BatteryFull, BatteryMedium, BatteryLow  } from "lucide-react";
+import { X, Share2, BatteryFull, BatteryMedium, BatteryLow } from "lucide-react";
 import uiStore from "../store/uiStore";
 import { useShare } from "./useShare.jsx";
 import { getTranslation } from "../utils/getTranslation";
 
 const Container = styled.div`
-
-  width: 600px;
-  padding: 12px 24px;
+  width: ${props => (props.$isMobile ? "calc(100% - 90px)" : "600px")};
+  padding: ${props => (props.$isMobile ? "8px 12px" : "12px 24px")};
   background: #e0e6ed;
   border-radius: 32px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   display: flex;
-  align-items: center;
+  flex-direction: ${props => (props.$isMobile ? "column" : "row")};
+  align-items: ${props => (props.$isMobile ? "flex-start" : "center")};
   justify-content: space-between;
   z-index: 1000;
 `;
@@ -27,7 +27,17 @@ const Container = styled.div`
 const LeftGroup = styled.div`
   display: flex;
   align-items: center;
-  width: 50%;
+  width: ${props => (props.$isMobile ? "100%" : "50%")};
+  margin-bottom: ${props => (props.$isMobile ? "8px" : "0")};
+`;
+
+const RightGroup = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: ${props => (props.$isMobile ? "8px" : "0")};
+  width: ${props => (props.$isMobile ? "100%" : "auto")};
+  justify-content: ${props => (props.$isMobile ? "space-evenly" : "flex-end")};
 `;
 
 const NumberBadge = styled.div`
@@ -45,17 +55,10 @@ const NumberBadge = styled.div`
   flex-shrink: 0;
 `;
 
-
 const ModeGroup = styled.div`
   display: flex;
   flex-direction: column;
-  margin-right: 16px;
-`;
-
-const ModeLabel = styled.div`
-  font-size: 12px;
-  color: #555;
-  margin-bottom: 4px;
+  margin-right: ${props => (props.$isMobile ? "0" : "16px")};
 `;
 
 const ModeButtons = styled.div`
@@ -68,11 +71,11 @@ const ModeButtons = styled.div`
 
 const ModeButton = styled.button`
   flex: 1;
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: ${props => (props.$isMobile ? "4px 8px" : "6px 12px")};
+  font-size: ${props => (props.$isMobile ? "11px" : "12px")};
   border: none;
-  background: ${(props) => props.$active ? `${uiStore.colorFollowing}` : "transparent"};
-  color: ${(props) => props.$active ? "#fff" : `#000`};
+  background: ${props => (props.$active ? `${uiStore.colorFollowing}` : "transparent")};
+  color: ${props => (props.$active ? "#fff" : `#000`)};
   cursor: pointer;
 
   &:first-child {
@@ -80,23 +83,20 @@ const ModeButton = styled.button`
   }
 `;
 
-
 const IconButton = styled.button`
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(0,0,0,0);
+  background: transparent;
   color: #555;
   border: 1px solid #999;
   border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: ${props => (props.$isMobile ? "4px 8px" : "6px 12px")};
+  font-size: ${props => (props.$isMobile ? "11px" : "12px")};
   cursor: pointer;
-  margin-left: 8px;
-    height: 32px;
-
+  margin-left: ${props => (props.$isMobile ? "0" : "8px")};
 `;
-/* Updated: circular close button */
+
 const CloseButton = styled.button`
   background: #e0e6ed;
   border: 1px solid #000;
@@ -108,13 +108,13 @@ const CloseButton = styled.button`
   justify-content: center;
   cursor: pointer;
   padding: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-left: ${props => (props.$isMobile ? "0" : "8px")};
+  margin-top: ${props => (props.$isMobile ? "8px" : "0")};
 
   &:hover {
     background: #f5f5f5;
   }
 `;
-
 
 const FlagIcon = styled.img`
   width: 24px;
@@ -126,18 +126,19 @@ const FlagIcon = styled.img`
 const Separator = styled.span`
   margin: 0 4px;
 `;
+
 const BatteryPercentage = styled.span`
   margin-left: 4px;
-  color: ${props => props.$low ? 'red' : 'inherit'};
+  color: ${props => (props.$low ? 'red' : 'inherit')};
 `;
+
 const IconWrapper = styled.div`
-    width: 20px;
+  width: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  `
+`;
 
-// Styled components
 const Subtitle = styled.div`
   font-size: 14px;
   color: #555;
@@ -164,40 +165,37 @@ const NameRow = styled.div`
   text-overflow: ellipsis;
 `;
 
-
 const FollowedRider = observer(() => {
-
   const { share, Toast } = useShare();
+  const { isMobile } = uiStore;
 
   const riderId = mapStore.riderFollowed;
   if (!riderId) return null;
 
   const riderData = riderStore.replayCache[riderId];
   if (!riderData) return null;
-  // same info lookup as SelectedRider
-  const info = riders_info[riderId] || { FirstName: riderId, LastName: "" };
-  const name = info ? `${info.FirstName} ${info.LastName}` : riderId;
-  const number = info && info.Startnummer ? info.Startnummer : info ? info.FirstName.substring(0, 1) + info.LastName.substring(0, 1) : riderId.substring(0, 3);
 
-  const meta = info ? countryMeta[info.Nationality.toUpperCase()] : null;
-  const country = meta ? meta.name : info?.Nationality || "";
-  const speed = (riderData?.speed ?? 0).toFixed(1);
-  const altitude = (riderData?.altitude ?? 0).toFixed(0);
-  const batteryLevel = (riderData?.battery ?? 0).toFixed(0);
-  let BatteryIcon;
-  if (batteryLevel >= 66) {
-    BatteryIcon = BatteryFull;
-  } else if (batteryLevel >= 33) {
-    BatteryIcon = BatteryMedium;
-  } else {
-    BatteryIcon = BatteryLow;
-  }
+  const info = riders_info[riderId] || { FirstName: riderId, LastName: "" };
+  const name = `${info.FirstName} ${info.LastName}`;
+  const number = info.Startnummer
+    ? info.Startnummer
+    : info.FirstName.substring(0, 1) + info.LastName.substring(0, 1);
+
+  const meta = countryMeta[info.Nationality.toUpperCase()];
+  const country = meta ? meta.name : info.Nationality;
+  const speed = (riderData.speed ?? 0).toFixed(1);
+  const altitude = (riderData.altitude ?? 0).toFixed(0);
+  const batteryLevel = (riderData.battery ?? 0).toFixed(0);
+
+  let BatteryIcon = BatteryLow;
+  if (batteryLevel >= 66) BatteryIcon = BatteryFull;
+  else if (batteryLevel >= 33) BatteryIcon = BatteryMedium;
 
   const flag = meta?.flag;
 
   return (
-    <Container>
-      <LeftGroup>
+    <Container $isMobile={isMobile}>
+      <LeftGroup $isMobile={isMobile}>
         <NumberBadge>{number}</NumberBadge>
         <Info>
           <NameRow>
@@ -206,9 +204,9 @@ const FollowedRider = observer(() => {
           </NameRow>
           <Subtitle>
             <span>{speed} km/h</span>
-            <Separator>&bull;</Separator>
+            <Separator>•</Separator>
             <span>{altitude} m</span>
-            <Separator>&bull;</Separator>
+            <Separator>•</Separator>
             <IconWrapper>
               <BatteryIcon
                 size={16}
@@ -216,30 +214,41 @@ const FollowedRider = observer(() => {
               />
             </IconWrapper>
             <BatteryPercentage $low={batteryLevel < 33}>
-              {batteryLevel}%</BatteryPercentage>
+              {batteryLevel}%
+            </BatteryPercentage>
           </Subtitle>
         </Info>
       </LeftGroup>
 
-      <ModeGroup>
-        <ModeButtons>
-          <ModeButton $active={mapStore.followMode === "fly"} onClick={() => mapStore.setFollowMode("fly")}>
-            {getTranslation("fly")}
-          </ModeButton>
-          <ModeButton $active={mapStore.followMode === "ride"} onClick={() => mapStore.setFollowMode("ride")}>
-            {getTranslation("ride")}
-          </ModeButton>
-        </ModeButtons>
-      </ModeGroup>
+      <RightGroup $isMobile={isMobile}>
+        <ModeGroup $isMobile={isMobile}>
+          <ModeButtons>
+            <ModeButton
+              $isMobile={isMobile}
+              $active={mapStore.followMode === "fly"}
+              onClick={() => mapStore.setFollowMode("fly")}
+            >
+              {getTranslation("fly")}
+            </ModeButton>
+            <ModeButton
+              $isMobile={isMobile}
+              $active={mapStore.followMode === "ride"}
+              onClick={() => mapStore.setFollowMode("ride")}
+            >
+              {getTranslation("ride")}
+            </ModeButton>
+          </ModeButtons>
+        </ModeGroup>
 
-      <IconButton onClick={share} title={getTranslation("share")}>
-        <Share2 size={20} />{getTranslation("share")}
-      </IconButton>
-      {Toast}
+        <IconButton $isMobile={isMobile} onClick={share} title={getTranslation("share")}> 
+          <Share2 size={20} />{getTranslation("share")}
+        </IconButton>
+        {Toast}
 
-      <CloseButton onClick={() => mapStore.toggleFollow(riderId)}>
-        <X size={20} />
-      </CloseButton>
+        <CloseButton $isMobile={isMobile} onClick={() => mapStore.toggleFollow(riderId)}>
+          <X size={20} />
+        </CloseButton>
+      </RightGroup>
     </Container>
   );
 });

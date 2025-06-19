@@ -12,7 +12,7 @@ const Container = styled.div`
   top: 50px;
   left: 10px;
   width: 280px;
-  z-index: 200;
+  z-index: 20000;
 `;
 
 const Input = styled.input`
