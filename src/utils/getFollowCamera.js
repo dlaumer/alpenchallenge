@@ -32,8 +32,8 @@ export function getFollowCamera(currentCamera, riderPos, isFlyMode = false, smoo
   // Determine new position
   let position;
   if (isFlyMode) {
-    const behindM = 100;
-    const upM = 40;
+    const behindM = 150;
+    const upM = 80;
     const rad = (smoothedHeading + 180) * Math.PI / 180;
     const dx = behindM * Math.sin(rad);
     const dy = behindM * Math.cos(rad);
