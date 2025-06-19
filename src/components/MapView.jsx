@@ -662,17 +662,12 @@ const ArcGISMap = observer(() => {
           const interpolated = riderStore.getInterpolatedPosition(mapStore.riderFollowed)
           if (!interpolated) return;
           // Use goTo without animation to instantly center the view on the followed rider.
-          viewRef.current.goTo(
-            {
-              center: new Point({
-                longitude: interpolated.longitude,
-                latitude: interpolated.latitude,
-                z: interpolated.altitude,
-              }),
-              zoom: viewRef.current.zoom < 16 ? 21 : null,
-              tilt: 70,
-              heading: interpolated.heading,
-            }, { easing: "linear" }
+          viewRef.current.goTo(getFollowCamera(
+            viewRef.current.camera,
+            interpolated,
+            mapStore.followMode === "fly",
+            mapStore.replayMode ? 0.08 * mapStore.replaySpeed : 0.08
+          )
           ).then(() => {
             mapStore.setIsFollowing(true);
           });
