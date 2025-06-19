@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import { observer } from 'mobx-react-lite';
 import mapStore from '../store/mapStore';
+import uiStore from '../store/uiStore';    // ← import your UI store
 
 const ITEM_HEIGHT = 32;    // px
 const ITEM_MARGIN = 8;     // px between items
@@ -84,7 +85,12 @@ background-color: ${p => (p.$active ? 'rgb(255, 135, 135)' : 'white')};
 const ViewpointNavigator = observer(() => {
     const { view } = mapStore;
     const [activeId, setActiveId] = useState(null);
+    const { isMobile } = uiStore;            // ← grab the mobile flag
 
+    // Early return on mobile
+    if (isMobile) {
+        return null;
+    }
     const viewpoints = [
         {
             id: 'start', name: 'Start',
