@@ -179,7 +179,7 @@ const SelectedRider = observer(() => {
 
   const isFavorited = riderStore.favorites.includes(riderId);
   const isFollowing = mapStore.riderFollowed === riderId;
-  const isStaff = info?.LastName === "Staff";
+  const isStaff = info?.Category === "staff";
 
   const color = isFollowing
     ? uiStore.colorFollowing

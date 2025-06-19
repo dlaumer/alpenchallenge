@@ -113,7 +113,7 @@ const FavoriteList = observer(() => {
           const isFollowing = mapStore.riderFollowed === id;
           const number = info && info.Startnummer ? info.Startnummer : info ? info.FirstName.substring(0, 1) + info.LastName.substring(0, 1) : id.substring(0, 3);
 
-          const isStaff = info?.LastName === "Staff";
+          const isStaff = info?.Category === "staff";
           const color = isFollowing
             ? uiStore.colorFollowing
             : isStaff
