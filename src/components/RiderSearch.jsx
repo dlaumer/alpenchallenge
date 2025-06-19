@@ -69,10 +69,13 @@ const RiderSearch = observer(() => {
       const info = riders_info[id];
       const fullName = info ? `${info.FirstName} ${info.LastName}`.toLowerCase() : "";
       const country = info?.Nationality?.toLowerCase() || "";
+      const category = info?.Category?.toLowerCase() || "";
+
       return (
         id.toLowerCase().includes(q) ||
         fullName.includes(q) ||
-        country.includes(q)
+        country.includes(q) ||
+        category.includes(q)
       );
     })
     : [];
