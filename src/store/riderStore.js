@@ -4,6 +4,7 @@ import uiStore from "../store/uiStore";
 import routeStoreShort from "./routeStoreShort.js";
 import routeStoreLong from "./routeStoreLong.js";
 import { act } from "react";
+import { riders_info } from '../constants/riders_info_1000';
 
 class RiderStore {
   riders = {}
@@ -118,12 +119,6 @@ class RiderStore {
       battery: attributes.battery,
     };
   };
-  // Process the feature layer's query results into the data format expected by your store.
-  // For each feature, we assume the attributes include a userId, current coordinates and a previousPos JSON string.
-  processLiveResults(results) {
-
-
-  };
 
 
   getInterpolatedPosition(riderId) {
@@ -159,11 +154,18 @@ class RiderStore {
       active = false;
     }
 
+    let isStaff = false;
+    if (riders_info[riderId]) {
+      if (riders_info[riderId].Category == "staff") {
+        isStaff = true;
+      }
+    }
+
     let result = {}
-    if (data.snapped == null || data.snapped == 1) {
+    if (!isStaff && (data.snapped == null || data.snapped == 1)) {
       result = this.interpolateAlongPath(t, data);
     }
-    else if (data.snapped == 0) {
+    else if (isStaff || data.snapped == 0) {
       result = this.interpolateBetweenPoints(t, data);
     }
     if (!result.active) {
@@ -279,7 +281,17 @@ class RiderStore {
   interpolateBetweenPoints(t, rider) {
     const oldPoint = [rider.previousLongitude, rider.previousLatitude, rider.previousAltitude];
     const newPoint = [rider.longitude, rider.latitude, rider.altitude];
-
+    if (oldPoint[0] == null || !oldPoint || !newPoint || oldPoint.length < 3 || newPoint.length < 3) {
+      console.warn(`Invalid points for rider ${rider.riderId}: oldPoint=${oldPoint}, newPoint=${newPoint}`);
+      return {
+        longitude: rider.previousLongitude,
+        latitude: rider.previousLatitude,
+        altitude: rider.previousAltitude,
+        heading: rider.heading,
+        speed: rider.speed,
+        active: false
+      };
+    }
     const interpolatedPoint = [
       oldPoint[0] + (newPoint[0] - oldPoint[0]) * t,
       oldPoint[1] + (newPoint[1] - oldPoint[1]) * t,
