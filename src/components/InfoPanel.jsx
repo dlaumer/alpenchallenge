@@ -88,7 +88,7 @@ const InfoPage = observer(() => {
   return (
     <Overlay>
       <HeaderBar>
-        <Title>About us</Title>
+        <Title>Wie es zu LiveTrac3D kam...</Title>
         <CloseButton onClick={() => uiStore.setInfoPanel(false)} aria-label="Close">×</CloseButton>
       </HeaderBar>
       <Content>
