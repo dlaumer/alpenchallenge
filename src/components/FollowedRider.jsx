@@ -175,21 +175,23 @@ const FollowedRider = observer(() => {
   const riderData = riderStore.replayCache[riderId];
   if (!riderData) return null;
 
-  const info = riders_info[riderId] || { FirstName: riderId, LastName: "" };
-  const name = `${info.FirstName} ${info.LastName}`;
-  const number = info.Startnummer
-    ? info.Startnummer
-    : info.FirstName.substring(0, 1) + info.LastName.substring(0, 1);
-
-  const meta = countryMeta[info.Nationality.toUpperCase()];
-  const country = meta ? meta.name : info.Nationality;
-  const speed = (riderData.speed ?? 0).toFixed(1);
-  const altitude = (riderData.altitude ?? 0).toFixed(0);
-  const batteryLevel = (riderData.battery ?? 0).toFixed(0);
+  const info = riders_info[riderId];
+  const name = info ? `${info.FirstName} ${info.LastName}` : riderId;
+  const meta = info ? countryMeta[info.Nationality.toUpperCase()] : null;
+  const country = meta ? meta.name : info?.Nationality || "";
+  const speed = (riderData?.speed ?? 0).toFixed(1);
+  const altitude = (riderData?.altitude ?? 0).toFixed(0);
+  const batteryLevel = (riderData?.battery * 100 ?? 0).toFixed(0);
 
   let BatteryIcon = BatteryLow;
   if (batteryLevel >= 66) BatteryIcon = BatteryFull;
   else if (batteryLevel >= 33) BatteryIcon = BatteryMedium;
+
+  const number =
+    info?.Startnummer ||
+    (info
+      ? info.FirstName.substring(0, 1) + info.LastName.substring(0, 1)
+      : riderId.substring(0, 3));
 
   const flag = meta?.flag;
 
@@ -240,7 +242,7 @@ const FollowedRider = observer(() => {
           </ModeButtons>
         </ModeGroup>
 
-        <IconButton $isMobile={isMobile} onClick={share} title={getTranslation("share")}> 
+        <IconButton $isMobile={isMobile} onClick={share} title={getTranslation("share")}>
           <Share2 size={20} />{getTranslation("share")}
         </IconButton>
         {Toast}

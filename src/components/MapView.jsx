@@ -96,7 +96,7 @@ const ArcGISMap = observer(() => {
       elevationInfo: {
         mode: "on-the-ground"
       },
-      definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10','rider_11', 'rider_12', 'rider_13', 'rider_14', 'rider_15', 'rider_16', 'rider_17', 'rider_18', 'rider_19', 'rider_20')",
+      //definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10','rider_11', 'rider_12', 'rider_13', 'rider_14', 'rider_15', 'rider_16', 'rider_17', 'rider_18', 'rider_19', 'rider_20')",
       //definitionExpression: "userId IN ('rider_1')",
       refreshInterval: 1,
       visible: false,
@@ -110,7 +110,7 @@ const ArcGISMap = observer(() => {
       portalItem: {  // autocasts as esri/portal/PortalItem
         id: "d0a6c13d0fad47df98e76d17f53318f0"
       },
-      definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10','rider_11', 'rider_12', 'rider_13', 'rider_14', 'rider_15', 'rider_16', 'rider_17', 'rider_18', 'rider_19', 'rider_20')",
+      //definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10','rider_11', 'rider_12', 'rider_13', 'rider_14', 'rider_15', 'rider_16', 'rider_17', 'rider_18', 'rider_19', 'rider_20')",
       //definitionExpression: "userId IN ('rider_1')",
       popupEnabled: false
     })
@@ -708,6 +708,7 @@ const ArcGISMap = observer(() => {
     // nothing here before
     if (viewRef.current && !mapStore.isFollowing && mapStore.riderSelected) {
       const interpolated = riderStore.getInterpolatedPosition(mapStore.riderSelected)
+        if (!interpolated) return;
 
       mapStore.togglePlaying();
       viewRef.current.goTo({
