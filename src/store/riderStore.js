@@ -51,7 +51,7 @@ class RiderStore {
             this.replayData[riderId] = {};
             this.replayTimestamps[riderId] = [];
           }
-          if (!(attributes.ts in Object.keys(this.replayData[riderId]))) {
+          if (!(attributes.ts in this.replayData[riderId])) {
             this.replayData[riderId][currentPos.ts] = currentPos
             this.replayTimestamps[riderId].push(currentPos.ts);
           }
