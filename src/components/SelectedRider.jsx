@@ -165,7 +165,7 @@ const SelectedRider = observer(() => {
   const country = meta ? meta.name : info?.Nationality || "";
   const speed = (riderData?.speed ?? 0).toFixed(1);
   const altitude = (riderData?.altitude ?? 0).toFixed(0);
-  const batteryLevel = (riderData?.battery ?? 0).toFixed(0);
+  const batteryLevel = (riderData?.battery *100 ?? 0).toFixed(0);
 
   let BatteryIcon = BatteryLow;
   if (batteryLevel >= 66) BatteryIcon = BatteryFull;
