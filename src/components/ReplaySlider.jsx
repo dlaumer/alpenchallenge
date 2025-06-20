@@ -264,12 +264,12 @@ const ReplaySlider = observer(() => {
         0,
         Math.min(1, (clientX - rect.left) / rect.width)
       );
-      let ts = startTs + pct * (endTs - startTs);
-      // clamp to [startTs, min(endTs, liveCutoff)]
+
+      // use maxTs (liveCutoff) as the “end” of the slider
       const liveCutoff = Date.now() - mapStore.lag;
       const maxTs = Math.min(endTs, liveCutoff);
+      let ts = startTs + pct * (maxTs - startTs);
       ts = Math.max(startTs, Math.min(ts, maxTs));
-
       // always enter replay and seek
       mapStore.setReplayMode(true);
       mapStore.setTimeReference(ts);
