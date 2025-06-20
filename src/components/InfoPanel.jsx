@@ -143,14 +143,10 @@ const InfoPage = observer(() => {
         <h2>📞 Kontakt</h2>
         <address>
           Für eine persönliche Live-Demo oder weitere Fragen:<br /><br />
-          sailer smartTRIP<br />
           Christian Sailer<br />
-          Neue Dorfstrasse 20a<br />
-          CH-8135 Langnau<br />
           📧 <a href="mailto:c.sailer@gmx.ch">c.sailer@gmx.ch</a><br />
           📞 <a href="tel:+41763304050">+41 76 330 40 50</a><br />
-          CHE-328.379.713<br />
-          <a href="https://smarttrip.ch" target="_blank" rel="noopener">smarttrip.ch</a>
+          🌐 <a href="https://smarttrip.ch" target="_blank" rel="noopener">smarttrip.ch</a>
         </address>
       </Content>
     </Overlay>

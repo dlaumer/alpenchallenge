@@ -117,6 +117,18 @@ const ViewpointNavigator = observer(() => {
             }
         },
         {
+            id: 'stmoritz', name: 'St. Moritz',
+            camera: {
+                position: [
+                    9.91123000,
+                    46.49134000,
+                    2745.00000
+                ],
+                heading: 272.40,
+                tilt: 84.80
+            }
+        },
+        {
             id: 'julier', name: 'Julierpass',
             camera: {
                 position: [
