@@ -146,10 +146,11 @@ class RiderStore {
 
     const timeDiff = data.ts - data.previousTs;
     if (timeDiff <= 0) return null;
+    if (mapStore.time < data.previousTs) return null;
     let t = Math.max(0, Math.min(1, (mapStore.time - data.previousTs) / timeDiff));
 
     let active = true;
-    if (timeDiff > 300000) {
+    if (timeDiff > 300000 || data.ts - mapStore.time < 0) {
       t = Math.floor(t)
       active = false;
     }
