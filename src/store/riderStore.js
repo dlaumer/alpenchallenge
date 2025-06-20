@@ -43,17 +43,17 @@ class RiderStore {
     results.features.forEach((feature) => {
       const attributes = feature.attributes;
       const riderId = attributes.userId;
-      if (attributes.previousTs != null) {
+      if (!(attributes.previousDistance == null && attributes.previousLongitude == null)) {
         const currentPos = this.parseAttributes(attributes);
 
         if (Object.keys(this.replayData).length > 0) {
           if (!this.replayData[riderId]) {
             this.replayData[riderId] = {};
-            this.replayTimestamps[riderId] = [];
           }
-          if (!(attributes.ts in this.replayData[riderId])) {
+          if (!this.replayData[riderId][currentPos.ts]) {
             this.replayData[riderId][currentPos.ts] = currentPos
-            this.replayTimestamps[riderId].push(currentPos.ts);
+            const timestamps = Object.keys(this.replayData[riderId]).map(Number).sort((a, b) => a - b);
+            this.replayTimestamps[riderId] = timestamps;
           }
         }
       }
@@ -71,8 +71,8 @@ class RiderStore {
       const riderId = attr.userId;
       const timestamp = attr.ts * 1000;
 
-      if (!this.replayData[riderId]) this.replayData[riderId] = {};
       if (!(attr.previousDistance == null && attr.previousLongitude == null)) {
+        if (!this.replayData[riderId]) this.replayData[riderId] = {};
         this.replayData[riderId][timestamp] = this.parseAttributes(attr)
       }
     });
