@@ -98,7 +98,7 @@ const ArcGISMap = observer(() => {
       },
       //definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10','rider_11', 'rider_12', 'rider_13', 'rider_14', 'rider_15', 'rider_16', 'rider_17', 'rider_18', 'rider_19', 'rider_20')",
       //definitionExpression: "userId IN ('rider_1')",
-      refreshInterval: 1,
+      refreshInterval: 0.5,
       visible: false,
       popupEnabled: false
     })
@@ -646,11 +646,8 @@ const ArcGISMap = observer(() => {
       if (mapStore.riderFollowed == "") {
         const interpolated = riderStore.getInterpolatedPosition(mapStore.riderSelected)
         if (!interpolated) return;
-        mapStore.togglePlaying();
         viewRef.current.goTo({
           center: [interpolated.longitude, interpolated.latitude], zoom: 16,
-        }).then(() => {
-          mapStore.togglePlaying()
         })
         mapStore.setIsFollowing(false);
 
