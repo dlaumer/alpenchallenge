@@ -257,6 +257,7 @@ const ReplaySlider = observer(() => {
 
   const jump = deltaMs => {
     if (!isDownloading) {
+      mapStore.setPlaying(true);
       mapStore.setReplayMode(true);
       const newTime = Math.max(
         startTs,
@@ -270,6 +271,7 @@ const ReplaySlider = observer(() => {
 
   const seekTo = clientX => {
     if (!isDownloading) {
+      mapStore.setPlaying(true);
       const rect = sliderRef.current.getBoundingClientRect();
       const pct = Math.max(
         0,
