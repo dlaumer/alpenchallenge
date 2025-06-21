@@ -288,7 +288,8 @@ const ArcGISMap = observer(() => {
       elevationInfo: {
         mode: "absolute-height"
       },
-      popupEnabled: false
+      popupEnabled: false,
+      minScale: 15000
     })
 
 
