@@ -4,6 +4,7 @@ import FavoriteList from "./components/FavoriteList";
 import SelectedRider from "./components/SelectedRider"; // adjust path if needed
 import RiderSearch from "./components/RiderSearch";     // adjust path if needed
 import InfoPanel from "./components/InfoPanel";     // adjust path if needed
+import MobileDisclaimer from "./components/MobileDisclaimer";
 
 import MapView from "./components/MapView";
 import styled from "styled-components";
@@ -150,6 +151,7 @@ const App = observer(() => {
 
   return (
     <Container>
+      <MobileDisclaimer />
       <InfoPanel />
       <GlobalStyles />
       <RiderSearch />
