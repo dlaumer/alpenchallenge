@@ -1,6 +1,6 @@
 // ReplaySlider.jsx
 import React, { useEffect, useState, useRef } from "react";
-import styled from "styled-components";
+import styled, {keyframes, css} from "styled-components";
 import mapStore from "../store/mapStore";
 import { Play, Pause, RotateCcw, RotateCw, Loader } from "lucide-react";
 import riderStore from "../store/riderStore";
@@ -56,12 +56,22 @@ const LiveTag = styled.div`
   pointer-events: ${props => (props.$disabled ? "none" : "auto")};
 `;
 
+const expandPulse = keyframes`
+  0% { transform: scale(1); }
+  30% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+`;
 const LiveDot = styled.div`
   width: 10px;
   height: 10px;
   border-radius: 50%;
   margin-right: 6px;
   background-color: ${props => (props.$replay ? "#666" : "red")};
+    ${props =>
+    !props.$replay &&
+    css`
+      animation: ${expandPulse} 1.2s ease-in-out infinite;
+    `}
 `;
 const Time = styled.div`
   font-variant-numeric: tabular-nums;
