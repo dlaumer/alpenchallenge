@@ -1,3 +1,5 @@
+import MobileDisclaimer from "../components/MobileDisclaimer";
+
 export const translations = {
   menu: {
     en: "Menu",
@@ -74,5 +76,11 @@ export const translations = {
     de: "Info",
     fr: "Info",
     it: "Info",
+  },
+   mobileDisclaimer: {
+    en: "⚠️ This app is not optimized for mobile use. For the best experience, please open it on a desktop.",
+    de: "⚠️ Diese App ist nicht für die mobile Nutzung optimiert. Für das beste Erlebnis öffne sie bitte auf einem Desktop.",
+    fr: "⚠️ Cette application n'est pas optimisée pour une utilisation mobile. Pour une meilleure expérience, veuillez l'ouvrir sur un desktop.",
+    it: "⚠️ Questa app non è ottimizzata per l'uso su dispositivi mobili. Per un'esperienza ottimale, aprila su un desktop.",
   },
 };

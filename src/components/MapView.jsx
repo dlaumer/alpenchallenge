@@ -399,37 +399,38 @@ const ArcGISMap = observer(() => {
     view.ui.add(locate, "bottom-right")
 
 
-    const customBasemaps = [
-      Basemap.fromId("satellite"),
-      Basemap.fromId("topo-vector"),
-      Basemap.fromId("gray-vector"),
-      Basemap.fromId("dark-gray-vector"),
-      Basemap.fromId("osm")
-    ];
+    if (!uiStore.isMobile) {
+      const customBasemaps = [
+        Basemap.fromId("satellite"),
+        Basemap.fromId("topo-vector"),
+        Basemap.fromId("gray-vector"),
+        Basemap.fromId("dark-gray-vector"),
+        Basemap.fromId("osm")
+      ];
 
-    const basemapGallery = new BasemapGallery({
-      view,
-      source: new LocalBasemapsSource({ basemaps: customBasemaps })
-    });
+      const basemapGallery = new BasemapGallery({
+        view,
+        source: new LocalBasemapsSource({ basemaps: customBasemaps })
+      });
 
-    basemapGalleryExpand.current = new Expand({
-      content: basemapGallery,
-      view: view,
-      group: "bottom-right",
-    });
-    view.ui.add(basemapGalleryExpand.current, "bottom-right")
+      basemapGalleryExpand.current = new Expand({
+        content: basemapGallery,
+        view: view,
+        group: "bottom-right",
+      });
+      view.ui.add(basemapGalleryExpand.current, "bottom-right")
 
 
-    const weather = new Weather({
-      view: view,  // The view that provides access to the map's "streets-vector" basemap
-    });
-    const weatherExpand = new Expand({
-      content: weather,
-      view: view,
-      group: "bottom-right",
-    });
-    view.ui.add(weatherExpand, "bottom-right")
-
+      const weather = new Weather({
+        view: view,  // The view that provides access to the map's "streets-vector" basemap
+      });
+      const weatherExpand = new Expand({
+        content: weather,
+        view: view,
+        group: "bottom-right",
+      });
+      view.ui.add(weatherExpand, "bottom-right")
+    }
     const home = new Home({
       view: view
     });
@@ -519,16 +520,18 @@ const ArcGISMap = observer(() => {
     startLoop();
 
     view.when(() => {
-      const zoomWidget = new Zoom({ view });
-      const compassWidget = new Compass({ view });
-      const navToggle = new NavigationToggle({
-        view
-      });
-      // add into the bottom-right corner
-      view.ui.add([compassWidget, zoomWidget, navToggle], {
-        position: "bottom-right"
-      });
+      if (!uiStore.isMobile) {
+        const zoomWidget = new Zoom({ view });
+        const compassWidget = new Compass({ view });
+        const navToggle = new NavigationToggle({
+          view
+        });
+        // add into the bottom-right corner
+        view.ui.add([compassWidget, zoomWidget, navToggle], {
+          position: "bottom-right"
+        });
 
+      }
       window.view = view;
       viewRef.current = view;
       mapStore.setView(view);
@@ -703,7 +706,7 @@ const ArcGISMap = observer(() => {
     // nothing here before
     if (viewRef.current && !mapStore.isFollowing && mapStore.riderSelected) {
       const interpolated = riderStore.getInterpolatedPosition(mapStore.riderSelected)
-        if (!interpolated) return;
+      if (!interpolated) return;
 
       mapStore.togglePlaying();
       viewRef.current.goTo({
