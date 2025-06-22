@@ -172,7 +172,7 @@ const FollowedRider = observer(() => {
   const riderId = mapStore.riderFollowed;
   if (!riderId) return null;
 
-  const riderData = riderStore.replayCache[riderId];
+  const riderData = riderStore.replayCache[riderId]?.after;
   if (!riderData) return null;
 
   const info = riders_info[riderId];

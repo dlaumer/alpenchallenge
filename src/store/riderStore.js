@@ -138,19 +138,21 @@ class RiderStore {
 
     }
     else {
-      const nearestTimestamp = this.findNearestTimestamps(riderTimestamps, mapStore.time);
-      data = riderData[nearestTimestamp];
+      const {before, after} = this.findNearestTimestamps(riderTimestamps, mapStore.time);
+      data = {before: riderData[before], after:riderData[after]};
 
       this.replayCache[riderId] = data;
     }
 
-    const timeDiff = data.ts - data.previousTs;
+    const timeDiff = data.after.ts - data.before.ts;
     if (timeDiff <= 0) return null;
-    if (mapStore.time < data.previousTs) return null;
-    let t = Math.max(0, Math.min(1, (mapStore.time - data.previousTs) / timeDiff));
+    if (mapStore.time < data.before.ts) {
+      console.log("Problem, time is before the first data point");
+    };
+    let t = Math.max(0, Math.min(1, (mapStore.time - data.before.ts) / timeDiff));
 
     let active = true;
-    if (timeDiff > 300000 || data.ts - mapStore.time < 0) {
+    if (timeDiff > 300000 || data.after.ts - mapStore.time < 0) {
       t = Math.floor(t)
       active = false;
     }
@@ -162,12 +164,19 @@ class RiderStore {
       }
     }
 
+    data.after.previousDistance = data.before.distance;
+    data.after.previousLongitude = data.before.longitude;
+    data.after.previousLatitude = data.before.latitude;
+    data.after.previousAltitude = data.before.altitude;
+    data.after.previousTs = data.before.ts;
+    data.after.previousRouteIndex = data.before.routeIndex;
+
     let result = {}
-    if (!isStaff && (data.snapped == null || data.snapped == 1)) {
-      result = this.interpolateAlongPath(t, data);
+    if (!isStaff && (data.after.snapped == null || data.after.snapped == 1)) {
+      result = this.interpolateAlongPath(t, data.after);
     }
-    else if (isStaff || data.snapped == 0) {
-      result = this.interpolateBetweenPoints(t, data);
+    else if (isStaff || data.after.snapped == 0) {
+      result = this.interpolateBetweenPoints(t, data.after);
     }
     if (!result.active) {
       result.active = active;
@@ -207,7 +216,8 @@ class RiderStore {
     }
 
     const after = timestamps[Math.min(timestamps.length - 1, left)];
-    return after;
+    const before = timestamps[Math.max(0, right)];
+    return { before, after };
   }
 
   toRadians(deg) {
@@ -236,7 +246,8 @@ class RiderStore {
     const distDiff = rider.distance - rider.previousDistance;
 
     if (distDiff < 0) {
-      console.warn(`Negative distance difference for rider ${riderId}: ${distDiff}`);
+      console.log(rider.distance, rider.previousDistance);
+      console.warn(`Negative distance difference!`);
       return {
         longitude: rider.previousLongitude,
         latitude: rider.previousLatitude,

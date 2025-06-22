@@ -55,6 +55,20 @@ export const riders_info = {
     "Nationality": "CH",
     "Startnummer": "124"
   },
+  "1b02b52d-8ab7-4b3a-b5db-17034c563e91": {
+    "FirstName": "Silas",
+    "LastName": "Hutzli",
+    "Category": "m",
+    "Nationality": "CH",
+    "Startnummer": "169"
+  },
+  "92642097-b6c6-40ca-98f7-2513d3dd5320": {
+    "FirstName": "Ricardo",
+    "LastName": "Schläpfer",
+    "Category": "m",
+    "Nationality": "CH",
+    "Startnummer": "172"
+  },
   "ceee058d-53a2-4fce-83f0-40608b39c109": {
     "FirstName": "Christoph",
     "LastName": "Nenniger",
@@ -153,6 +167,13 @@ export const riders_info = {
     "Nationality": "CH",
     "Startnummer": "650"
   },
+  "dcaf4eaf-a70a-4d90-9933-46648af51921": {
+    "FirstName": "Philipp",
+    "LastName": "Schneeberger",
+    "Category": "m",
+    "Nationality": "CH",
+    "Startnummer": "657"
+  },
   "aa8842cc-983b-4ae3-b529-add7f59665d7": {
     "FirstName": "Diego",
     "LastName": "Calcinotto",
@@ -164,7 +185,7 @@ export const riders_info = {
     "FirstName": "Jürh",
     "LastName": "Gerber",
     "Category": "m",
-    "Nationality": " CH",
+    "Nationality": "CH",
     "Startnummer": "675"
   },
   "4f4de058-9899-4d91-a385-5909f5f702bc": {
@@ -257,6 +278,13 @@ export const riders_info = {
     "Category": "staff",
     "Nationality": "CH",
     "Startnummer": "Bes1"
+  },
+  "028410ea-186e-4291-bd44-dc804abfc375": {
+    "FirstName": "Christian",
+    "LastName": "Sailer",
+    "Category": "staff",
+    "Nationality": "CH",
+    "Startnummer": "ChS"
   },
   "28e50b85-d956-462c-9f95-d631aca03ec6": {
     "FirstName": "Rene",
@@ -363,6 +391,13 @@ export const riders_info = {
     "Nationality": "AT",
     "Startnummer": "1038"
   },
+  "3237c6f7-4c01-46f3-bfdd-d575b1a15a87": {
+    "FirstName": "Jan",
+    "LastName": "Hutter",
+    "Category": "w",
+    "Nationality": "CH",
+    "Startnummer": "1253"
+  },
   "f03b9755-e4e1-4332-aa09-156427c823cf": {
     "FirstName": "Gijs",
     "LastName": "Koudijs",
@@ -468,12 +503,26 @@ export const riders_info = {
     "Nationality": "BE",
     "Startnummer": "352"
   },
+  "d61b8182-cfa9-4eac-a340-fe29d0cecfaa": {
+    "FirstName": "Marc",
+    "LastName": "Pfiffner",
+    "Category": "m",
+    "Nationality": "CH",
+    "Startnummer": "384"
+  },
   "8ea69dfe-eae7-485e-be90-4f71c78010c8": {
     "FirstName": "Luks",
     "LastName": "Berweger",
     "Category": "m",
     "Nationality": "CH",
     "Startnummer": "397"
+  },
+  "140eb587-16e0-4fd7-a617-49ccedb45d34": {
+    "FirstName": "Amir",
+    "LastName": "Sahi",
+    "Category": "m",
+    "Nationality": "CH",
+    "Startnummer": "410"
   },
   "d3480721-a87d-4a89-8de5-a4cba971d388": {
     "FirstName": "Pascal",
@@ -643,6 +692,13 @@ export const riders_info = {
     "Nationality": "CH",
     "Startnummer": "1006"
   },
+  "708e3fa6-88d4-42c0-bce7-5e5f8cbcf16a": {
+    "FirstName": "Aurélien",
+    "LastName": "Sallin",
+    "Category": "m",
+    "Nationality": "CH",
+    "Startnummer": "1009"
+  },
   "9bba6e91-7e40-40bf-85ab-abb9e2aa024d": {
     "FirstName": "Michael ",
     "LastName": "Bautz",
@@ -705,6 +761,13 @@ export const riders_info = {
     "Category": "m",
     "Nationality": "DE",
     "Startnummer": "1246"
+  },
+  "0af3ebd2-e062-4d63-b81f-9c173f8c88a5": {
+    "FirstName": "Lucas",
+    "LastName": "Michel",
+    "Category": "m",
+    "Nationality": "FR",
+    "Startnummer": "0817"
   },
   "bfd7026e-f482-44a1-bc40-fdb9dfde78d0": {
     "FirstName": "sabine",
@@ -790,6 +853,20 @@ export const riders_info = {
     "Nationality": "CH",
     "Startnummer": "SpMa"
   },
+  "8aeb46cf-91bb-4ac8-ba26-2a59504f0145": {
+    "FirstName": "Carlota ",
+    "LastName": "Corbella",
+    "Category": "w",
+    "Nationality": "ES",
+    "Startnummer": "155"
+  },
+  "34e0e3f1-a871-4581-a18f-278e8b942dbc": {
+    "FirstName": "SABINE",
+    "LastName": "Wagner ",
+    "Category": "w",
+    "Nationality": "DE",
+    "Startnummer": "683"
+  },
   "319c61b7-039c-4c3e-9146-6e66ed634e6f": {
     "FirstName": "Myriam",
     "LastName": "Bonhoeffer",
@@ -803,5 +880,12 @@ export const riders_info = {
     "Category": "w",
     "Nationality": "CH",
     "Startnummer": "909"
+  },
+  "bbd596fa-033e-41c2-aa06-85d5db84afef": {
+    "FirstName": "Mara",
+    "LastName": "Bürge",
+    "Category": "w",
+    "Nationality": "CH",
+    "Startnummer": "1057"
   }
 }
