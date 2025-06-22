@@ -370,7 +370,7 @@ const ArcGISMap = observer(() => {
       const customBasemaps = [
         Basemap.fromId("satellite"),
         Basemap.fromId("topo-vector"),
-        Basemap.fromId("gray-vector"),
+        Basemap.fromId("topo-3d"),
         Basemap.fromId("dark-gray-vector"),
         Basemap.fromId("osm")
       ];
@@ -405,6 +405,8 @@ const ArcGISMap = observer(() => {
 
     // 3) Once the WebScene (and all its layers) is loaded, grab the layer
     webscene.when(() => {
+        webscene.basemap = "topo-3d";
+
       // e.g. find by title
       const myLayer = webscene.layers.find(layer => layer.title === "AC_SpecialPoints");
       // or by id:
