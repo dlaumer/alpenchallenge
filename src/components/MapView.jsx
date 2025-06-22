@@ -89,7 +89,7 @@ const ArcGISMap = observer(() => {
   useEffect(() => {
 
     setLocale(languageStore.language); // <-- apply current language to widgets
-    
+
 
     const posHistory = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
@@ -339,7 +339,7 @@ const ArcGISMap = observer(() => {
       purgeOptions: {
         type: "manual"                    // so we can clear old features each tick
       },
-      
+
       renderer: streamLayerRenderer,
       screenSizePerspectiveEnabled: false,
     });
@@ -366,12 +366,12 @@ const ArcGISMap = observer(() => {
       map: webscene,
       camera: {
         position: [
-          9.56813731,
-          45.80280017,
-          48086.58705
+          6.13281869,
+          50.58268639,
+          6276.02395
         ],
-        heading: 2.24,
-        tilt: 56.44
+        heading: 13.25,
+        tilt: 64.40
       },
 
       ui: {
@@ -422,6 +422,22 @@ const ArcGISMap = observer(() => {
       view: view
     });
     view.ui.add(home, "top-right")
+
+    // 3) Once the WebScene (and all its layers) is loaded, grab the layer
+    webscene.when(() => {
+      // e.g. find by title
+      const myLayer = webscene.layers.find(layer => layer.title === "AC_SpecialPoints");
+      // or by id:
+      // const myLayer = webscene.layers.find(layer => layer.id === "riderPositions");
+
+      if (myLayer) {
+        // 4) set your filter
+        myLayer.definitionExpression = "event IN ('gravelrace')";
+
+        // 5) if the view is already showing it you may need to refresh
+        myLayer.refresh();
+      }
+    });
 
     /**
      * Recursively fetches *all* features from a layer by paginating
@@ -527,7 +543,7 @@ const ArcGISMap = observer(() => {
           ]);
         }
       );
-      
+
 
       // Attach a click event to the view.
       view.on("click", (event) => {
