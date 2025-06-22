@@ -216,6 +216,7 @@ const ViewpointNavigator = observer(() => {
         if (!view || !vp.camera) return;
         view.goTo(vp.camera).then(() => setActiveId(vp.id));
     };
+    return null;
 
     return (
         <Container>

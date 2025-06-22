@@ -278,25 +278,6 @@ const ArcGISMap = observer(() => {
     })
 
 
-    const routeShort = new FeatureLayer({
-      portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "e861c9af6e194769b8492a37a89c3984"
-      },
-      elevationInfo: {
-        mode: "on-the-ground"
-      },
-      renderer: {
-        type: "simple",
-        symbol: {
-          type: "simple-line",
-          color: "darkred",
-          width: "4px"
-        }
-      },
-      popupEnabled: false
-    })
-
-
 
     const routeLong = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
@@ -354,7 +335,6 @@ const ArcGISMap = observer(() => {
     });
 
     webscene.layers.add(animatedLayer); // add the animated layer to the webscene
-    webscene.layers.add(routeShort); // add the route layer to the webscene
     webscene.layers.add(routeLong); // add the route layer to the webscene
     webscene.layers.add(specialPointsLabels); // add the special points layer to the webscene 
     webscene.layers.add(specialPointsLabels2); // add the special points layer to the webscene 
