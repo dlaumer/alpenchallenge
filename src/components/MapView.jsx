@@ -364,14 +364,14 @@ const ArcGISMap = observer(() => {
     const view = new SceneView({
       container: mapRef.current,
       map: webscene,
-      camera: {
+      camera:  {
         position: [
-          6.13281869,
-          50.58268639,
-          6276.02395
+          9.56813731,
+          45.80280017,
+          48086.58705
         ],
-        heading: 13.25,
-        tilt: 64.40
+        heading: 2.24,
+        tilt: 56.44
       },
 
       ui: {
