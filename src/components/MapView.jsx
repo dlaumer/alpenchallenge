@@ -89,26 +89,11 @@ const ArcGISMap = observer(() => {
   useEffect(() => {
 
     setLocale(languageStore.language); // <-- apply current language to widgets
-    const latestSimulation = new FeatureLayer({
-      portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "bd2b2a1f294e4ff0a80d62942ec24ece"
-      },
-      elevationInfo: {
-        mode: "on-the-ground"
-      },
-      //definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10','rider_11', 'rider_12', 'rider_13', 'rider_14', 'rider_15', 'rider_16', 'rider_17', 'rider_18', 'rider_19', 'rider_20')",
-      //definitionExpression: "userId IN ('rider_1')",
-      refreshInterval: 0.5,
-      visible: false,
-      popupEnabled: false
-    })
-
-    latestSimulationRef.current = latestSimulation;
-
+    
 
     const posHistory = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "d0a6c13d0fad47df98e76d17f53318f0"
+        id: "47685f87fbbb4d8688754163eed324db"
       },
       //definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10','rider_11', 'rider_12', 'rider_13', 'rider_14', 'rider_15', 'rider_16', 'rider_17', 'rider_18', 'rider_19', 'rider_20')",
       //definitionExpression: "userId IN ('rider_1')",
@@ -122,7 +107,7 @@ const ArcGISMap = observer(() => {
       elevationInfo: {
         mode: "relative-to-ground",
       },
-      definitionExpression: "event IN ('alpenchallenge')",
+      definitionExpression: "event IN ('gravelrace')",
       renderer: pointTypeRenderer,
       popupTemplate: {
         title: "{Label}", // replace with actual attribute name
@@ -315,7 +300,7 @@ const ArcGISMap = observer(() => {
 
     const routeLong = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "dd728d9233574670b2dab5b4cf2dad28"
+        id: "cbbe1fce60b34a25ab45a05d13de444c"
       },
       elevationInfo: {
         mode: "on-the-ground"
@@ -369,7 +354,6 @@ const ArcGISMap = observer(() => {
     });
 
     webscene.layers.add(animatedLayer); // add the animated layer to the webscene
-    webscene.layers.add(latestSimulation); // add the latest simulation layer to the webscene
     webscene.layers.add(routeShort); // add the route layer to the webscene
     webscene.layers.add(routeLong); // add the route layer to the webscene
     webscene.layers.add(specialPointsLabels); // add the special points layer to the webscene 
@@ -457,7 +441,7 @@ const ArcGISMap = observer(() => {
       while (true) {
         // build a fresh Query each time
         const query = layer.createQuery();
-        query.outFields = ["userId", "distance", "ts", "routeIndex", "previousDistance", "previousTs", "previousRouteIndex", "heading", "speed", "latitude", "longitude", "altitude", "previousLatitude", "previousLongitude", "previousAltitude", "snapped", "route", "battery"];
+        query.outFields = ["userId", "distance", "ts", "routeIndex", "previousDistance", "previousTs", "previousRouteIndex", "heading", "speed", "latitude", "longitude", "altitude", "previousLatitude", "previousLongitude", "previousAltitude", "snapped", "route"];
         query.returnGeometry = false;
         query.start = start;                // zero-based offset :contentReference[oaicite:0]{index=0}
         query.num = max;                    // page size
@@ -495,15 +479,6 @@ const ArcGISMap = observer(() => {
       // Request the next animation frame for smooth updates
       animationFrameRef.current = requestAnimationFrame(animate);
     };
-
-    latestSimulation.queryFeatures()
-      .then(results => {
-        riderStore.setRiders(results);
-      })
-      .catch(error => {
-        console.error("Error querying features:", error);
-      });
-
 
 
     const startLoop = () => {
@@ -552,20 +527,7 @@ const ArcGISMap = observer(() => {
           ]);
         }
       );
-      // Watch the layerView's updating property using reactiveUtils.when.
-      latestSimulation.on("refresh", function (event) {
-        if (event.dataChanged) {
-          mapStore.setUpdating(true);
-          // Once the layers is refreshed, query features for new data.
-          latestSimulation.queryFeatures().then((results) => {
-            riderStore.setRiders(results);
-            results = null
-          })
-            .catch(error => {
-              console.error("Error querying features:", error);
-            });
-        }
-      });
+      
 
       // Attach a click event to the view.
       view.on("click", (event) => {
@@ -608,9 +570,9 @@ const ArcGISMap = observer(() => {
             console.log("⚠️ Data is stale, switching to replay mode");
 
             mapStore.setReplayMode(true);
-            mapStore.setTimeReference(1749790920 * 1000);
+            mapStore.setTimeReference(startTs);
             mapStore.setTimeReferenceAnimation(Date.now());
-            mapStore.setTime(1749790920 * 1000);
+            mapStore.setTime(startTs);
             mapStore.setReplayType("post-event")
           } else {
             console.log("✅ Live data available");
@@ -710,12 +672,8 @@ const ArcGISMap = observer(() => {
     if (viewRef.current && !mapStore.isFollowing && mapStore.riderSelected) {
       const interpolated = riderStore.getInterpolatedPosition(mapStore.riderSelected)
       if (!interpolated) return;
-
-      mapStore.togglePlaying();
       viewRef.current.goTo({
         center: [interpolated.longitude, interpolated.latitude], zoom: 16,
-      }).then(() => {
-        mapStore.togglePlaying()
       })
     }
   }, [

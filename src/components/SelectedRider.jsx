@@ -156,7 +156,6 @@ const SelectedRider = observer(() => {
   if (!riderId) return null;
 
   const riderData = riderStore.replayCache[riderId]?.after;
-  if (!riderData) return null;
   if (riderId === mapStore.riderFollowed) return null;
 
   const info = riders_info[riderId];
@@ -165,7 +164,7 @@ const SelectedRider = observer(() => {
   const country = meta ? meta.name : info?.Nationality || "";
   const speed = (riderData?.speed ?? 0).toFixed(1);
   const altitude = (riderData?.altitude ?? 0).toFixed(0);
-  const batteryLevel = (riderData?.battery *100 ?? 0).toFixed(0);
+  const batteryLevel = (riderData?.battery * 100 ?? 0).toFixed(0);
 
   let BatteryIcon = BatteryLow;
   if (batteryLevel >= 66) BatteryIcon = BatteryFull;
@@ -184,10 +183,10 @@ const SelectedRider = observer(() => {
   const color = isFollowing
     ? uiStore.colorFollowing
     : isStaff
-    ? uiStore.colorStaff
-    : isFavorited
-    ? uiStore.colorFavorites
-    : uiStore.colorNormal;
+      ? uiStore.colorStaff
+      : isFavorited
+        ? uiStore.colorFavorites
+        : uiStore.colorNormal;
 
   const flag = meta?.flag;
 
@@ -249,7 +248,9 @@ const SelectedRider = observer(() => {
 
         {Toast}
 
-        <CloseButton $isMobile={isMobile} onClick={() => mapStore.setRiderSelected(null)}>
+        <CloseButton $isMobile={isMobile} onClick={
+          () => mapStore.setRiderSelected(null)
+        }>
           <XIcon size={20} color="#ffffff" />
         </CloseButton>
       </RightGroup>
