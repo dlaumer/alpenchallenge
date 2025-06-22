@@ -432,7 +432,7 @@ const ArcGISMap = observer(() => {
 
       if (myLayer) {
         // 4) set your filter
-        myLayer.definitionExpression = "event IN ('gravelrace')";
+        myLayer.definitionExpression = "event IN ('alpenchallenge')";
 
         // 5) if the view is already showing it you may need to refresh
         myLayer.refresh();
