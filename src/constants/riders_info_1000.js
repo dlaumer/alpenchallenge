@@ -838,5 +838,26 @@ export const riders_info = {
     "Category": "staff",
     "Nationality": "CH",
     "Startnummer": "Foto"
+  },
+    "dacac347-390a-4e2c-8998-819a1cb74917": {
+    "FirstName": "Clemens",
+    "LastName": "Moonen",
+    "Category": "male",
+    "Nationality": "DE",
+    "Startnummer": "unb1"
+  },
+  "5c122e7f-3a3a-4532-9647-2717677d053d": {
+    "FirstName": "Oliver",
+    "LastName": "Ennig (ZRG-R)",
+    "Category": "male",
+    "Nationality": "DE",
+    "Startnummer": "unb2"
+  },
+  "07811be5-c9b2-4d32-8e20-df2189ae60e5": {
+    "FirstName": "Thomas",
+    "LastName": "Schroeder",
+    "Category": "male",
+    "Nationality": "DK",
+    "Startnummer": "unb3"
   }
 }
