@@ -93,7 +93,7 @@ const ArcGISMap = observer(() => {
 
     const posHistory = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "2e9edfba1e4e4f50bd97e6340687dc7e"
+        id: "a961acf8fbdb4edfb454829e678c64d6"
       },
       //definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10','rider_11', 'rider_12', 'rider_13', 'rider_14', 'rider_15', 'rider_16', 'rider_17', 'rider_18', 'rider_19', 'rider_20')",
       //definitionExpression: "userId IN ('rider_1')",
