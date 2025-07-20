@@ -93,7 +93,7 @@ const ArcGISMap = observer(() => {
 
     const posHistory = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "47685f87fbbb4d8688754163eed324db"
+        id: "d6c2d96452d3483693f54819bef9673d"
       },
       //definitionExpression: "userId IN ('rider_1', 'rider_2', 'rider_3', 'rider_4', 'rider_5', 'rider_6', 'rider_7', 'rider_8', 'rider_9', 'rider_10','rider_11', 'rider_12', 'rider_13', 'rider_14', 'rider_15', 'rider_16', 'rider_17', 'rider_18', 'rider_19', 'rider_20')",
       //definitionExpression: "userId IN ('rider_1')",
@@ -104,7 +104,7 @@ const ArcGISMap = observer(() => {
 
     const routeLong = new FeatureLayer({
       portalItem: {  // autocasts as esri/portal/PortalItem
-        id: "cbbe1fce60b34a25ab45a05d13de444c"
+        id: "bd6f191533404f06b1cef4aaa933ff05"
       },
       elevationInfo: {
         mode: "on-the-ground"
@@ -159,18 +159,18 @@ const ArcGISMap = observer(() => {
 
     webscene.layers.add(animatedLayer); // add the animated layer to the webscene
     webscene.layers.add(routeLong); // add the route layer to the webscene
-    
+
     const view = new SceneView({
       container: mapRef.current,
       map: webscene,
       camera: {
         position: [
-          6.13281869,
-          50.58268639,
-          6276.02395
+          12.03367329,
+          45.54548387,
+          36976.92539
         ],
-        heading: 13.25,
-        tilt: 64.40
+        heading: 13.13,
+        tilt: 59.79
       },
 
       ui: {
@@ -224,7 +224,7 @@ const ArcGISMap = observer(() => {
 
     // 3) Once the WebScene (and all its layers) is loaded, grab the layer
     webscene.when(() => {
-        webscene.basemap = "topo-3d";
+      webscene.basemap = "topo-3d";
 
       // e.g. find by title
       const myLayer = webscene.layers.find(layer => layer.title === "AC_SpecialPoints");
@@ -233,7 +233,7 @@ const ArcGISMap = observer(() => {
 
       if (myLayer) {
         // 4) set your filter
-        myLayer.definitionExpression = "event IN ('gravelrace')";
+        myLayer.definitionExpression = "event IN ('dolomitica')";
 
         // 5) if the view is already showing it you may need to refresh
         myLayer.refresh();

@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   assetsInclude: ['**/*.glb'],
-  base: process.env.VITE_BASE_PATH || '/GravelRaceReplay/',
+  base: process.env.VITE_BASE_PATH || '/dolomitica/180/',
   build: {
     outDir: "dist",
     emptyOutDir: true,

@@ -7,10 +7,8 @@ import { getTranslation } from "../utils/getTranslation";
 import mapStore from "../store/mapStore"; // required for updating state
 import { useEffect, useState } from "react";
 
-import logo from "../assets/logo.png";
 import logoActyvo from "../assets/actyvo_transparent.png";
 
-import logoSmall from "../assets/logo_small.png";
 import logoActyvoSmall from "../assets/actyvo_transparent_small.png";
 import enFlag from "../assets/flags/en.png";
 import deFlag from "../assets/flags/de.png";
@@ -230,12 +228,10 @@ const Header = observer(() => {
   return (
     <HeaderContainer>
       <LeftSection>
-        <a style={{ display: "flex" }} href="https://www.alpenchallengelenzerheide.ch/" target="_blank" rel="noopener noreferrer">
-          <Logo src={isMobile ? logoSmall : logo} alt="Logo" />
-        </a>
         <a style={{ display: "flex" }} href="https://www.actyvo.app/" target="_blank" rel="noopener noreferrer">
           <Logo src={isMobile ? logoActyvoSmall : logoActyvo} alt="LogoActyvo" />
         </a>
+        Dolomitica 180
       </LeftSection>
       <LiveTitleWrapper onClick={() => { window.location.search = ""; }}>
         <LiveDot $animate={animateDot} />

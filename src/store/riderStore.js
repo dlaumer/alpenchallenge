@@ -1,7 +1,6 @@
 import { makeAutoObservable } from "mobx";
 import mapStore from "../store/mapStore";
 import uiStore from "../store/uiStore";
-import routeStoreShort from "./routeStoreShort.js";
 import routeStoreLong from "./routeStoreLong.js";
 import { act } from "react";
 import { riders_info } from '../constants/riders_info_1000';
@@ -20,17 +19,15 @@ class RiderStore {
   routeStores = {}
   constructor() {
 
-    this.routeStores = { "short": routeStoreShort, "long": routeStoreLong };
+    this.routeStores = { "long": routeStoreLong };
     makeAutoObservable(this);
 
-    this.routeStores["short"].initialize()
+
+    this.routeStores["long"].initialize()
       .then(() => {
-        this.routeStores["long"].initialize()
-          .then(() => {
-            console.log(
-              `✅ routeStore loaded ${this.routeStores["short"].count + this.routeStores["long"].count} vertices`
-            );
-          })
+        console.log(
+          `✅ routeStore loaded ${this.routeStores["long"].count} vertices`
+        );
       })
       .catch((err) => {
         console.error("Failed to load route vertices", err);
@@ -102,14 +99,14 @@ class RiderStore {
       routeIndex: attributes.routeIndex,
       latitude: attributes.latitude,
       longitude: attributes.longitude,
-      altitude: attributes.altitude,
+      altitude: attributes.altitude/1000,
 
       previousDistance: attributes.previousDistance,
       previousTs: attributes.previousTs * 1000,
       previousRouteIndex: attributes.previousRouteIndex,
       previousLatitude: attributes.previousLatitude,
       previousLongitude: attributes.previousLongitude,
-      previousAltitude: attributes.previousAltitude,
+      previousAltitude: attributes.previousAltitude/1000,
 
       heading: attributes.heading,
       speed: attributes.speed,
@@ -138,8 +135,8 @@ class RiderStore {
 
     }
     else {
-      const {before, after} = this.findNearestTimestamps(riderTimestamps, mapStore.time);
-      data = {before: riderData[before], after:riderData[after]};
+      const { before, after } = this.findNearestTimestamps(riderTimestamps, mapStore.time);
+      data = { before: riderData[before], after: riderData[after] };
 
       this.replayCache[riderId] = data;
     }
